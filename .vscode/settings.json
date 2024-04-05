@@ -1,0 +1,60 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "better-comments.tags": [
+        // Indicate important comments
+        {
+            "tag": "!",
+            "color": "#FF2D00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        },
+
+        //Indicates testing a block of code
+        {
+            "tag": "?",
+            "color": "#3498DB",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        },
+
+        // Indicate notes
+        {
+            "tag": "//",
+            "color": "#474747",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        },
+
+        // Indicate TODO comments
+        {
+            "tag": "TODO",
+            "color": "#FF8C00",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        },
+
+        // Indicate critical comments
+        {
+            "tag": "*",
+            "color": "#98C379",
+            "strikethrough": false,
+            "underline": false,
+            "backgroundColor": "transparent",
+            "bold": false,
+            "italic": false
+        }
+    ],
+    "java.compile.nullAnalysis.mode": "disabled"
+}

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1002270145809",
+    "project_id": "cp-asset-inspections",
+    "storage_bucket": "cp-asset-inspections.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002270145809:android:07163dd2d988f73d6560b0",
+        "android_client_info": {
+          "package_name": "com.acuren523.asset_inspections"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1002270145809-bjohe3ig3t53e0ps35oep76cnmvoqsvt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDz3ufmb5LDykEULn0kL6KkOelB50ccRGw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1002270145809-bjohe3ig3t53e0ps35oep76cnmvoqsvt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

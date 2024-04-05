@@ -1,0 +1,292 @@
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class BluetoothManager with ChangeNotifier {
+  // ... [Your previous variables and methods]
+
+  static const String _storedDeviceKey = 'storedDeviceId';
+
+  // Method to save a connected device for later reconnection
+  Future<void> saveConnectedDevice(BluetoothDevice device) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_storedDeviceKey, device.id.toString());
+  }
+
+  // Method to retrieve and connect to a saved device without scanning
+  Future<void> connectToSavedDevice() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? deviceId = prefs.getString(_storedDeviceKey);
+
+    if (deviceId != null && deviceId.isNotEmpty) {
+      // Retrieve a reference to the device using its id
+      BluetoothDevice? device = await FlutterBluePlus.instance.connectedDevices.then(
+        (devices) => devices.firstWhere(
+          (d) => d.id.toString() == deviceId,
+          orElse: () => null,
+        ),
+      );
+
+      if (device != null) {
+        await connectToDevice(device);
+      } else {
+        print('Saved device not found or not connected.');
+        // Optionally, start a scan if the saved device is not available
+        // await startBluetoothScan();
+      }
+    }
+  }
+
+  @override
+  Future<void> connectToDevice(BluetoothDevice device) async {
+    try {
+      await device.connect();
+      deviceStateNotifier.value = BluetoothConnectionState.connected;
+
+      // Save the connected device for future automatic reconnections
+      await saveConnectedDevice(device);
+
+      List<BluetoothService> services = await discoverServices(device);
+      var pokitPro = PokitProModel(device, services);
+      pokitProModel = pokitPro; 
+
+      await pokitPro.initializePokitServices();
+      notifyListeners();
+    } catch (e) {
+      print('Failed to connect to device: $e');
+    }
+  }
+
+  // ... [Rest of your code]
+}
+
+
+
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class BluetoothManager with ChangeNotifier {
+  static final BluetoothManager instance = BluetoothManager._();
+
+  BluetoothManager._();
+
+  final ValueNotifier<BluetoothConnectionState> deviceStateNotifier = ValueNotifier(BluetoothConnectionState.disconnected);
+  final ValueNotifier<List<BluetoothDevice>> availableDevicesNotifier = ValueNotifier<List<BluetoothDevice>>([]);
+
+  // Stores multiple connected devices
+  List<BluetoothDevice> _connectedDevices = [];
+
+  // Add a map to handle multiple device states
+  Map<String, BluetoothConnectionState> deviceStates = {};
+
+  // ... [Your previous variables and methods]
+
+  static const String _storedDevicesKey = 'storedDeviceIds'; // Change to handle multiple device IDs
+
+  // Save connected devices
+  Future<void> saveConnectedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> deviceIds = _connectedDevices.map((device) => device.id.toString()).toList();
+    await prefs.setStringList(_storedDevicesKey, deviceIds);
+  }
+
+  // Retrieve and connect to saved devices
+  Future<void> connectToSavedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? deviceIds = prefs.getStringList(_storedDevicesKey);
+
+    if (deviceIds != null) {
+      for (String deviceId in deviceIds) {
+        BluetoothDevice? device = await FlutterBluePlus.instance.connectedDevices.then(
+          (devices) => devices.firstWhere(
+            (d) => d.id.toString() == deviceId,
+            orElse: () => null,
+          ),
+        );
+
+        if (device != null) {
+          await connectToDevice(device);
+        } else {
+          print('Saved device with id $deviceId not found or not connected.');
+          // Optionally, start a scan if the saved device is not available
+          // await startBluetoothScan();
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> connectToDevice(BluetoothDevice device) async {
+    try {
+      await device.connect();
+      deviceStates[device.id.toString()] = BluetoothConnectionState.connected;
+
+      // Save the connected devices for future automatic reconnections
+      _connectedDevices.add(device);
+      await saveConnectedDevices();
+
+      List<BluetoothService> services = await discoverServices(device);
+      var pokitPro = PokitProModel(device, services);
+      // Handle each device's model and services separately
+      // You might need a map or another way to associate each PokitProModel with its BluetoothDevice
+
+      await pokitPro.initializePokitServices();
+      notifyListeners();
+    } catch (e) {
+      print('Failed to connect to device: $e');
+    }
+  }
+
+  // ... [Rest of your code]
+}
+
+
+
+
+
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class BluetoothManager with ChangeNotifier {
+  static final BluetoothManager instance = BluetoothManager._();
+
+  BluetoothManager._();
+
+  final ValueNotifier<BluetoothConnectionState> deviceStateNotifier = ValueNotifier(BluetoothConnectionState.disconnected);
+  final ValueNotifier<List<BluetoothDevice>> availableDevicesNotifier = ValueNotifier<List<BluetoothDevice>>([]);
+
+  // Stores multiple connected devices
+  List<BluetoothDevice> _connectedDevices = [];
+
+  // Add a map to handle multiple device states
+  Map<String, BluetoothConnectionState> deviceStates = {};
+
+  // ... [Your previous variables and methods]
+
+  static const String _storedDevicesKey = 'storedDeviceIds'; // Change to handle multiple device IDs
+
+  // Save connected devices
+  Future<void> saveConnectedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> deviceIds = _connectedDevices.map((device) => device.id.toString()).toList();
+    await prefs.setStringList(_storedDevicesKey, deviceIds);
+  }
+
+  // Retrieve and connect to saved devices
+  Future<void> connectToSavedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? deviceIds = prefs.getStringList(_storedDevicesKey);
+
+    if (deviceIds != null) {
+      for (String deviceId in deviceIds) {
+        BluetoothDevice? device = await FlutterBluePlus.instance.connectedDevices.then(
+          (devices) => devices.firstWhere(
+            (d) => d.id.toString() == deviceId,
+            orElse: () => null,
+          ),
+        );
+
+        if (device != null) {
+          await connectToDevice(device);
+        } else {
+          print('Saved device with id $deviceId not found or not connected.');
+          // Optionally, start a scan if the saved device is not available
+          // await startBluetoothScan();
+        }
+      }
+    }
+  }
+
+  @override
+  Future<void> connectToDevice(BluetoothDevice device) async {
+    try {
+      await device.connect();
+      deviceStates[device.id.toString()] = BluetoothConnectionState.connected;
+
+      // Save the connected devices for future automatic reconnections
+      _connectedDevices.add(device);
+      await saveConnectedDevices();
+
+      List<BluetoothService> services = await discoverServices(device);
+      var pokitPro = PokitProModel(device, services);
+      // Handle each device's model and services separately
+      // You might need a map or another way to associate each PokitProModel with its BluetoothDevice
+
+      await pokitPro.initializePokitServices();
+      notifyListeners();
+    } catch (e) {
+      print('Failed to connect to device: $e');
+    }
+  }
+
+  // ... [Rest of your code]
+}
+
+
+
+
+
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class BluetoothChannel {
+  final BluetoothDevice device;
+  BluetoothConnectionState connectionState;
+  PokitProModel? pokitProModel;
+  // Add other properties as per your requirements
+
+  BluetoothChannel({required this.device, this.connectionState = BluetoothConnectionState.disconnected});
+}
+
+class BluetoothManager with ChangeNotifier {
+  static final BluetoothManager instance = BluetoothManager._();
+
+  BluetoothManager._();
+
+  final ValueNotifier<List<BluetoothDevice>> availableDevicesNotifier = ValueNotifier<List<BluetoothDevice>>([]);
+
+  // Stores channels with their associated devices
+  Map<int, BluetoothChannel> _channels = {};
+
+  // ... [Your previous variables and methods]
+
+  // Method to save connected devices with their channels
+  Future<void> saveConnectedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> deviceIds = _channels.values.map((channel) => channel.device.id.toString()).toList();
+    // Save other channel-related information if needed
+    await prefs.setStringList(_storedDevicesKey, deviceIds);
+  }
+
+  // Retrieve and connect to saved devices
+  Future<void> connectToSavedDevices() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? deviceIds = prefs.getStringList(_storedDevicesKey);
+
+    // ... existing code ...
+
+    // After connecting to a device
+    if (device != null) {
+      await connectToDevice(device, channelNumber); // Pass the channel number as an argument
+    }
+  }
+
+  // Connect to device and assign it to a channel
+  Future<void> connectToDevice(BluetoothDevice device, int channelNumber) async {
+    try {
+      await device.connect();
+      // Create and configure a new channel for the device
+      BluetoothChannel channel = BluetoothChannel(device: device, connectionState: BluetoothConnectionState.connected);
+      
+      // ... existing device setup code ...
+
+      // Assign the device and its related data to the specified channel
+      _channels[channelNumber] = channel;
+
+      notifyListeners();
+    } catch (e) {
+      print('Failed to connect to device: $e');
+    }
+  }
+
+  // ... [Rest of your code]
+}
