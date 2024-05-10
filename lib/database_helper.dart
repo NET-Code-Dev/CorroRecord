@@ -4,12 +4,16 @@
 // To Pull Database from Device:
 // adb -d shell "run-as com.acuren523.asset_inspections cat /data/data/com.acuren523.asset_inspections/databases/project_database1.db" > /Users/darrell/Desktop/Project_Database.db
 
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:asset_inspections/Models/camera_model.dart';
 import 'package:flutter/services.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as pth;
+//import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart' as permission_handler;
 import 'package:sqflite/sqflite.dart';
 
 import 'Models/project_model.dart';
@@ -251,7 +255,7 @@ class DatabaseHelper {
   /// Throws a [MissingPluginException] if the required plugin is missing.
   /// Throws a [DatabaseException] if there is an error with the database.
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), databaseName);
+    String path = pth.join(await getDatabasesPath(), databaseName);
     try {
       return await openDatabase(
         path,
@@ -400,6 +404,8 @@ class DatabaseHelper {
         status TEXT,
         latitude REAL,
         longitude REAL,
+        officeNotes TEXT,
+        fieldNotes TEXT,
         picturePath TEXT,
         FOREIGN KEY ($columnProjectNameID) REFERENCES projectNames (id) ON DELETE CASCADE
       )
@@ -423,97 +429,116 @@ class DatabaseHelper {
     Map<String, String> tableCreationQueries = {
       'PermRefContainers': '''
       CREATE TABLE IF NOT EXISTS PermRefContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
         type TEXT,
-        order_index INTEGER,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'AnodeContainers': '''
       CREATE TABLE IF NOT EXISTS AnodeContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
         current REAL,
         current_Date TEXT,
-        order_index INTEGER,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'PLTestLeadContainers': '''
       CREATE TABLE IF NOT EXISTS PLTestLeadContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
-        order_index INTEGER,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'TestLeadContainers': '''
       CREATE TABLE IF NOT EXISTS TestLeadContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
-        order_index INTEGER,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'RiserContainers': '''
       CREATE TABLE IF NOT EXISTS RiserContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
-        order_index INTEGER,
+        pipe_Diameter TEXT,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'ForeignContainers': '''
       CREATE TABLE IF NOT EXISTS ForeignContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
         voltsOFF_Date TEXT,
-        order_index INTEGER,
+        field_Label TEXT,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'CouponContainers': '''
       CREATE TABLE IF NOT EXISTS CouponContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         voltsON REAL,
         voltsON_Date TEXT,
         voltsOFF REAL,
@@ -523,16 +548,19 @@ class DatabaseHelper {
         connected_to TEXT,
         type TEXT,
         coupon_size TEXT,
-        order_index INTEGER,
+        wireColor TEXT,
+        lugNumber INTEGER,
+        waveForm TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'ShuntContainers': '''
       CREATE TABLE IF NOT EXISTS ShuntContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         side_a TEXT,
         side_b TEXT,
         ratio_mv REAL,
@@ -542,38 +570,38 @@ class DatabaseHelper {
         voltage_drop_Date TEXT,
         calculated REAL,
         calculated_Date TEXT,
-        order_index INTEGER,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'IsolationContainers': '''
       CREATE TABLE IF NOT EXISTS IsolationContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         side_a TEXT,
         side_b TEXT,
         type TEXT,
-        shorted BOOL,
+        iso_condition TEXT,
         shorted_Date TEXT,
         current REAL,
         current_Date TEXT,
-        order_index INTEGER,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
       'BondContainers': '''
       CREATE TABLE IF NOT EXISTS BondContainers (
-          id INTEGER PRIMARY KEY,
-          $columnStationID INTEGER,
-          $columnTestStationID TEXT,
-          name TEXT,
+        id INTEGER PRIMARY KEY,
+        $columnStationID INTEGER,
+        $columnTestStationID TEXT,
+        order_index INTEGER,
+        name TEXT,
         side_a TEXT,
         side_b TEXT,
         current REAL,
         current_Date TEXT,
-        order_index INTEGER,
+        field_Label TEXT,
           FOREIGN KEY (stationID) REFERENCES TestStations (id) ON DELETE CASCADE
       )
     ''',
@@ -619,6 +647,38 @@ class DatabaseHelper {
       dataDisplayOrder TEXT
     )
   ''');
+  }
+
+  Future<void> requestStoragePermission() async {
+    permission_handler.PermissionStatus status = await permission_handler.Permission.storage.status;
+    if (!status.isGranted) {
+      await permission_handler.Permission.storage.request();
+    }
+  }
+
+  Future<void> copyDatabaseToDownloads() async {
+    // Check storage permission
+    await requestStoragePermission();
+
+    // Get the current database path
+    String currentPath = pth.join(await getDatabasesPath(), 'project_database1.db');
+
+    // Get the Downloads directory path
+    Directory downloadsDirectory = Directory('/storage/emulated/0/Download');
+    String downloadsPath = pth.join(downloadsDirectory.path, 'project_database1.db');
+
+    // Ensure the Downloads directory exists
+    if (!downloadsDirectory.existsSync()) {
+      downloadsDirectory.createSync(recursive: true);
+    }
+
+    // Copy the file from the current location to the Downloads directory
+    try {
+      File newFile = await File(currentPath).copy(downloadsPath);
+      print('Database copied to Downloads: ${newFile.path}');
+    } catch (e) {
+      print('Failed to copy database: $e');
+    }
   }
 
   /// Retrieves the latest project from the 'projectNames' table in the database.

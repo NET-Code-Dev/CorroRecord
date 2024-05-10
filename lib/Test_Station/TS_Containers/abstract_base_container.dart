@@ -22,6 +22,7 @@ import 'package:asset_inspections/database_helper.dart';
 ///
 /// Subclasses of [BaseContainer] should override the [createState] method to return
 /// an instance of [BaseContainerState].
+
 abstract class BaseContainer<T> extends StatefulWidget {
   final List<T> readings;
   final ValueChanged<T>? onReadingUpdated;
@@ -67,6 +68,53 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   DateTime? initialVoltsOFFDate;
   bool showGraph = false;
 
+  //* Common variables for containers with Wire Color & Lug Number dropdowns
+  String? selectedWireColor;
+  String? lastSavedWireColor;
+  int? selectedLugNumber;
+  int? lastSavedLugNumber;
+  List<String> wireColors = [
+    "Black",
+    "Green",
+    "White",
+    "Yellow",
+    "Red",
+    "Light Blue",
+    "Dark Blue",
+    "White w/ Red",
+    "White w/ Black",
+    "Black w/ Red",
+    "Green w/ Yellow"
+  ];
+  Map<String, List<Color>> colorMap = {
+    "Black": [Colors.black],
+    "Green": [Colors.green],
+    "White": [Colors.white],
+    "Yellow": [Colors.yellow],
+    "Red": [Colors.red],
+    "Light Blue": [Colors.lightBlue],
+    "Dark Blue": [Colors.blue[800]!],
+    "White w/ Red": [Colors.white, Colors.red],
+    "White w/ Black": [Colors.white, Colors.black],
+    "Black w/ Red": [Colors.black, Colors.red],
+    "Green w/ Yellow": [Colors.green, Colors.yellow],
+  };
+
+// Method to create a color display widget
+  Widget colorDisplay(String colorKey) {
+    List<Color> colors = colorMap[colorKey]!;
+    return Row(
+      children: colors
+          .map((color) => Expanded(
+                child: Container(
+                  color: color,
+                  height: 12,
+                ),
+              ))
+          .toList(),
+    );
+  }
+
   //* Common variables for containers with Shunt calculations
   List<String> fullNamesList = [];
   String? selectedSideA;
@@ -89,6 +137,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   FocusNode nameFocusNode = FocusNode();
   FocusNode? onFocusNode;
   FocusNode? offFocusNode;
+  FocusNode wireColorNode = FocusNode();
+  FocusNode lugNumberNode = FocusNode();
 
   FocusNode? ratioMVFocusNode;
   FocusNode? ratioAmpsFocusNode;
@@ -105,12 +155,35 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
 
     initializeControllers();
     initializeFocusNodes();
+    // initializeWireColorAndLugNumber();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       initializeAsyncData();
     });
   }
 
+/*
+  void initializeWireColorAndLugNumber() {
+    if (containerName == 'PLTestLeadContainers' ||
+        containerName == 'TestLeadContainers' ||
+        containerName == 'ForeignContainers' ||
+        containerName == 'PermRefContainers' ||
+        containerName == 'AnodeContainers' ||
+        containerName == 'CouponContainers') {
+      wireColorNode.addListener(_handleWireColorFocusChange);
+      lugNumberNode.addListener(_handleLugNumberFocusChange);
+
+      // Initialize selectedWireColor
+      if (widget.readings.isNotEmpty && widget.readings[0].wireColor != null) {
+        selectedWireColor = widget.readings[0].wireColor;
+      }
+      // Initialize selectedLugNumber
+      if (widget.readings.isNotEmpty && widget.readings[0].lugNumber != null) {
+        selectedLugNumber = widget.readings[0].lugNumber;
+      }
+    }
+  }
+*/
   /// Initializes the asynchronous data for the abstract base container.
   /// - Assigns the value of `widget.currentTestStation` to the `currentTestStation` variable.
   /// - Sets the value of the [nameController] based on the first reading's name in the [widget.readings] list, or an empty string if the list is empty.
@@ -244,6 +317,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'CouponContainers') {
       onFocusNode = FocusNode();
       offFocusNode = FocusNode();
+      wireColorNode = FocusNode();
+      lugNumberNode = FocusNode();
     } else if (containerName == 'ShuntContainers') {
       ratioMVFocusNode = FocusNode();
       ratioAmpsFocusNode = FocusNode();
@@ -258,7 +333,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   void setUpFocusNodes() {
     nameFocusNode.addListener(() {
       if (!nameFocusNode.hasFocus) {
-        saveOrUpdateReading(containerName);
+        saveOrUpdateReading(containerName, []);
       }
     });
 
@@ -272,12 +347,22 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'CouponContainers') {
       onFocusNode?.addListener(() {
         if (!onFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
       offFocusNode?.addListener(() {
         if (!offFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
+        }
+      });
+      wireColorNode.addListener(() {
+        if (!wireColorNode!.hasFocus) {
+          saveOrUpdateReading(containerName, []);
+        }
+      });
+      lugNumberNode.addListener(() {
+        if (!lugNumberNode!.hasFocus) {
+          saveOrUpdateReading(containerName, []);
         }
       });
     }
@@ -286,32 +371,47 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     else if (containerName == 'ShuntContainers') {
       ratioMVFocusNode?.addListener(() {
         if (!ratioMVFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
       ratioAmpsFocusNode?.addListener(() {
         if (!ratioAmpsFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
       factorFocusNode?.addListener(() {
         if (!factorFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
       vDropFocusNode?.addListener(() {
         if (!vDropFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
       calculatedFocusNode?.addListener(() {
         if (!calculatedFocusNode!.hasFocus) {
-          saveOrUpdateReading(containerName);
+          saveOrUpdateReading(containerName, []);
         }
       });
     }
   }
 
+/*
+  void _handleWireColorFocusChange() {
+    if (!wireColorNode.hasFocus) {
+      // Trigger function when the dropdown loses focus
+      saveOrUpdateReading(containerName, []);
+    }
+  }
+
+  void _handleLugNumberFocusChange() {
+    if (!lugNumberNode.hasFocus) {
+      // Trigger function when the dropdown loses focus
+      saveOrUpdateReading(containerName, []);
+    }
+  }
+*/
   @override
   void dispose() {
     // Dispose of all the controllers and focus nodes
@@ -331,6 +431,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     factorFocusNode?.dispose();
     vDropFocusNode?.dispose();
     calculatedFocusNode?.dispose();
+    wireColorNode.dispose();
+    lugNumberNode.dispose();
     super.dispose();
   }
 
@@ -387,7 +489,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   ///
   /// The reading information is then passed to the [performDbOperation] method
   /// to perform the database operation.
-  void saveOrUpdateReading(String containerName) {
+  void saveOrUpdateReading(String containerName, List<String> waveForm) {
     int id = widget.currentTestStation.id ?? 0;
     String tsID = widget.currentTestStation.tsID;
     int currentOrderIndex = orderIndex!;
@@ -402,6 +504,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       'testStationID': tsID,
       'name': nameController.text,
       'order_index': currentOrderIndex,
+      'waveForm': waveForm.join(';'),
     };
 
     if (containerName == 'PLTestLeadContainers' ||
@@ -411,6 +514,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'PermRefContainers' ||
         containerName == 'AnodeContainers' ||
         containerName == 'CouponContainers') {
+      readingMap['waveForm'] = waveForm.join(';');
       if (userEditedOn) {
         readingMap['voltsON'] = double.tryParse(onController?.text ?? '');
         readingMap['voltsON_Date'] = currentTime;
@@ -420,6 +524,17 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         readingMap['voltsOFF'] = double.tryParse(offController?.text ?? '');
         readingMap['voltsOFF_Date'] = currentTime;
       }
+
+      if (selectedWireColor != lastSavedWireColor) {
+        lastSavedWireColor = selectedWireColor;
+        readingMap['wireColor'] = selectedWireColor;
+      }
+
+      if (selectedLugNumber != lastSavedLugNumber) {
+        lastSavedLugNumber = selectedLugNumber;
+        readingMap['lugNumber'] = selectedLugNumber;
+      }
+
       userEditedOn = false;
       userEditedOff = false;
     } else if (containerName == 'ShuntContainers') {
@@ -574,9 +689,15 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   /// - The [shuntCalculationRows] parameter is a widget that represents the shunt calculation rows.
   ///
   /// Returns a [Widget] that represents the abstract base container.
+  //TODO: Add Location Description field
   @protected
   Widget buildContent(BuildContext context,
-      {Widget? onReadingRow, Widget? offReadingRow, Widget? bottomGraph, Widget? sideAtoSideB, Widget? shuntCalculationRows}) {
+      {Widget? onReadingRow,
+      Widget? offReadingRow,
+      Widget? wireColorAndLugNumberRow,
+      Widget? bottomGraph,
+      Widget? sideAtoSideB,
+      Widget? shuntCalculationRows}) {
     SizedBox(height: 5.h);
     return Column(
       children: [
@@ -626,7 +747,9 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               SizedBox(height: 5.h),
               if (onReadingRow != null) onReadingRow, // Include the onReadingRow if provided
               //SizedBox(height: 10.h),
-              if (offReadingRow != null) offReadingRow, // Include the offReadingRow if provided
+              if (offReadingRow != null) offReadingRow,
+
+              if (wireColorAndLugNumberRow != null) wireColorAndLugNumberRow, // Include the offReadingRow if provided
               //SizedBox(height: 10.h),
               if (bottomGraph != null) bottomGraph, // Include the bottomGraph if provided
               //SizedBox(height: 10.h),
@@ -765,7 +888,9 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 controller: offController,
                 multimeterService: MultimeterService.instance,
                 onTimerStatusChanged: handleTimerStatusChangedOFF,
-                onSaveOrUpdate: saveOrUpdateReading,
+                onSaveOrUpdate: (String value) {
+                  saveOrUpdateReading(value, []);
+                },
                 containerName: containerName,
               ),
             const Spacer(),
@@ -825,7 +950,116 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               ),
             ],
           ),
-        SizedBox(height: 1.h),
+        SizedBox(height: 12.h),
+      ],
+    );
+  }
+
+  Widget buildWireColorAndLugNumberRow(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          flex: 3,
+          // Ensures the dropdown takes up available space and has bounded constraints
+          child: Container(
+            height: 40.h,
+            //  width: 140.w,
+            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+            decoration: BoxDecoration(
+              color: Colors.white, // White background color
+              borderRadius: BorderRadius.circular(4.0), // Rounded corners
+              border: Border.all(color: Colors.grey[300]!), // Grey border
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButtonFormField<String>(
+                dropdownColor: Colors.grey[200],
+                value: selectedWireColor,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedWireColor = newValue;
+                  });
+                },
+                focusNode: wireColorNode,
+                style: TextStyle(color: Colors.black, fontSize: 14.sp),
+                decoration: InputDecoration(
+                  hintText: 'Wire Color',
+                  hintStyle: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  border: OutlineInputBorder(
+                    // Minimal border adjustments
+                    borderRadius: BorderRadius.circular(4.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 5.h), // Reduced padding
+                  alignLabelWithHint: true,
+                ),
+                items: colorMap.keys.map<DropdownMenuItem<String>>((String colorKey) {
+                  return DropdownMenuItem<String>(
+                    value: colorKey,
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 15,
+                          height: 15,
+                          margin: const EdgeInsets.only(right: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(2),
+                            border: Border.all(color: Colors.black, width: 1), // Black border
+                          ),
+                          child: colorDisplay(colorKey),
+                        ),
+                        Text(colorKey),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: 15.w),
+        Expanded(
+          flex: 2,
+          child: Container(
+            height: 40.h,
+            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(4.0),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButtonFormField<int>(
+                dropdownColor: Colors.grey[200],
+                menuMaxHeight: 300.h,
+                value: selectedLugNumber,
+                onChanged: (value) {
+                  setState(() {
+                    selectedLugNumber = value;
+                  });
+                },
+                focusNode: lugNumberNode,
+                style: TextStyle(color: Colors.black, fontSize: 14.sp),
+                decoration: InputDecoration(
+                  hintText: 'Lug Number',
+                  hintStyle: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(4.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 2.h), // Adjusted padding
+                  alignLabelWithHint: true,
+                ),
+                items: List<int>.generate(15, (int index) => index + 1).map<DropdownMenuItem<int>>((int number) {
+                  return DropdownMenuItem<int>(
+                    value: number,
+                    child: Text(number.toString()),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -921,7 +1155,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                         setState(() {
                           selectedSideA = newValue;
                         });
-                        saveOrUpdateReading(containerName
+                        saveOrUpdateReading(containerName, []
                             //newValue ?? '', _selectedSideB ?? ''
                             );
                       },
@@ -988,7 +1222,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                         setState(() {
                           selectedSideB = newValue;
                         });
-                        saveOrUpdateReading(containerName
+                        saveOrUpdateReading(containerName, []
                             //_selectedSideA ?? '', newValue ?? ''
                             );
                       },
@@ -1196,6 +1430,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
 }
 
 //TODO: Convert containers to use Polymorphism from this base abstract class
+
+//TODO: Add Location Description to the TestStation
 
 //? Add a field or dropdown to enter the wire color.
 //PLTestLeadContainer (Done)

@@ -93,8 +93,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
   CameraPosition _currentCameraPosition = const CameraPosition(
       target: LatLng(0.0, 0.0), // Default position, update with actual location
       zoom: 14);
-//  MapPosition? _mapPosition = MapPosition.bottomLeft;
-//  MapPosition? _dataPosition = MapPosition.bottomRight;
+  MapPosition? mapPosition = MapPosition.bottomLeft;
+  MapPosition? dataPosition = MapPosition.topLeft;
   static String formatEnumValue(String enumValue) {
     return enumValue
         .replaceAllMapped(RegExp(r'(?<=[a-z])[A-Z]'), (Match match) => ' ${match.group(0)!.toUpperCase()}')
@@ -115,12 +115,13 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _initCamera();
+    _requestPermissionsSequentially();
+    //  _initCamera();
     final cameraSettings = Provider.of<CameraSettings>(context, listen: false);
     cameraSettings.loadCameraSettingsFromDatabase();
-    _startLocationStream();
-    getCurrentLocation();
-    _fetchAndSetCurrentPlacemark();
+    //  _startLocationStream();
+    //  getCurrentLocation();
+    //  _fetchAndSetCurrentPlacemark();
   }
 
   @override
@@ -131,6 +132,40 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     _mapController.dispose();
     super.dispose();
   }
+
+  //*********************************************************
+  Future<void> _requestPermissionsSequentially() async {
+    // Request location permission first
+    PermissionStatus locationPermission = await _requestLocationPermission();
+    if (locationPermission == PermissionStatus.granted) {
+      // Only proceed with camera initialization if location permission is granted
+      await _initCamera();
+      _startLocationStream();
+      getCurrentLocation();
+      _fetchAndSetCurrentPlacemark();
+    } else {
+      _showPermissionErrorDialog('Location Permission Denied',
+          'This app requires location access to function. Please allow location access for this app in your device settings.');
+    }
+  }
+
+  Future<PermissionStatus> _requestLocationPermission() async {
+    bool serviceEnabled = await _location.serviceEnabled();
+    if (!serviceEnabled) {
+      serviceEnabled = await _location.requestService();
+      if (!serviceEnabled) {
+        return PermissionStatus.denied;
+      }
+    }
+
+    PermissionStatus permissionGranted = await _location.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await _location.requestPermission();
+    }
+    return permissionGranted;
+  }
+
+  //*********************************************************
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -272,13 +307,13 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
 
   MapType _getMapType(String mapTypeString) {
     switch (mapTypeString) {
-      case 'Normal':
+      case 'normal':
         return MapType.normal;
-      case 'Satellite':
+      case 'satellite':
         return MapType.satellite;
-      case 'Terrain':
+      case 'terrain':
         return MapType.terrain;
-      case 'Hybrid':
+      case 'hybrid':
         return MapType.hybrid;
       default:
         return MapType.normal; // Default to 'normal' if no match is found
@@ -383,7 +418,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
 
     settings.dataPosition = MapPosition.values.firstWhere(
       (position) => position.toString() == enumString,
-      orElse: () => MapPosition.bottomLeft,
+      orElse: () => MapPosition.topLeft,
     );
   }
 
@@ -428,6 +463,10 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                               setState(() {
                                 // This updates the local dialog UI
                                 settings.isMapOverlayVisible = value;
+                                // Ensure Default position is set when toggled on
+                                if (value) {
+                                  settings.mapPosition ??= MapPosition.bottomLeft; // Default position when toggled ON
+                                }
                               });
                               //  settings.updateMapOverlayVisibility(value);
                               settings.updateCameraSettingsToDatabase();
@@ -455,6 +494,9 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                           onChanged: (value) {
                             setState(() {
                               settings.isDataOverlayVisible = value;
+                              if (value) {
+                                settings.dataPosition ??= MapPosition.topLeft; // Default position when toggled ON
+                              }
                             });
                             settings.updateDataOverlayVisibility(value);
                           },
@@ -961,7 +1003,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(projectClient, style: textStyle),
-                Text('${widget.projectID}', style: textStyle),
+                Text(widget.projectName, style: textStyle),
                 Text('${widget.stationArea}-${widget.stationTSID}', style: textStyle),
                 if (formattedDate != 'None') Text(formattedDate, style: textStyle),
                 if (selectedFormatDescription != 'None') Text(formatAddress(_currentPlacemark, selectedFormatDescription), style: textStyle),

@@ -52,7 +52,12 @@ class _TestLeadContainerState extends BaseContainerState<TestLeadContainer> {
   /// passing the constructed components as parameters.
   @override
   Widget buildContent(BuildContext context,
-      {Widget? onReadingRow, Widget? offReadingRow, Widget? bottomGraph, Widget? sideAtoSideB, Widget? shuntCalculationRows}) {
+      {Widget? onReadingRow,
+      Widget? offReadingRow,
+      Widget? wireColorAndLugNumberRow,
+      Widget? bottomGraph,
+      Widget? sideAtoSideB,
+      Widget? shuntCalculationRows}) {
     final onReading = buildONReadingRow(context);
     final offReading = buildOFFReadingRow(context);
     final bottomGraph = buildBottomGraph(context);

@@ -47,7 +47,12 @@ class _ShuntContainerState extends BaseContainerState<ShuntContainer> {
   /// - The [shuntCalculationRows] parameter is an optional widget for the shunt calculation rows.
   @override
   Widget buildContent(BuildContext context,
-      {Widget? onReadingRow, Widget? offReadingRow, Widget? bottomGraph, Widget? sideAtoSideB, Widget? shuntCalculationRows}) {
+      {Widget? onReadingRow,
+      Widget? offReadingRow,
+      Widget? wireColorAndLugNumberRow,
+      Widget? bottomGraph,
+      Widget? sideAtoSideB,
+      Widget? shuntCalculationRows}) {
     final sidesDropdown = buildSideAtoSideBDropdowns(context);
     final shuntCalculation = buildShuntCalculationRows(context);
 

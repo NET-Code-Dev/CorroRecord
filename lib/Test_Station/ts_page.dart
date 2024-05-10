@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:csv/csv.dart';
@@ -16,10 +17,15 @@ import 'package:asset_inspections/Common_Widgets/gps_location.dart';
 import 'ts_details.dart';
 import '../Common_Widgets/mapview.dart';
 
-class TestStationsPage extends StatelessWidget {
+class TestStationsPage extends StatefulWidget {
   // Stateful widget to hold the test stations page
   const TestStationsPage({Key? key}) : super(key: key); // Ensure key is passed properly to super
 
+  @override
+  createState() => _TestStationsPageState();
+}
+
+class _TestStationsPageState extends State<TestStationsPage> {
   /// Imports a CSV file and adds the test stations to the project.
   ///
   /// This method prompts the user to select a CSV file using a file picker.
@@ -36,7 +42,7 @@ class TestStationsPage extends StatelessWidget {
       int projectID = Provider.of<ProjectModel>(context, listen: false).id;
       // ignore: use_build_context_synchronously
       TSNotifier tsNotifier = Provider.of<TSNotifier>(context, listen: false);
-      List<TestStation> testStations = await parseCsvFromPath(filePath, projectID);
+      List<TestStation> testStations = await parseCsvFromPath(filePath, projectID, context);
       await tsNotifier.addTestStations(testStations, projectID);
     } else {
       // User canceled the picker
@@ -63,26 +69,61 @@ class TestStationsPage extends StatelessWidget {
   /// int projectID = 123;
   /// List<TestStation> testStations = await parseCsvFromPath(filePath, projectID);
   /// ```
-  Future<List<TestStation>> parseCsvFromPath(String filePath, int projectID) async {
+  Future<List<TestStation>> parseCsvFromPath(String filePath, int projectID, BuildContext context) async {
     final csvFile = File(filePath).openRead();
     List<List<dynamic>> rowsAsListOfValues = await csvFile.transform(utf8.decoder).transform(CsvToListConverter()).toList();
 
     List<TestStation> testStations = [];
+    List<int> invalidRows = [];
+    RegExp validPattern = RegExp(r'^[a-zA-Z0-9_-]+$');
+
     for (var i = 1; i < rowsAsListOfValues.length; i++) {
       var row = rowsAsListOfValues[i];
-      String tsstatus = row[2].toString().isEmpty ? 'Unchecked' : row[2];
-      TestStation testStation = TestStation(
-        projectID: projectID, // Use the provided projectID
-        area: row[0], // Adjust indices based on your CSV format
-        tsID: row[1],
-        tsstatus: tsstatus,
-        latitude: row[3],
-        longitude: row[4],
-      );
-      testStations.add(testStation);
+      String area = row[0].toString().trim();
+      String tsID = row[1].toString().trim();
+
+      if (!validPattern.hasMatch(area) || !validPattern.hasMatch(tsID)) {
+        invalidRows.add(i + 1); // Store the row number, accounting for 0-based index
+      }
     }
 
-    return testStations;
+    if (invalidRows.isNotEmpty) {
+      // Inform the user about the invalid rows and do not proceed with the import
+      String errorMessage =
+          "Import aborted!\n\nInvalid characters found in rows: ${invalidRows.join(', ')}. \nOnly alphanumeric characters, underscores and dashes are allowed in columns 1 and 2.\n\nPlease correct the CSV file and try again.";
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Import Error'),
+          content: Text(errorMessage),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        ),
+      );
+      return []; // Return an empty list as nothing should be imported
+    } else {
+      // If all rows are valid, proceed to import the data
+      for (var row in rowsAsListOfValues.skip(1)) {
+        // Skip header if present
+        String tsstatus = row[2].toString().isEmpty ? 'Unchecked' : row[2];
+        TestStation testStation = TestStation(
+          projectID: projectID,
+          area: row[0],
+          tsID: row[1],
+          tsstatus: tsstatus,
+          latitude: row[3],
+          longitude: row[4],
+          fieldNotes: row[5],
+          officeNotes: row[6],
+        );
+        testStations.add(testStation);
+      }
+      return testStations;
+    }
   }
 
   /// Shows an error dialog with the given [message].
@@ -207,7 +248,9 @@ class TestStationsPage extends StatelessWidget {
     );
   }
 
-  @override
+  bool _validateInput(String input) {
+    return RegExp(r'^[a-zA-Z0-9_-]*$').hasMatch(input);
+  }
 
   /// This method builds the widget for the test station page.
   /// It displays a scaffold with a bottom navigation bar that contains buttons for filtering, adding, and viewing the test stations.
@@ -217,6 +260,7 @@ class TestStationsPage extends StatelessWidget {
   /// The IconButton for filtering opens a dialog to select sorting options.
   /// The IconButton for adding opens a dialog to enter the details of a new test station.
   /// The IconButton for viewing the test stations on a map is only enabled if there are test stations available.
+  @override
   Widget build(BuildContext context) {
     // Build method
 //    final testStations = Provider.of<TSNotifier>(context) // Retrieve the test stations from the provider
@@ -361,12 +405,32 @@ class TestStationsPage extends StatelessWidget {
                               TextField(
                                 controller: areaController,
                                 autofocus: true,
-                                decoration: InputDecoration(labelText: 'Pipeline/Service/Area'),
+                                decoration: InputDecoration(
+                                  labelText: 'Pipeline/Service/Area',
+                                  errorText: _validateInput(areaController.text) ? null : "Invalid input. Only alphanumeric, _, and - are allowed.",
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_-]*$')),
+                                ],
+                                onChanged: (value) {
+                                  // Trigger a UI rebuild on change to update the errorText based on the latest input
+                                  setState(() {});
+                                },
                               ),
                               SizedBox(height: 10),
                               TextField(
                                 controller: tsIDController,
-                                decoration: InputDecoration(labelText: 'Test Station ID'),
+                                decoration: InputDecoration(
+                                  labelText: 'Test Station ID',
+                                  errorText: _validateInput(tsIDController.text) ? null : "Invalid input. Only alphanumeric, _, and - are allowed.",
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'^[a-zA-Z0-9_-]+$')),
+                                ],
+                                onChanged: (value) {
+                                  // Trigger a UI rebuild on change to update the errorText based on the latest input
+                                  setState(() {});
+                                },
                               ),
                               SizedBox(height: 10),
                               TextField(
@@ -488,7 +552,6 @@ class TestStationsPage extends StatelessWidget {
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
               )),
-              
           centerTitle: true,
           actions: [
             IconButton(
@@ -547,6 +610,8 @@ class TestStationsPage extends StatelessWidget {
                             projectID,
                             area,
                             tsstatus,
+                            fieldNotes,
+                            officeNotes,
                             plTestLeadReading,
                             permRefReading,
                             anodeReading,

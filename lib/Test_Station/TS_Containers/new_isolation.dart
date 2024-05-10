@@ -41,7 +41,12 @@ class _IsolationContainerState extends BaseContainerState<IsolationContainer> {
 */
   @override
   Widget buildContent(BuildContext context,
-      {Widget? onReadingRow, Widget? offReadingRow, Widget? bottomGraph, Widget? sideAtoSideB, Widget? shuntCalculationRows}) {
+      {Widget? onReadingRow,
+      Widget? offReadingRow,
+      Widget? wireColorAndLugNumberRow,
+      Widget? bottomGraph,
+      Widget? sideAtoSideB,
+      Widget? shuntCalculationRows}) {
     // Call super.buildContent and pass onReading and offReading as parameters
     return super.buildContent(
       context,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:marquee/marquee.dart';
 
 import 'package:asset_inspections/Common_Widgets/gps_location.dart';
 import 'package:asset_inspections/Models/ts_models.dart';
@@ -34,6 +35,8 @@ class TestStationDetailsPage extends StatefulWidget {
       int projectID,
       String area,
       String tsID,
+      String? officeNotes,
+      String fieldNotes,
       PLTestLeadReading pltestleadreading,
       PermRefReading permrefreading,
       AnodeReading anodereading,
@@ -70,9 +73,16 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
 
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
+  final TextEditingController _officeNotesController = TextEditingController();
+  final TextEditingController _fieldNotesController = TextEditingController();
+
+  FocusNode? fieldNotesFocusNode;
 
   double? latitude;
   double? longitude;
+
+  String? officeNotes;
+  String? fieldNotes;
 
   final List<String> tsstatuses = ['Unchecked', 'Pass', 'Attention', 'Issue'];
   int currentTSStatusIndex = 0;
@@ -421,7 +431,40 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       longitude = double.tryParse(_longitudeController.text);
     });
 
+    _setupTextController(_officeNotesController, widget.testStation.officeNotes ?? '', () {
+      officeNotes = _officeNotesController.text;
+    });
+
+    _setupTextController(_fieldNotesController, widget.testStation.fieldNotes ?? '', () {
+      fieldNotes = _fieldNotesController.text;
+    });
+
     _addFocusListener(tslocationFocusNode);
+
+    fieldNotesFocusNode = FocusNode();
+
+    fieldNotesFocusNode!.addListener(() {
+      if (!fieldNotesFocusNode!.hasFocus) {
+        Provider.of<TSNotifier>(context, listen: false).updateTestStation(
+            widget.testStation,
+            widget.testStation.area,
+            widget.testStation.tsID,
+            widget.testStation.tsstatus,
+            widget.testStation.plTestLeadReadings,
+            widget.testStation.permRefReadings,
+            widget.testStation.anodeReadings,
+            widget.testStation.shuntReadings,
+            widget.testStation.riserReadings,
+            widget.testStation.foreignReadings,
+            widget.testStation.testLeadReadings,
+            widget.testStation.couponReadings,
+            widget.testStation.bondReadings,
+            widget.testStation.isolationReadings,
+            latitude: latitude,
+            longitude: longitude,
+            context: context);
+      }
+    });
 
     currentTSStatusIndex = tsstatuses.indexOf(widget.testStation.tsstatus);
     if (currentTSStatusIndex == -1) {
@@ -435,6 +478,8 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     _stateInitialized = false;
     _latitudeController.dispose();
     _longitudeController.dispose();
+    _officeNotesController.dispose();
+    _fieldNotesController.dispose();
     tslocationFocusNode.dispose();
     super.dispose();
   }
@@ -471,6 +516,15 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     setState(() {
       _isExpanded = !_isExpanded;
     });
+  }
+
+  double _calculateHeight() {
+    double baseHeight = 230.h; // Default height
+    double expandHeight = _isExpanded ? 80.h : 0;
+    // Safely check if officeNotes is not null and not empty
+    double notesHeight = (widget.testStation.officeNotes?.isNotEmpty ?? false) ? 160.h : 0;
+
+    return baseHeight + expandHeight + notesHeight;
   }
 
   /// A map that maps container types to their corresponding table names.
@@ -915,16 +969,30 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       key: scaffoldMessengerKey,
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size.fromHeight(40.h),
+          preferredSize: Size.fromHeight(50.h), // Make sure `45.h` is valid or replace with fixed size like `kToolbarHeight`
           child: AppBar(
             backgroundColor: const Color.fromARGB(255, 0, 43, 92),
             iconTheme: const IconThemeData(color: Colors.white),
-            title: Text(
-              '${widget.testStation.area} ${widget.testStation.tsID}',
-              style: TextStyle(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+            title: SizedBox(
+              height: 35.h,
+              width: 250.w,
+              child: Marquee(
+                text: '${widget.testStation.area} ${widget.testStation.tsID}', // Confirm this data is not empty
+                style: const TextStyle(
+                  fontSize: 18.0, // Changed from `18.sp` to a fixed size for testing
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                textDirection: TextDirection.ltr,
+                scrollAxis: Axis.horizontal,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                blankSpace: 200.0, // Increased blank space for better visibility
+                velocity: 50.0, // Speed at which the text scrolls
+                // pauseAfterRound: const Duration(seconds: 3), // Pauses after each complete scroll
+                showFadingOnlyWhenScrolling: true,
+                fadingEdgeStartFraction: 0.1,
+                fadingEdgeEndFraction: 0.1,
+                numberOfRounds: 3,
               ),
             ),
             centerTitle: true,
@@ -975,6 +1043,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   /// the GPS coordinates, and buttons for expanding, adding readings, fetching location, and deleting.
   /// The UI elements are styled with appropriate colors and fonts.
   Widget _buildTestStationDetailsContainer() {
+    double dynamicHeight = _calculateHeight();
     return ScreenUtilInit(
       designSize: const Size(384, 824),
       child: Consumer<TSNotifier>(
@@ -983,7 +1052,8 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
             children: [
               Container(
                 width: double.infinity,
-                height: _isExpanded ? null : 140.h,
+                height: dynamicHeight,
+                // height: _isExpanded ? null : 140.h,
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 0),
                 decoration: BoxDecoration(
                   color: const Color.fromARGB(255, 0, 43, 92),
@@ -996,22 +1066,33 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        /*
                         Text(
                           '${widget.testStation.area}: ${widget.testStation.tsID}',
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        */
+                        SelectableText(
+                          // Display the GPS coordinates with selectable text
+                          '${widget.testStation.latitude}, ${widget.testStation.longitude}',
+                          style: const TextStyle(
+                            fontSize: 16,
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         //  const Spacer(),
-                        Container(
-                          width: 120.w,
+                        SizedBox(
+                          width: 105.w,
                           height: 35.h,
-                          decoration: BoxDecoration(
-                            color: widget.testStation.gettsStatusColor(),
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
+                          //  decoration: BoxDecoration(
+                          //    color: widget.testStation.gettsStatusColor(),
+                          //    borderRadius: BorderRadius.circular(10.r),
+                          //  ),
                           child: ElevatedButton(
                             // Display the current TS Status, or click to change
                             onPressed: _toggletsStatus,
@@ -1021,7 +1102,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                             child: Text(
                               ' $currenttsStatus',
                               style: TextStyle(
-                                fontSize: 11.sp,
+                                fontSize: 10.sp,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.black,
                               ),
@@ -1030,21 +1111,93 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                         ),
                       ],
                     ),
+                    if (widget.testStation.officeNotes?.isNotEmpty ?? false) ...[
+                      SizedBox(height: 9.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Office Notes',
+                              style: TextStyle(
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )),
+                        ],
+                      ),
+                      SizedBox(height: 5.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 315.w,
+                            height: 140.h,
+                            padding: EdgeInsets.symmetric(horizontal: 8.w),
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(10.r),
+                              border: Border.all(color: Colors.white),
+                            ),
+                            child: SingleChildScrollView(
+                              child: TextField(
+                                controller: _officeNotesController,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.black,
+                                ),
+                                maxLines: null,
+                                enabled: false, // make text field not editable
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     SizedBox(height: 9.h),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SelectableText(
-                          // Display the GPS coordinates with selectable text
-                          '${widget.testStation.latitude}, ${widget.testStation.longitude}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        //   SizedBox(height: 1.h),
+                        Text('Field Notes',
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            )),
                       ],
                     ),
+                    SizedBox(height: 5.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 315.w,
+                          height: 70.h,
+                          padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(color: Colors.white),
+                          ),
+                          child: SingleChildScrollView(
+                            child: TextField(
+                              controller: _fieldNotesController,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                              maxLines: null,
+                              enabled: true, // make text field not editable
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 9.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [

@@ -365,6 +365,7 @@ class TSNotifier extends ChangeNotifier {
         'status': testStation.tsstatus,
         'latitude': testStation.latitude ?? 0.000000,
         'longitude': testStation.longitude ?? 0.000000,
+        'officeNotes': testStation.officeNotes ?? '',
       });
     }
 
@@ -655,8 +656,23 @@ class TSNotifier extends ChangeNotifier {
           }).join() ??
           '';
 
+      var plTestLeadONDate = testStation.plTestLeadReadings?.map((reading) {
+            return '(${reading.voltsONDate})';
+          }).join() ??
+          '';
+
       var plTestLeadVoltsOFF = testStation.plTestLeadReadings?.map((reading) {
             return '(${reading.formattedVoltsOFF})';
+          }).join() ??
+          '';
+
+      var plTestLeadOFFDate = testStation.plTestLeadReadings?.map((reading) {
+            return '(${reading.voltsOFFDate})';
+          }).join() ??
+          '';
+
+      var plTestLeadWaveForm = testStation.plTestLeadReadings?.map((reading) {
+            return '(${reading.formattedWaveForm})';
           }).join() ??
           '';
 
@@ -672,6 +688,16 @@ class TSNotifier extends ChangeNotifier {
 
       var anodeVoltsOFF = testStation.anodeReadings?.map((reading) {
             return '(${reading.formattedVoltsOFF})';
+          }).join() ??
+          '';
+
+      var anodeWireColor = testStation.anodeReadings?.map((reading) {
+            return '(${reading.wireColor})';
+          }).join() ??
+          '';
+
+      var anodeLugNumber = testStation.anodeReadings?.map((reading) {
+            return '(${reading.lugNumber})';
           }).join() ??
           '';
 
@@ -880,12 +906,19 @@ class TSNotifier extends ChangeNotifier {
         testStation.tsstatus,
         testStation.latitude,
         testStation.longitude,
+        testStation.officeNotes,
+        testStation.fieldNotes,
         plTestLeadNames,
         plTestLeadVoltsON,
+        plTestLeadONDate,
         plTestLeadVoltsOFF,
+        plTestLeadOFFDate,
+        plTestLeadWaveForm,
         anodeNames,
         anodeVoltsON,
         anodeVoltsOFF,
+        anodeWireColor,
+        anodeLugNumber,
         anodeCurrent,
         permRefNames,
         permRefType,
@@ -938,17 +971,29 @@ class TSNotifier extends ChangeNotifier {
       'Status',
       'Latitude',
       'Longitude',
+      'Office Notes',
+      'Field Notes',
       'PL Test Leads (PL TL)',
       'PL TL ON (V)',
+      'PL TL ON Date',
       'PL TL OFF (V)',
+      'PL TL OFF Date',
+      'PL TL Waveform',
       'Anodes (AD)',
       'AD ON (V)',
+      'AD ON Date',
       'AD OFF (V)',
+      'AD OFF Date',
       'AD Current (A)',
+      //  'AD Wire Color',
+      //  'AD Lug Number',
+      'AD Waveform',
       'Perm Ref Cells (PR)',
       'PR Type',
       'PR ON (V)',
+      'PR ON Date',
       'PR OFF (V)',
+      'PR OFF Date',
       'Shunts (SH)',
       'SH Side A',
       'SH Side B',
@@ -959,16 +1004,28 @@ class TSNotifier extends ChangeNotifier {
       'SH Calculated',
       'Risers (RI)',
       'RI ON (V)',
+      'RI ON Date',
       'RI OFF (V)',
+      'RI OFF Date',
+      'RI Waveform',
       'Foreign Structures (FS)',
       'FS ON (V)',
+      'FS ON Date',
       'FS OFF (V)',
+      'FS OFF Date',
+      'FS Field Label',
+      'FS Waveform',
       'Test Leads (TL)',
       'TL ON (V)',
+      'TL ON Date',
       'TL OFF (V)',
+      'TL OFF Date',
+      'TL Waveform',
       'Coupons (CO)',
       'CO ON (V)',
+      'CO ON Date',
       'CO OFF (V)',
+      'CO OFF Date',
       'CO Current (A)',
       'CO Connection',
       'CO Type',

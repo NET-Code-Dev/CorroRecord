@@ -86,6 +86,8 @@ class MainPageUI extends State<MainPage> {
         context,
         MaterialPageRoute(builder: (context) => const MainSettings()),
       );
+    } else if (choice == 'Copy DB to Downloads') {
+      DatabaseHelper.instance.copyDatabaseToDownloads();
     }
   }
 
@@ -811,7 +813,7 @@ class MainPageUI extends State<MainPage> {
                 PopupMenuButton<String>(
                   onSelected: _choiceAction,
                   itemBuilder: (BuildContext context) {
-                    return ['Multimeter', 'Settings'].map((String choice) {
+                    return ['Multimeter', 'Settings', 'Copy DB to Downloads'].map((String choice) {
                       return PopupMenuItem<String>(
                         value: choice,
                         child: Align(

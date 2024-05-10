@@ -41,12 +41,19 @@ class _AnodeContainerState extends BaseContainerState<AnodeContainer> {
 */
   @override
   Widget buildContent(BuildContext context,
-      {Widget? onReadingRow, Widget? offReadingRow, Widget? bottomGraph, Widget? sideAtoSideB, Widget? shuntCalculationRows}) {
+      {Widget? onReadingRow,
+      Widget? offReadingRow,
+      Widget? wireColorAndLugNumberRow,
+      Widget? bottomGraph,
+      Widget? sideAtoSideB,
+      Widget? shuntCalculationRows}) {
     final onReading = buildONReadingRow(context);
     final offReading = buildOFFReadingRow(context);
+    //  final wireColorAndLugNumber = buildWireColorAndLugNumberRow(context);
     final bottomGraph = buildBottomGraph(context);
 
     // Call super.buildContent and pass onReading and offReading as parameters
-    return super.buildContent(context, onReadingRow: onReading, offReadingRow: offReading, bottomGraph: bottomGraph);
+    return super.buildContent(context,
+        onReadingRow: onReading, offReadingRow: offReading, /* wireColorAndLugNumberRow: wireColorAndLugNumber,*/ bottomGraph: bottomGraph);
   }
 }

@@ -11,6 +11,9 @@ class TestStation {
   String tsstatus;
   double? latitude;
   double? longitude;
+  String? officeNotes;
+  String? fieldNotes;
+  String? picturePath;
   List<PLTestLeadReading>? plTestLeadReadings;
   List<PermRefReading>? permRefReadings;
   List<AnodeReading>? anodeReadings;
@@ -33,6 +36,9 @@ class TestStation {
     required this.tsstatus,
     this.latitude,
     this.longitude,
+    this.officeNotes,
+    this.fieldNotes,
+    this.picturePath,
     this.plTestLeadReadings,
     this.permRefReadings,
     this.anodeReadings,
@@ -65,6 +71,9 @@ class TestStation {
               tsstatus: map['status'] as String,
               latitude: map['latitude'] as double?,
               longitude: map['longitude'] as double?,
+              officeNotes: map['officeNotes'] as String?,
+              fieldNotes: map['fieldNotes'] as String?,
+              picturePath: map['picturePath'] as String?,
               plTestLeadReadings: readings,
             ));
   }
@@ -82,6 +91,9 @@ class TestStation {
       'status': tsstatus,
       'latitude': latitude,
       'longitude': longitude,
+      'officeNotes': officeNotes,
+      'fieldNotes': fieldNotes,
+      'picturePath': picturePath,
     };
   }
 
@@ -94,6 +106,9 @@ class TestStation {
     String? status,
     double? latitude,
     double? longitude,
+    String? officeNotes,
+    String? fieldNotes,
+    String? picturePath,
     PLTestLeadReading? plTestLeadReadings,
     PermRefReading? permRefReadings,
     AnodeReading? anodeReadings,
@@ -113,6 +128,9 @@ class TestStation {
       tsstatus: status ?? tsstatus,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      officeNotes: officeNotes ?? this.officeNotes,
+      fieldNotes: fieldNotes ?? this.fieldNotes,
+      picturePath: picturePath ?? this.picturePath,
     );
   }
 
@@ -160,6 +178,9 @@ class PLTestLeadReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final int orderIndex;
 
   /// Constructs a PLTestLeadReading object.
@@ -182,6 +203,9 @@ class PLTestLeadReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     required this.orderIndex,
   });
 
@@ -203,6 +227,12 @@ class PLTestLeadReading {
     return '';
   }
 
+  String get formattedWaveForm => waveForm ?? '';
+
+  // String get formattedWaveForm {
+  //   return waveForm?.join(';') ?? '';
+  // }
+
   /// Converts the PLTestLeadReading object to a map.
   Map<String, dynamic> toMap() {
     var map = {
@@ -213,6 +243,9 @@ class PLTestLeadReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm, // This is a list of wave form data
       'order_index': orderIndex,
     };
 
@@ -234,6 +267,9 @@ class PLTestLeadReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      wireColor: map['wireColor'],
+      lugNumber: map['lugNumber'],
+      waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
   }
@@ -249,6 +285,9 @@ class PermRefReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final String? type;
   final int orderIndex;
 
@@ -274,17 +313,28 @@ class PermRefReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     this.type,
     required this.orderIndex,
   });
 
   // Custom getters for formatted voltages
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+  String get formattedVoltsON {
+    if (voltsON != null) {
+      final formatter = NumberFormat("0.000");
+      return formatter.format(voltsON);
+    }
+    return '';
+  }
 
-  // Helper method to format voltage values
-  String _formatVoltage(double value) {
-    return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+  String get formattedVoltsOFF {
+    if (voltsOFF != null) {
+      final formatter = NumberFormat("0.000");
+      return formatter.format(voltsOFF);
+    }
+    return '';
   }
 
   /// Converts the [PermRefReading] object to a map.
@@ -299,6 +349,9 @@ class PermRefReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm,
       'type': type,
       'order_index': orderIndex,
     };
@@ -322,6 +375,9 @@ class PermRefReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      wireColor: map['wireColor'],
+      lugNumber: map['lugNumber'],
+      waveForm: map['waveForm'],
       type: map['type'],
       orderIndex: map['order_index'],
     );
@@ -338,8 +394,12 @@ class AnodeReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final double? current;
   final DateTime? currentDate;
+  final String? anodeMaterial;
   final int orderIndex;
 
   /// Creates a new instance of [AnodeReading].
@@ -364,19 +424,38 @@ class AnodeReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     this.current,
     this.currentDate,
+    this.anodeMaterial,
     required this.orderIndex,
   });
 
   // Custom getters for formatted voltages
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
-  String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
+  String get formattedVoltsON {
+    if (voltsON != null) {
+      final formatter = NumberFormat("0.000");
+      return formatter.format(voltsON);
+    }
+    return '';
+  }
 
-  // Helper method to format voltage values
-  String _formatVoltage(double value) {
-    return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+  String get formattedVoltsOFF {
+    if (voltsOFF != null) {
+      final formatter = NumberFormat("0.000");
+      return formatter.format(voltsOFF);
+    }
+    return '';
+  }
+
+  String get formattedCurrent {
+    if (current != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(current);
+    }
+    return '';
   }
 
   /// Converts the [AnodeReading] object to a map.
@@ -391,8 +470,12 @@ class AnodeReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm,
       'current': current,
       'current_Date': currentDate,
+      'anode_Material': anodeMaterial,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -415,8 +498,12 @@ class AnodeReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: (map['voltsOFF'] as num?)?.toDouble(),
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      wireColor: map['wireColor'] as String?,
+      lugNumber: map['lugNumber'] as int?,
+      waveForm: map['waveForm'] as String?,
       current: (map['current'] as num?)?.toDouble(),
       currentDate: _parseDateTime(map['current_Date']),
+      anodeMaterial: map['anode_Material'] as String?,
       orderIndex: map['order_index'] as int,
     );
   }
@@ -548,6 +635,8 @@ class RiserReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? pipeDiameter;
+  final String? waveForm;
   final int orderIndex;
 
   /// Constructs a new instance of [RiserReading].
@@ -570,6 +659,8 @@ class RiserReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.pipeDiameter,
+    this.waveForm,
     required this.orderIndex,
   });
 
@@ -594,6 +685,8 @@ class RiserReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'pipeDiameter': pipeDiameter,
+      'waveForm': waveForm,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -616,6 +709,8 @@ class RiserReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      pipeDiameter: map['pipeDiameter'],
+      waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
   }
@@ -631,6 +726,10 @@ class ForeignReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? fieldLabel;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final int orderIndex;
 
   /// Constructs a [ForeignReading] object.
@@ -653,6 +752,10 @@ class ForeignReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.fieldLabel,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     required this.orderIndex,
   });
 
@@ -679,6 +782,10 @@ class ForeignReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'fieldLabel': fieldLabel,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -701,6 +808,10 @@ class ForeignReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      fieldLabel: map['fieldLabel'],
+      wireColor: map['wireColor'],
+      lugNumber: map['lugNumber'],
+      waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
   }
@@ -716,6 +827,10 @@ class TestLeadReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
+  final String? fieldLabel;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final int orderIndex;
 
   /// Constructs a [TestLeadReading] object.
@@ -738,6 +853,10 @@ class TestLeadReading {
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
+    this.fieldLabel,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     required this.orderIndex,
   });
 
@@ -762,6 +881,10 @@ class TestLeadReading {
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
+      'fieldLabel': fieldLabel,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -784,6 +907,10 @@ class TestLeadReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
+      fieldLabel: map['fieldLabel'],
+      wireColor: map['wireColor'],
+      lugNumber: map['lugNumber'],
+      waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
   }
@@ -801,6 +928,9 @@ class CouponReading {
   final DateTime? voltsOFFDate;
   final double? current;
   final DateTime? currentDate;
+  final String? wireColor;
+  final int? lugNumber;
+  final String? waveForm;
   final String? connectedTo;
   final String? type;
   final double? size;
@@ -834,6 +964,9 @@ class CouponReading {
     this.voltsOFFDate,
     this.current,
     this.currentDate,
+    this.wireColor,
+    this.lugNumber,
+    this.waveForm,
     this.connectedTo,
     this.type,
     this.size,
@@ -865,6 +998,9 @@ class CouponReading {
       'voltsOFF_Date': voltsOFFDate,
       'current': current,
       'current_Date': currentDate,
+      'wireColor': wireColor,
+      'lugNumber': lugNumber,
+      'waveForm': waveForm,
       'connected_to': connectedTo,
       'coupon_type': type,
       'coupon_size': size,
@@ -892,6 +1028,9 @@ class CouponReading {
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
       current: map['current'],
       currentDate: _parseDateTime(map['current_Date']),
+      wireColor: map['wireColor'],
+      lugNumber: map['lugNumber'],
+      waveForm: map['waveForm'],
       connectedTo: map['connected_to'],
       type: map['coupon_type'],
       size: map['coupon_size'],
@@ -910,6 +1049,7 @@ class BondReading {
   final String? sideB;
   final double? current;
   final DateTime? currentDate;
+  final String? fieldLabel;
   final int orderIndex;
 
   /// Constructs a [BondReading] object.
@@ -932,6 +1072,7 @@ class BondReading {
     this.sideB,
     this.current,
     this.currentDate,
+    this.fieldLabel,
     required this.orderIndex,
   });
 
@@ -960,6 +1101,7 @@ class BondReading {
       'side_b': sideB,
       'current': current,
       'current_Date': currentDate,
+      'fieldLabel': fieldLabel,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -982,6 +1124,7 @@ class BondReading {
       sideB: map['side_b'],
       current: map['current'],
       currentDate: _parseDateTime(map['current_Date']),
+      fieldLabel: map['fieldLabel'],
       orderIndex: map['order_index'],
     );
   }
