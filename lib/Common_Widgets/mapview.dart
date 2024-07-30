@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, unused_element
 
 import 'dart:io';
 import 'dart:math';
@@ -23,11 +23,11 @@ class MapView extends StatefulWidget {
   final List<Rectifier>? rectifiers;
 
   const MapView({
-    Key? key,
+    super.key,
     required this.projectID,
     this.testStations,
     this.rectifiers,
-  }) : super(key: key);
+  });
 
   static void navigateToMapView(BuildContext context, int projectID, {List<TestStation>? testStations, List<Rectifier>? rectifiers}) {
     Navigator.of(context).push(
@@ -93,12 +93,12 @@ class _MapViewState extends State<MapView> {
       var minLong = double.infinity;
       var maxLong = double.negativeInfinity;
 
-      _markers.values.forEach((marker) {
+      for (var marker in _markers.values) {
         minLat = min(minLat, marker.position.latitude);
         maxLat = max(maxLat, marker.position.latitude);
         minLong = min(minLong, marker.position.longitude);
         maxLong = max(maxLong, marker.position.longitude);
-      });
+      }
 
       // Only attempt to fit markers if valid coordinates exist
       if (minLat < double.infinity && maxLat > double.negativeInfinity && minLong < double.infinity && maxLong > double.negativeInfinity) {

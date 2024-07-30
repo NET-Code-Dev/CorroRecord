@@ -5,10 +5,10 @@ import 'package:asset_inspections/Pokit_Multimeter/Models/statusservice_model.da
 
 /// This class provides static methods to handle different characteristics of a status service.
 class StatusService {
-  static const String statusServiceUUID = '57d3a771-267c-4394-8872-78223e92aec5';
-  static const String deviceCharacteristicUUID = '6974f5e5-0e54-45c3-97dd-29e4b5fb0849';
-  static const String statusCharacteristicUUID = '3dba36e1-6120-4706-8dfd-ed9c16e569b6';
-  static const String nameCharacteristicUUID = '7f0375de-077e-4555-8f78-800494509cc3';
+  static const String statusServiceUUID = '57d3a771-267c-4394-8872-78223e92aec5'; // 1
+  static const String deviceCharacteristicUUID = '6974f5e5-0e54-45c3-97dd-29e4b5fb0849'; // 2
+  static const String statusCharacteristicUUID = '3dba36e1-6120-4706-8dfd-ed9c16e569b6'; // 3
+  static const String nameCharacteristicUUID = '7f0375de-077e-4555-8f78-800494509cc3'; // 4
   static const String ledCharacteristicUUID = 'ec9bb1f3-05a9-4277-8dd0-60a7896f0d6e';
   static const String torchCharacteristicUUID = 'aaf3f6d5-43d4-4a83-9510-dff3d858d4cc';
   static const String buttonCharacteristicUUID = '8fe5b5a9-b5b4-4a7b-8ff2-87224b970f89';
@@ -148,8 +148,13 @@ class StatusService {
 
     // Extract Battery Voltage
     final double batteryVoltage = byteData.getFloat32(1, Endian.little);
-    // Add a getter to calculate the battery percentage
-    final double batteryPercentage = (batteryVoltage / 4.2) * 100;
+    // Define the voltage range
+    const double minVoltage = 3.0; // Voltage corresponding to 0%
+    const double maxVoltage = 4.2; // Voltage corresponding to 100%
+
+    // Calculate battery percentage
+    final double batteryPercentage = ((batteryVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100;
+    final double correctedBatteryPercentage = batteryPercentage.clamp(0, 100); // Ensure the value is within 0-100%
 
     final int battStatus = byteData.getUint8(5);
     String batteryStatus;
@@ -200,14 +205,6 @@ class StatusService {
         break;
     }
 
-    // Print logs to console to ensure functionality
-//  print('Status: $statusDescription');
-//  print('Battery Voltage: $batteryVoltage V');
-//  print('Battery Percentage: $batteryPercentage %');
-//  print('Battery Status: $batteryStatus');
-//  print('Switch Position: $switchPosition');
-//  print('Charging Status: $chargingStatus');
-
     if (kDebugMode) {
       print('Exiting handleStatusCharacteristic method');
     }
@@ -216,7 +213,7 @@ class StatusService {
     return StatusCharacteristicModel(
       bluetoothCharacteristic: bluetoothCharacteristic,
       statusDescription: statusDescription,
-      batteryLevel: batteryPercentage,
+      batteryLevel: correctedBatteryPercentage,
       batteryStatus: batteryStatus,
       switchPosition: switchPosition,
       chargingStatus: chargingStatus,

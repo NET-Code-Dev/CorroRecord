@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'package:asset_inspections/Pokit_Multimeter/Services/dso_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';

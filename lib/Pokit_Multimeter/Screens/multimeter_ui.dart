@@ -461,9 +461,9 @@ class _MultimeterUIPageState extends State<MultimeterUIPage> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                                    (Set<MaterialState> states) {
-                                      if (states.contains(MaterialState.pressed) || showMin) {
+                                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                                    (Set<WidgetState> states) {
+                                      if (states.contains(WidgetState.pressed) || showMin) {
                                         return Theme.of(context).primaryColor.withOpacity(0.5);
                                       }
                                       return Theme.of(context).primaryColor;
@@ -479,9 +479,9 @@ class _MultimeterUIPageState extends State<MultimeterUIPage> {
                                   });
                                 },
                                 style: ButtonStyle(
-                                  backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                                    (Set<MaterialState> states) {
-                                      if (states.contains(MaterialState.pressed) || showMax) {
+                                  backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                                    (Set<WidgetState> states) {
+                                      if (states.contains(WidgetState.pressed) || showMax) {
                                         return Theme.of(context).primaryColor.withOpacity(0.5);
                                       }
                                       return Theme.of(context).primaryColor;

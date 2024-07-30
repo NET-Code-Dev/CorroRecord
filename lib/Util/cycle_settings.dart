@@ -5,7 +5,7 @@ import 'package:asset_inspections/Common_Widgets/custom_radio.dart';
 import 'package:asset_inspections/Util/cycle_settings_notifier.dart';
 
 class InterruptionCycleSelector extends StatefulWidget {
-  const InterruptionCycleSelector({Key? key}) : super(key: key);
+  const InterruptionCycleSelector({super.key});
 
   @override
   // ignore: library_private_types_in_public_api

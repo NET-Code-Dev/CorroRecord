@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable, no_leading_underscores_for_local_identifiers, unused_element
+
 import 'dart:async';
 import 'dart:io';
 //import 'dart:typed_data';
@@ -32,7 +34,7 @@ class CustomCamera extends StatefulWidget {
   final String? rectifierServiceTag;
 
   CustomCamera({
-    Key? key,
+    super.key,
     required this.projectID,
     required this.projectClient,
     required this.projectName,
@@ -42,7 +44,7 @@ class CustomCamera extends StatefulWidget {
     this.rectifierID,
     this.rectifierArea,
     this.rectifierServiceTag,
-  }) : super(key: key);
+  });
 
   static void navigateToCustomCamera(BuildContext context, int projectID, String projectClient, String projectName,
       {int? stationID, String? stationArea, String? stationTSID, int? rectifierID, String? rectifierArea, String? rectifierServiceTag}) {
@@ -108,8 +110,9 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
 
   Location location = Location();
   LocationData? _locationData;
+  // ignore: unused_field
   String _currentAddress = '';
-  geocoding.Placemark _currentPlacemark = geocoding.Placemark();
+  geocoding.Placemark _currentPlacemark = const geocoding.Placemark();
 
   @override
   void initState() {
@@ -684,6 +687,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     final settings = Provider.of<CameraSettings>(context, listen: false);
     return Opacity(
       opacity: settings.mapOpacity,
+      // ignore: sized_box_for_whitespace
       child: Container(
         //  color: Colors.transparent,
         width: settings.mapSize,
@@ -1140,6 +1144,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
       );
     }
 
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         WidgetsBinding.instance.removeObserver(this);
@@ -1236,7 +1241,7 @@ enum MapPosition {
 class DisplayCapturedImageScreen extends StatelessWidget {
   final Uint8List imageBytes;
 
-  const DisplayCapturedImageScreen({Key? key, required this.imageBytes}) : super(key: key);
+  const DisplayCapturedImageScreen({super.key, required this.imageBytes});
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,7 @@
+// ignore_for_file: prefer_final_fields
+
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +24,7 @@ class DCvoltsButtonCycled extends StatefulWidget {
   final String containerName;
 
   const DCvoltsButtonCycled({
-    Key? key,
+    super.key,
     this.selectedRange,
     required this.onController,
     required this.offController,
@@ -33,7 +36,7 @@ class DCvoltsButtonCycled extends StatefulWidget {
     this.selectedRadio,
     this.onButtonPressed,
     required this.containerName,
-  }) : super(key: key);
+  });
 
   @override
   createState() => _DCvoltsButtonCycledState();
@@ -86,15 +89,16 @@ class _DCvoltsButtonCycledState extends State<DCvoltsButtonCycled> {
     // For each reading received, it adds the reading to the _readings list.
     _readingSubscription = widget.multimeterService?.currentReadingStream.listen((double reading) {
       _readings.add(reading);
+      widget.onController?.text = reading.toStringAsFixed(3);
     });
 
     // Creates a new timer that runs once after 'duration' milliseconds have passed.
     // The duration is rounded to the nearest millisecond.
     _captureTimer = Timer(Duration(milliseconds: duration.round()), () {
       // Once the timer expires, it cancels the subscription to the reading stream.
-      _readingSubscription?.cancel();
+      //// _readingSubscription?.cancel();
       // Calls a method on the multimeter service to stop receiving readings.
-      widget.multimeterService?.unsubscribeFromReading();
+      ////    widget.multimeterService?.unsubscribeFromReading();
       // Processes the collected readings once reading collection is complete.
       _processReadings();
     });
@@ -134,9 +138,11 @@ class _DCvoltsButtonCycledState extends State<DCvoltsButtonCycled> {
       widget.onSaveOrUpdate(widget.containerName, stringReadings);
 
       // Logs the list of original readings as doubles to the console for debugging or verification.
-      print('Wave Form Readings as double: $_readings');
+      if (kDebugMode) {
+        print('Wave Form Readings as double: $_readings');
+        print('Wave Form Readings as string: $stringReadings');
+      }
       // Logs the list of formatted readings as strings to the console for debugging or verification.
-      print('Wave Form Readings as string: $stringReadings');
     }
   }
 
@@ -201,7 +207,7 @@ class _DCvoltsButtonCycledState extends State<DCvoltsButtonCycled> {
 
   @override
   void dispose() {
-    _readingSubscription?.cancel();
+    ////   _readingSubscription?.cancel();
     _captureTimer?.cancel();
     CycleSettingsModel().dispose();
     // MultimeterService().dispose();

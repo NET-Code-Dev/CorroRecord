@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 import 'package:asset_inspections/Pokit_Multimeter/Services/status_service.dart';
@@ -19,6 +20,7 @@ class StatusServiceModel {
 
   /// Discovers the characteristics and descriptors of the status service.
   /// This method iterates through the service characteristics and assigns the corresponding characteristic models based on their UUIDs.
+  /*
   Future<void> discoverStatusService() async {
     for (var characteristic in service.characteristics) {
       var characteristicUUID = characteristic.uuid.toString();
@@ -38,6 +40,46 @@ class StatusServiceModel {
         buttonCharacteristicModel = StatusService.handleButtonCharacteristic(characteristic, data);
       }
       // ... other cases ...
+    }
+  }
+*/
+  Future<void> discoverStatusService() async {
+    for (var characteristic in service.characteristics) {
+      var characteristicUUID = characteristic.uuid.toString();
+
+      // Log characteristic details
+      if (kDebugMode) {
+        print('Discovered characteristic: $characteristicUUID with properties: ${characteristic.properties}');
+      }
+
+      // Check if the characteristic supports READ before attempting to read it
+      if (characteristic.properties.read) {
+        try {
+          var data = await characteristic.read();
+
+          if (characteristicUUID == StatusService.deviceCharacteristicUUID) {
+            deviceCharacteristicModel = StatusService.handleDeviceCharacteristic(characteristic, data);
+          } else if (characteristicUUID == StatusService.statusCharacteristicUUID) {
+            statusCharacteristicModel = StatusService.handleStatusCharacteristic(characteristic, data);
+          } else if (characteristicUUID == StatusService.nameCharacteristicUUID) {
+            deviceNameCharacteristicModel = StatusService.handleDeviceNameCharacteristic(characteristic, data);
+          } else if (characteristicUUID == StatusService.ledCharacteristicUUID) {
+            ledCharacteristicModel = StatusService.handleLEDCharacteristic(characteristic, data);
+          } else if (characteristicUUID == StatusService.torchCharacteristicUUID) {
+            torchCharacteristicModel = StatusService.handleTorchCharacteristic(characteristic, data);
+          } else if (characteristicUUID == StatusService.buttonCharacteristicUUID) {
+            buttonCharacteristicModel = StatusService.handleButtonCharacteristic(characteristic, data);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error reading characteristic $characteristicUUID: $e');
+          }
+        }
+      } else {
+        if (kDebugMode) {
+          print('Characteristic $characteristicUUID does not support READ property');
+        }
+      }
     }
   }
 }

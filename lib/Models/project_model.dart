@@ -64,7 +64,7 @@ class ProjectModel with ChangeNotifier {
   String _tech = '';
   String _createDate = '';
   List<Project> _projects = [];
-  Set<int> _loadedProjectIDs = {};
+  final Set<int> _loadedProjectIDs = {};
 
   // Getters
   int get id => _projectID;

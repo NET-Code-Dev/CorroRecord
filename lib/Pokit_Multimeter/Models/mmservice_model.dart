@@ -367,7 +367,7 @@ class MMSettingsModel {
   /// The [bluetoothCharacteristic] parameter is the Bluetooth characteristic associated with the multimeter service.
   /// The [modeString] parameter is the string representation of the mode.
   /// The [rangeString] parameter is the string representation of the range.
-  /// The [updateInterval] parameter is the interval at which the multimeter readings should be updated.
+  /// The [updateInterval] parameter is the interval at which the multimeter readings should be 0.
   ///
   /// Returns an instance of [MMSettingsModel] with the specified settings.
   factory MMSettingsModel.fromString(

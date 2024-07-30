@@ -1,3 +1,5 @@
+// ignore_for_file: no_leading_underscores_for_local_identifiers
+
 import 'dart:async';
 
 //import 'package:asset_inspections/Pokit_Multimeter/Models/mmservice_model.dart';
@@ -9,7 +11,7 @@ import 'package:asset_inspections/Pokit_Multimeter/Providers/bluetooth_manager_n
 import 'package:provider/provider.dart';
 
 class DCvoltsMMButton extends StatefulWidget {
-  final Mode selectedMode = Mode.dcVoltage;
+  final Mode selectedMode;
   final int? selectedRange;
   final TextEditingController? controller;
   final MultimeterService multimeterService;
@@ -18,36 +20,30 @@ class DCvoltsMMButton extends StatefulWidget {
   final String containerName;
 
   const DCvoltsMMButton({
-    Key? key,
+    super.key,
     this.selectedRange,
     required this.controller,
     required this.multimeterService,
     required this.onTimerStatusChanged,
     required this.onSaveOrUpdate,
     required this.containerName,
-    required Mode selectedMode,
-  }) : super(key: key);
+    required this.selectedMode,
+  });
 
   @override
   createState() => _DCvoltsMMButtonState();
 }
 
 class _DCvoltsMMButtonState extends State<DCvoltsMMButton> {
-  // final MultimeterService multimeterService = MultimeterService();
-  final multimeterService = MultimeterService.instance;
   StreamSubscription<double>? _readingSubscription; // Make it nullable
   Timer? _timer;
   bool isDialogVisible = false;
+  Mode idleMode = Mode.idle;
 
   void _startSubscriptionAndTimer() {
     // Cancel any existing subscription before starting a new one
     _readingSubscription?.cancel();
-    //  var _currentReading = BluetoothManager.instance.pokitProModel?.mmServiceModel?.mmReadingModel?.value;
-    Stream<double> _currentReading = multimeterService.currentReadingStream;
-    widget.controller?.text = _currentReading.toString();
-
-    // Subscribe to the current reading stream
-    _readingSubscription = multimeterService.currentReadingStream.listen(
+    _readingSubscription = widget.multimeterService.currentReadingStream.listen(
       (double reading) {
         widget.controller?.text = reading.toStringAsFixed(3);
       },
@@ -60,10 +56,10 @@ class _DCvoltsMMButtonState extends State<DCvoltsMMButton> {
     const duration = Duration(seconds: 5);
     widget.onTimerStatusChanged(true);
     _timer = Timer(duration, () {
-      _readingSubscription?.cancel();
-      MultimeterService.instance.unsubscribeFromReading();
+      _readingSubscription?.cancel(); //This does not cancel the stream in the provider
       widget.onTimerStatusChanged(false);
-      widget.onSaveOrUpdate(widget.containerName);
+      widget.onSaveOrUpdate(widget.containerName); // Still need to figure out if this is correct after modifying the onSaveOrUpdate function
+      widget.multimeterService.subscribeToServiceAndReading(idleMode);
     });
   }
 
@@ -77,8 +73,6 @@ class _DCvoltsMMButtonState extends State<DCvoltsMMButton> {
     _readingSubscription?.cancel();
     _timer?.cancel();
     super.dispose();
-    // MultimeterService().dispose();
-    // MultimeterService.instance.dispose();
   }
 
   Future<void> dcVoltsButtonStartService() async {

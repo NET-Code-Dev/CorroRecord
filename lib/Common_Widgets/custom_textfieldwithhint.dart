@@ -39,14 +39,14 @@ class CustomTextFieldWithHint extends StatelessWidget {
   final double height;
 
   const CustomTextFieldWithHint({
-    Key? key,
+    super.key,
     required this.controller,
     required this.focusNode,
     required this.keyboardType,
     required this.hintText,
     required this.width,
     required this.height,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

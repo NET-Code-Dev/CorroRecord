@@ -244,7 +244,7 @@ class MultimeterService with ChangeNotifier {
   double? get maxReading => _maxReading;
 
   // ignore: unused_field
-  Mode _selectedMode = Mode.dcVoltage;
+  Mode _selectedMode = Mode.idle;
 
   void setSelectedMode(Mode mode) {
     _selectedMode = mode;
@@ -289,8 +289,14 @@ class MultimeterService with ChangeNotifier {
           for (BluetoothCharacteristic characteristic in service.characteristics) {
             if (characteristic.uuid.toString() == settingsCharacteristicUUID) {
               _settingsCharacteristic = characteristic;
+              if (kDebugMode) {
+                print('Settings characteristic found: ${characteristic.uuid}');
+              }
             } else if (characteristic.uuid.toString() == readingCharacteristicUUID) {
               _readingCharacteristic = characteristic;
+              if (kDebugMode) {
+                print('Reading characteristic found: ${characteristic.uuid}');
+              }
             }
           }
         }
@@ -310,16 +316,25 @@ class MultimeterService with ChangeNotifier {
   /// After writing the settings, the listeners are notified.
   Future<void> writeSettings(Settings settings) async {
     if (_settingsCharacteristic != null) {
-      List<int> data = Uint8List(6); // A total of 6 bytes as described
-      data[0] = settings.mode.index; // Mode as integer value
-      data[1] = settings.range; // Range as integer value
-      data[2] = settings.updateInterval & 0xFF; // Split updateInterval into bytes
+      List<int> data = Uint8List(6);
+      data[0] = settings.mode.index;
+      data[1] = settings.range;
+      data[2] = settings.updateInterval & 0xFF;
       data[3] = (settings.updateInterval >> 8) & 0xFF;
       data[4] = (settings.updateInterval >> 16) & 0xFF;
       data[5] = (settings.updateInterval >> 24) & 0xFF;
 
-      // Write data to the characteristic
+      if (kDebugMode) {
+        print('Writing settings: $data');
+      }
       await _settingsCharacteristic!.write(data);
+      if (kDebugMode) {
+        print('Settings written successfully');
+      }
+    } else {
+      if (kDebugMode) {
+        print('Settings characteristic is null');
+      }
     }
     notifyListeners();
   }
@@ -378,7 +393,7 @@ class MultimeterService with ChangeNotifier {
     Settings initialSettings = Settings(
       mode: selectedMode,
       range: 255, // Auto Range
-      updateInterval: 50, // Interval is in milliseconds
+      updateInterval: 500, // Interval is in milliseconds
     );
     await writeSettings(initialSettings);
 
@@ -396,6 +411,9 @@ class MultimeterService with ChangeNotifier {
   /// If an error occurs during the stream, it prints the error message in debug mode.
   Future<void> subscribeToReading() async {
     if (_readingCharacteristic != null) {
+      if (kDebugMode) {
+        print('Subscribing to Reading characteristic: $_readingCharacteristic');
+      }
       await _readingCharacteristic!.setNotifyValue(true);
       _readingSubscription = _readingCharacteristic!.lastValueStream.listen((data) {
         _onDataReceived(data);
@@ -406,6 +424,10 @@ class MultimeterService with ChangeNotifier {
           print('Stream error: $error');
         }
       });
+    } else {
+      if (kDebugMode) {
+        print('Reading characteristic is null');
+      }
     }
   }
 

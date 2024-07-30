@@ -1,0 +1,3593 @@
+@startuml
+class _PluginRegistrant {
+---
+register(): void
+}
+class ACvoltsMMButton {
+selectedMode: Mode
+selectedRange: int?
+controller: TextEditingController?
+multimeterService: MultimeterService
+onTimerStatusChanged:  Function(bool)
+onSaveOrUpdate:  Function(String)
+containerName: String
+---
+createState(): void
+}
+StatefulWidget <|-- ACvoltsMMButton
+ACvoltsMMButton ..> Mode
+ACvoltsMMButton ..> TextEditingController
+ACvoltsMMButton ..> MultimeterService
+class _ACvoltsMMButtonState {
+multimeterService: null
+-_readingSubscription: StreamSubscription<double>?
+-_timer: Timer?
+isDialogVisible: bool
+---
+-_startSubscriptionAndTimer(): void
+initState(): void
+dispose(): void
+acVoltsButtonStartService(): Future<void>
+build(): Widget
+}
+State <|-- _ACvoltsMMButtonState
+_ACvoltsMMButtonState ..> Timer
+class BottomSheetLiveGraph {
+minY: double
+---
+createState(): void
+}
+StatefulWidget <|-- BottomSheetLiveGraph
+class _BottomSheetLiveGraphState {
+dataPoints: List<FlSpot>
+maxDataPoints: int
+alpha: double
+lastSmoothValue: double
+readingSubscription: StreamSubscription<double>?
+minY: double
+maxY: double
+titleInterval: double
+scaleX: int
+scaleXAxis: double
+---
+initState(): void
+scaleToDecimal(): double
+bottomSheetGraphSubscribeToReadingStream(): void
+dispose(): void
+getNiceNumber(): double
+determineInterval(): double
+buildFixedLineChartAtZero(): Widget
+buildFixedLineChartAt850(): Widget
+buildMainLineChart(): Widget
+build(): Widget
+}
+State <|-- _BottomSheetLiveGraphState
+class CustomCamera {
+cameraSettings: null
+projectID: int
+projectClient: String
+projectName: String
+stationID: int?
+stationArea: String?
+stationTSID: String?
+rectifierID: int?
+rectifierArea: String?
+rectifierServiceTag: String?
+---
+navigateToCustomCamera(): void
+createState(): void
+}
+StatefulWidget <|-- CustomCamera
+class _CustomCameraScreenState {
+-_thumbnailImageBytes: Uint8List?
+-_isFlashVisible: bool
+-_controller: CameraController?
+cameras: List<CameraDescription>
+-_currentZoomLevel: double
+-_maxZoomLevel: double
+screenshotController: ScreenshotController
+-_location: Location
+-_locationSubscription: StreamSubscription<LocationData>?
+-_mapController: GoogleMapController
+-_markers: Set<Marker>
+latitude: double
+longitude: double
+-_initialCameraPosition: CameraPosition
+-_currentCameraPosition: CameraPosition
+mapPosition: MapPosition?
+dataPosition: MapPosition?
+location: Location
+-_locationData: LocationData?
+-_currentAddress: String
+-_currentPlacemark: geocoding.Placemark
+---
+formatEnumValue(): String
+mapPositionOptions(): List<String>
+initState(): void
+dispose(): void
+-_requestPermissionsSequentially(): Future<void>
+-_requestLocationPermission(): Future<PermissionStatus>
+didChangeAppLifecycleState(): void
+-_initializeCameraController(): Future<void>
+-_initCamera(): Future<void>
+-_startLocationStream(): void
+-_updateMapLocation(): void
+-_updateMapZoomInstantly(): void
+-_getMapType(): MapType
+-_captureImageWithOverlay(): void
+-_saveImageToFile(): Future<String>
+-_saveCapturedImage(): void
+setMapPositionFromString(): void
+setDataPositionFromString(): void
+-_showPermissionErrorDialog(): void
+-_showOptionsDialog(): void
+-_showMapOptionsDialog(): void
+-_buildMapOverlay(): Widget
+-_showDataOptionsDialog(): void
+getAddressFromLatLng(): Future<String>
+getCurrentLocation(): void
+-_fetchAndSetCurrentPlacemark(): void
+displayLocationAddress(): void
+formatAddress(): String
+-_buildDataOverlay(): Widget
+-_cameraWithOverlay(): Widget
+-_buildFlashAnimation(): Widget
+-_onScaleUpdate(): void
+-_getMapAlignment(): Alignment
+build(): Widget
+}
+State <|-- _CustomCameraScreenState
+_CustomCameraScreenState ..> Uint8List
+_CustomCameraScreenState ..> CameraController
+_CustomCameraScreenState ..> ScreenshotController
+_CustomCameraScreenState ..> Location
+_CustomCameraScreenState ..> GoogleMapController
+_CustomCameraScreenState ..> CameraPosition
+_CustomCameraScreenState ..> LocationData
+_CustomCameraScreenState ..> geocoding.Placemark
+class DisplayCapturedImageScreen {
+imageBytes: Uint8List
+---
+build(): Widget
+}
+StatelessWidget <|-- DisplayCapturedImageScreen
+DisplayCapturedImageScreen ..> Uint8List
+class CustomRadio {
+groupValue: int?
+value: int
+onChanged: ValueChanged<int?>
+activeColor: Color
+inactiveBorderColor: Color
+---
+build(): Widget
+}
+StatelessWidget <|-- CustomRadio
+CustomRadio ..> ValueChanged
+CustomRadio ..> Color
+class CustomTextField {
+controller: TextEditingController?
+focusNode: FocusNode?
+style: TextStyle?
+hintText: Widget
+keyboardType: TextInputType
+maxLines: int?
+textAlign: TextAlign
+width: double
+height: double
+---
+build(): Widget
+}
+StatelessWidget <|-- CustomTextField
+CustomTextField ..> TextEditingController
+CustomTextField ..> FocusNode
+CustomTextField ..> TextStyle
+CustomTextField ..> Widget
+CustomTextField ..> TextInputType
+CustomTextField ..> TextAlign
+class CustomTextFieldWithHint {
+controller: TextEditingController
+focusNode: FocusNode
+keyboardType: TextInputType
+hintText: String
+width: double
+height: double
+---
+build(): Widget
+}
+StatelessWidget <|-- CustomTextFieldWithHint
+CustomTextFieldWithHint ..> TextEditingController
+CustomTextFieldWithHint ..> FocusNode
+CustomTextFieldWithHint ..> TextInputType
+class DCvoltsButtonCycled {
+selectedMode: Mode
+selectedRange: int?
+onController: TextEditingController?
+offController: TextEditingController?
+multimeterService: MultimeterService?
+onTimerStatusChanged:  Function(bool)
+offTimerStatusChanged:  Function(bool)
+onSaveOrUpdate: Function
+selectedCycle: String?
+selectedRadio: int?
+onButtonPressed: VoidCallback?
+containerName: String
+---
+createState(): void
+}
+StatefulWidget <|-- DCvoltsButtonCycled
+DCvoltsButtonCycled ..> Mode
+DCvoltsButtonCycled ..> TextEditingController
+DCvoltsButtonCycled ..> MultimeterService
+DCvoltsButtonCycled ..> Function
+DCvoltsButtonCycled ..> VoidCallback
+class _DCvoltsButtonCycledState {
+-_readingSubscription: StreamSubscription<double>?
+-_captureTimer: Timer?
+-_readings: List<double>
+isDialogVisible: bool
+---
+-_syncAndStartCycle(): Future<void>
+-_startReadingSubscription(): void
+-_processReadings(): void
+-_calculateMedian(): double
+dcVoltsButtonCycledStartService(): Future<void>
+dispose(): void
+build(): Widget
+}
+State <|-- _DCvoltsButtonCycledState
+_DCvoltsButtonCycledState ..> Timer
+class DCvoltsMMButton {
+selectedMode: Mode
+selectedRange: int?
+controller: TextEditingController?
+multimeterService: MultimeterService
+onTimerStatusChanged:  Function(bool)
+onSaveOrUpdate:  Function(String)
+containerName: String
+---
+createState(): void
+}
+StatefulWidget <|-- DCvoltsMMButton
+DCvoltsMMButton ..> Mode
+DCvoltsMMButton ..> TextEditingController
+DCvoltsMMButton ..> MultimeterService
+class _DCvoltsMMButtonState {
+multimeterService: null
+-_readingSubscription: StreamSubscription<double>?
+-_timer: Timer?
+isDialogVisible: bool
+---
+-_startSubscriptionAndTimer(): void
+initState(): void
+dispose(): void
+dcVoltsButtonStartService(): Future<void>
+build(): Widget
+}
+State <|-- _DCvoltsMMButtonState
+_DCvoltsMMButtonState ..> Timer
+class LocationService {
+-_location: Location
+---
+getCurrentLocation(): Future<LocationData?>
+}
+LocationService ..> Location
+class LocationButton {
+onLocationFetched:  Function(double, double)
+latitude: double?
+longitude: double?
+---
+createState(): void
+}
+StatefulWidget <|-- LocationButton
+class _LocationButtonState {
+-_locationService: LocationService
+locationData: String
+---
+initState(): void
+build(): Widget
+}
+State <|-- _LocationButtonState
+_LocationButtonState ..> LocationService
+class LiveGraph {
+---
+createState(): void
+}
+StatefulWidget <|-- LiveGraph
+class _LiveGraphState {
+dataPoints: List<FlSpot>
+maxDataPoints: int
+---
+build(): Widget
+}
+State <|-- _LiveGraphState
+class MapView {
+projectID: int
+testStations: List<TestStation>?
+rectifiers: List<Rectifier>?
+---
+navigateToMapView(): void
+createState(): _MapViewState
+}
+StatefulWidget <|-- MapView
+class _MapViewState {
+selectedProjectName: Project?
+mapController: GoogleMapController?
+-_markers: Map<MarkerId, Marker>
+-_searchController: TextEditingController
+-_currentMapType: MapType
+-_colorModeEnabled: bool
+-_isCsvChecked: bool
+-_isKmlChecked: bool
+---
+hintText(): String
+title(): String
+initState(): void
+-_fitMarkers(): Future<void>
+-_showExportDialog(): void
+-_requestStoragePermission(): Future<void>
+-_exportData(): void
+-_generateFileName(): String
+-_exportToKml(): Future<XFile?>
+getStatusFromMarkerId(): TestStation?
+getRectifierFromMarkerId(): Rectifier?
+-_exportToCsv(): Future<XFile?>
+-_initializeMarkers(): Future<void>
+-_showSkippedLocationsDialog(): void
+-_getPushpinUrl(): String
+-_getMarkerColor(): double
+-_toggleColorMode(): void
+-_onMapCreated(): void
+-_showInfoWindows(): Future<void>
+-_moveToSearch(): void
+-_cycleMapType(): void
+build(): Widget
+}
+State <|-- _MapViewState
+_MapViewState ..> Project
+_MapViewState ..> GoogleMapController
+_MapViewState ..> TextEditingController
+class LabelTextField {
+testStationID: String
+fetchNamesForLabel: Future<List<String>> Function(String)
+controller: TextEditingController?
+focusNode: FocusNode?
+---
+createState(): void
+}
+StatefulWidget <|-- LabelTextField
+LabelTextField ..> TextEditingController
+LabelTextField ..> FocusNode
+class _LabelTextFieldState {
+-_suggestions: List<String>
+-_showSuggestions: bool
+---
+initState(): void
+-_onFocusChange(): void
+-_loadSuggestions(): Future<void>
+-_onSuggestionSelected(): void
+dispose(): void
+build(): Widget
+}
+State <|-- _LabelTextFieldState
+class DatabaseHelper {
+-_database: Database?
+instance: DatabaseHelper
+columnProjectNameID: null
+columnStationID: null
+columnTestStationID: null
+columnId: null
+columnArea: null
+columnServiceTag: null
+columnStatus: null
+columnUse: null
+columnMaxVoltage: null
+columnMaxAmps: null
+columnLatitude: null
+columnLongitude: null
+columnPanelMeterVoltage: null
+columnMultimeterVoltage: null
+columnVoltageReadingComments: null
+columnPanelMeterAmps: null
+columnAmmeterAmps: null
+columnCurrentReadingComments: null
+columnCurrentRatio: null
+columnVoltageRatio: null
+columnVoltageDrop: null
+columnCalculatedCurrent: null
+columnCourseTapSettingFound: null
+columnMediumTapSettingFound: null
+columnFineTapSettingFound: null
+columnReason: null
+columnOilLevel: null
+columnOilLevelComments: null
+columnOilLevelFindings: null
+columnDeviceDamage: null
+columnDeviceDamageComments: null
+columnDeviceDamageFindings: null
+columnPolarityCondition: null
+columnPolarityConditionComments: null
+columnCircuitBreakers: null
+columnCircuitBreakersComments: null
+columnFusesWiring: null
+columnFusesWiringComments: null
+columnLightningArrestors: null
+columnLightningArrestorsComments: null
+columnVentScreens: null
+columnVentScreensComments: null
+columnBreathers: null
+columnBreathersComments: null
+columnRemoveObstructions: null
+columnRemoveObstructionsComments: null
+columnCleaned: null
+columnCleanedComments: null
+columnTightened: null
+columnTightenedComments: null
+columnRectifierPicturePath: null
+columnID: null
+columnTSArea: null
+columnTsID: null
+columnTSStatus: null
+columnTSLatitude: null
+columnTSLongitude: null
+columnTestStationPicturePath: null
+columnDefaultNameID: null
+columnDefaultNameType: null
+columnDefaultNameName: null
+columnPLTestLeadContainerID: null
+columnPLTestLeadContainerTSid: null
+columnPLTestLeadContainerName: null
+columnPLTestLeadContainerVoltsON: null
+columnPLTestLeadContainerVoltsON_Date: null
+columnPLTestLeadContainerVoltsOFF: null
+columnPLTestLeadContainerVoltsOFF_Date: null
+columnPLTestLeadContainerorder_index: null
+columnPermRefContainerID: null
+columnPermRefContainerTSid: null
+columnPermRefContainerName: null
+columnPermRefContainerVoltsON: null
+columnPermRefContainerVoltsON_Date: null
+columnPermRefContainerVoltsOFF: null
+columnPermRefContainerVoltsOFF_Date: null
+columnPermRefContainerType: null
+columnPermRefContainerOrderIndex: null
+columnAnodeContainerID: null
+columnAnodeContainerTSid: null
+columnAnodeContainerName: null
+columnAnodeContainerVoltsON: null
+columnAnodeContainerVoltsON_Date: null
+columnAnodeContainerVoltsOFF: null
+columnAnodeContainerVoltsOFF_Date: null
+columnAnodeContainerCurrent: null
+columnAnodeContainerCurrent_Date: null
+columnAnodeContainerOrderIndex: null
+columnTestLeadContainerID: null
+columnTestLeadContainerTSid: null
+columnTestLeadContainerName: null
+columnTestLeadContainerVoltsON: null
+columnTestLeadContainerVoltsON_Date: null
+columnTestLeadContainerVoltsOFF: null
+columnTestLeadContainerVoltsOFF_Date: null
+columnTestLeadContainerOrderIndex: null
+columnRiserContainerID: null
+columnRiserContainerTSid: null
+columnRiserContainerName: null
+columnRiserContainerVoltsON: null
+columnRiserContainerVoltsON_Date: null
+columnRiserContainerVoltsOFF: null
+columnRiserContainerVoltsOFF_Date: null
+columnRiserContainerOrderIndex: null
+columnForeignContainerID: null
+columnForeignContainerTSid: null
+columnForeignContainerName: null
+columnForeignContainerVoltsON: null
+columnForeignContainerVoltsON_Date: null
+columnForeignContainerVoltsOFF: null
+columnForeignContainerVoltsOFF_Date: null
+columnForeignContainerOrderIndex: null
+columnCouponContainerID: null
+columnCouponContainerTSid: null
+columnCouponContainerName: null
+columnCouponContainerVoltsON: null
+columnCouponContainerVoltsON_Date: null
+columnCouponContainerVoltsOFF: null
+columnCouponContainerVoltsOFF_Date: null
+columnCouponContainerCurrent: null
+columnCouponContainerCurrent_Date: null
+columnCouponContainerConnectedTo: null
+columnCouponContainerCouponType: null
+columnCouponContainerCouponSize: null
+columnCouponContainerOrderIndex: null
+columnShuntContainerID: null
+columnShuntContainerTSid: null
+columnShuntContainerName: null
+columnShuntContainerSideA: null
+columnShuntContainerSideB: null
+columnShuntContainerRatioMV: null
+columnShuntContainerRatioCurrent: null
+columnShuntContainerFactor: null
+columnShuntContainerVoltageDrop: null
+columnShuntContainerVoltageDrop_Date: null
+columnShuntContainerCalculated: null
+columnShuntContainerCalculated_Date: null
+columnShuntContainerOrderIndex: null
+columnIsoContainerID: null
+columnIsoContainerTSid: null
+columnIsoContainerName: null
+columnIsoContainerSideA: null
+columnIsoContainerSideB: null
+columnIsoContainerType: null
+columnIsoContainerShorted: null
+columnIsoContainerShorted_Date: null
+columnIsoContainerCurrent: null
+columnIsoContainerCurrent_Date: null
+columnIsoContainerOrderIndex: null
+columnBondContainerID: null
+columnBondContainerTSid: null
+columnBondContainerName: null
+columnBondContainerSideA: null
+columnBondContainerSideB: null
+columnBondContainerCurrent: null
+columnBondContainerCurrent_Date: null
+columnBondContainerOrderIndex: null
+databaseName: String
+---
+rectifierTableName(): String
+teststationTableName(): String
+defaultnamesTableName(): String
+plTestLeadContainers(): String
+permRefContainers(): String
+anodeContainers(): String
+testLeadContainers(): String
+riserContainers(): String
+foreignContainers(): String
+couponContainers(): String
+shuntContainers(): String
+isolationContainers(): String
+bondContainers(): String
+database(): Future<Database>
+-_initDatabase(): Future<Database>
+enableForeignKeys(): void
+-_onCreate(): Future<void>
+-_createProjectNamesTable(): Future<void>
+createTablesForProject(): Future<void>
+createTableForCameraSettings(): Future<void>
+requestStoragePermission(): Future<void>
+copyDatabaseToDownloads(): Future<void>
+getLatestProject(): Future<Project?>
+insertProjectName(): Future<int>
+getProjectNameById(): Future<Map<String, dynamic>?>
+getProjectID(): Future<int?>
+fetchProjectNames(): Future<List<Project>>
+updateLastLoaded(): Future<void>
+deleteProjectName(): Future<void>
+dropProjectTables(): Future<void>
+queryRectifierByServiceTag(): Future<Map<String, dynamic>?>
+queryTestStationBytsID(): Future<Map<String, dynamic>?>
+updateRectifier(): Future<int>
+updateTestStation(): Future<int>
+deleteRectifier(): Future<int>
+deleteTestStation(): Future<int>
+insertRectifier(): Future<int>
+insertMultipleRectifiers(): Future<void>
+insertTestStation(): Future<int>
+insertMultipleTestStations(): Future<void>
+queryRectifiersByProjectID(): Future<List<Map<String, dynamic>>>
+queryTestStationsByProjectID(): Future<List<Map<String, dynamic>>>
+close(): Future<void>
+insertOrUpdateReading(): Future<int>
+fetchNamesForShunt(): Future<List<String>>
+fetchNamesForLabel(): Future<List<String>>
+queryReadingsByTestStationID(): Future<List<Map<String, dynamic>>>
+insertCameraSettings(): Future<void>
+getCameraSettings(): Future<CameraSettings?>
+updateCameraSettings(): Future<int>
+}
+DatabaseHelper ..> Database
+DatabaseHelper ..> DatabaseHelper
+class ISOPage {
+---
+build(): Widget
+}
+StatelessWidget <|-- ISOPage
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MainPage {
+---
+createState(): MainPageUI
+}
+StatefulWidget <|-- MainPage
+class MainPageUI {
+-_scaffoldKey: GlobalKey<ScaffoldState>
+projectModel: ProjectModel
+projectsExist: Future<bool>
+selectedProjectName: Project?
+projectNames: List<Project>
+bluetoothManager: null
+currentName: String?
+-_isInitialLoad: bool
+---
+loadProjectNames(): Future<void>
+updateProjectsExist(): Future<void>
+hasProjects(): Future<bool>
+-_choiceAction(): void
+initState(): void
+-_loadProjectData(): Future<void>
+onProjectSelected(): void
+-_selectProject(): Future<void>
+-_saveSelectedProjectToPrefs(): Future<void>
+showAddProjectDialog(): void
+showSelectProjectDialog(): Future<void>
+-_canNavigate(): Future<bool>
+-_showNoProjectSelectedErrorDialog(): void
+build(): Widget
+}
+State <|-- MainPageUI
+MainPageUI ..> GlobalKey
+MainPageUI ..> ProjectModel
+MainPageUI ..> Future
+MainPageUI ..> Project
+class CameraSettings {
+id: int?
+-_isMapOverlayVisible: bool
+-_mapPosition: MapPosition?
+-_dataPosition: MapPosition?
+-_mapType: String
+-_mapOpacity: double
+-_mapSize: double
+-_mapScale: double
+-_isDataOverlayVisible: bool
+-_selectedFontStyle: String
+-_selectedFontColor: String
+-_selectedFontSize: double
+-_selectedDateFormat: String
+-_selectedLocationFormat: String
+-_dataDisplayOrder: List<String>
+mapTypeOptions: List<String>
+fontStyleOptions: List<Map<String, dynamic>>
+fontColors: List<String>
+fontSizes: List<double>
+dateFormats: List<String>
+locationFormats: List<String>
+---
+isMapOverlayVisible(): bool
+mapPosition(): MapPosition?
+dataPosition(): MapPosition?
+mapType(): String
+mapOpacity(): double
+mapSize(): double
+mapScale(): double
+isDataOverlayVisible(): bool
+selectedFontStyle(): String
+selectedFontColor(): String
+selectedFontSize(): double
+selectedDateFormat(): String
+selectedLocationFormat(): String
+dataDisplayOrder(): List<String>
+isMapOverlayVisible(): void
+mapPosition(): void
+dataPosition(): void
+mapType(): void
+mapOpacity(): void
+mapSize(): void
+mapScale(): void
+isDataOverlayVisible(): void
+selectedFontStyle(): void
+selectedFontColor(): void
+selectedFontSize(): void
+selectedDateFormat(): void
+selectedLocationFormat(): void
+displayOrder(): void
+updateMapPosition(): void
+updateDataPosition(): void
+updateMapType(): void
+updateMapOpacity(): void
+updateMapSize(): void
+updateMapScale(): void
+updateFontStyle(): void
+updateFontColor(): void
+updateFontSize(): void
+updateDateFormat(): void
+updateLocationFormat(): void
+updateMapOverlayVisibility(): void
+updateDataOverlayVisibility(): void
+updateDisplayOrder(): void
+toMap(): Map<String, dynamic>
+fromMap(): CameraSettings
+loadCameraSettingsFromDatabase(): Future<void>
+updateCameraSettingsToDatabase(): Future<void>
+}
+ChangeNotifier <|-- CameraSettings
+class Project {
+id: int
+client: String
+projectName: String
+tech: String
+createDate: String
+---
+toMap(): Map<String, dynamic>
+fullProjectName(): String
+toString(): String
+}
+class ProjectModel {
+-_projectID: int
+-_client: String
+-_projectName: String
+-_tech: String
+-_createDate: String
+-_projects: List<Project>
+-_loadedProjectIDs: Set<int>
+---
+id(): int
+client(): String
+projectName(): String
+tech(): String
+createDate(): String
+projects(): List<Project>
+loadedProjectIDs(): Set<int>
+fullProjectName(): String
+projectID(): void
+client(): void
+projectName(): void
+tech(): void
+createDate(): void
+projects(): void
+loadProjects(): Future<void>
+fetchAllProjectsSQL(): Future<List<Project>>
+}
+class Rectifier {
+projectID: int
+area: String?
+serviceTag: String
+use: String?
+status: String
+maxVoltage: double?
+maxAmps: double?
+latitude: double?
+longitude: double?
+readings: RectifierReadings?
+tapReadings: TapReadings?
+inspection: RectifierInspection?
+-_cache: Map<String, Rectifier>
+---
+toMap(): Map<String, dynamic>
+copyWith(): Rectifier
+getStatusColor(): Color
+updateStatus(): void
+}
+Rectifier ..> RectifierReadings
+Rectifier ..> TapReadings
+Rectifier ..> RectifierInspection
+class RectifierReadings {
+panelMeterVoltage: double?
+multimeterVoltage: double?
+voltageReadingComments: String?
+panelMeterAmps: double?
+ammeterAmps: double?
+currentReadingComments: String?
+currentRatio: double?
+voltageRatio: double?
+voltageDrop: double?
+calculatedCurrent: double?
+---
+}
+class TapReadings {
+courseTapSettingFound: String?
+mediumTapSettingFound: String?
+fineTapSettingFound: String?
+---
+}
+class RectifierInspection {
+reason: String?
+deviceDamage: int?
+polarityCondition: int?
+oilLevel: int?
+circuitBreakers: int?
+fusesWiring: int?
+lightningArrestors: int?
+ventScreens: int?
+breathers: int?
+removeObstructions: int?
+cleaned: int?
+tightened: int?
+oilLevelFindings: String?
+oilLevelComments: String?
+deviceDamageFindings: String?
+deviceDamageComments: String?
+circuitBreakersComments: String?
+fusesWiringComments: String?
+lightningArrestorsComments: String?
+ventScreensComments: String?
+breathersComments: String?
+removeObstructionsComments: String?
+cleanedComments: String?
+tightenedComments: String?
+polarityConditionComments: String?
+---
+}
+class TestStation {
+id: int?
+projectID: int
+area: String?
+tsID: String
+tsstatus: String
+latitude: double?
+longitude: double?
+officeNotes: String?
+fieldNotes: String?
+picturePath: String?
+plTestLeadReadings: List<PLTestLeadReading>?
+permRefReadings: List<PermRefReading>?
+anodeReadings: List<AnodeReading>?
+shuntReadings: List<ShuntReading>?
+riserReadings: List<RiserReading>?
+foreignReadings: List<ForeignReading>?
+testLeadReadings: List<TestLeadReading>?
+couponReadings: List<CouponReading>?
+bondReadings: List<BondReading>?
+isolationReadings: List<IsolationReading>?
+-_cache: Map<int, TestStation>
+---
+fullProjectName(): void
+toMap(): Map<String, dynamic>
+copyWith(): TestStation
+gettsStatusColor(): Color
+updateTSStatus(): void
+}
+class PLTestLeadReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedvoltsAC(): String
+formattedWaveForm(): String
+acVolts(): String
+toMap(): Map<String, dynamic>
+}
+PLTestLeadReading ..> DateTime
+class PermRefReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+type: String?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedvoltsAC(): String
+formattedWaveForm(): String
+toMap(): Map<String, dynamic>
+}
+PermRefReading ..> DateTime
+class AnodeReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+current: double?
+currentDate: DateTime?
+wireColor: String?
+lugNumber: int?
+anodeMaterial: String?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedCurrent(): String
+formattedvoltsAC(): String
+formattedWaveForm(): String
+toMap(): Map<String, dynamic>
+}
+AnodeReading ..> DateTime
+class ShuntReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+sideA: String?
+sideB: String?
+ratioMV: double?
+ratioAMPS: double?
+factor: double?
+vDrop: double?
+vDropDate: DateTime?
+calculated: double?
+calculatedDate: DateTime?
+---
+formattedratioMV(): String
+formattedratioAMPS(): String
+formattedfactor(): String
+formattedvDrop(): String
+formattedcalculated(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+ShuntReading ..> DateTime
+class RiserReading {
+id: int?
+stationID: int?
+testStationID: String
+name: String
+label: String?
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+pipeDiameter: int?
+waveForm: String?
+orderIndex: int
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+formattedWaveForm(): String
+toMap(): Map<String, dynamic>
+-_parseDateTime(): DateTime?
+}
+RiserReading ..> DateTime
+class ForeignReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedWaveForm(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+ForeignReading ..> DateTime
+class TestLeadReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+fieldLabel: String?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedWaveForm(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+TestLeadReading ..> DateTime
+class CouponReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+voltsON: double?
+voltsONDate: DateTime?
+voltsOFF: double?
+voltsOFFDate: DateTime?
+current: double?
+currentDate: DateTime?
+connectedTo: String?
+type: String?
+size: double?
+waveForm: String?
+---
+formattedVoltsON(): String
+formattedVoltsOFF(): String
+formattedCurrent(): String
+formattedSize(): String
+formattedWaveForm(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+CouponReading ..> DateTime
+class BondReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+sideA: String?
+sideB: String?
+current: double?
+currentDate: DateTime?
+waveForm: String?
+---
+formattedCurrent(): String
+formattedvoltsAC(): String
+formattedWaveForm(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+BondReading ..> DateTime
+class IsolationReading {
+id: int?
+stationID: int?
+testStationID: String?
+name: String
+label: String?
+orderIndex: int
+voltsAC: double?
+voltsACDate: DateTime?
+sideA: String?
+sideB: String?
+type: String?
+shorted: int?
+shortedDate: DateTime?
+current: double?
+currentDate: DateTime?
+---
+formattedCurrent(): String
+formattedvoltsAC(): String
+-_formatVoltage(): String
+toMap(): Map<String, dynamic>
+}
+IsolationReading ..> DateTime
+class DataloggerServiceModel {
+service: BluetoothService
+dataloggerSettingsModel: DataloggerSettingsModel?
+dataloggerReadingModel: DataloggerReadingModel?
+dataloggerMetadataModel: DataloggerMetadataModel?
+-_settingsCharacteristic: BluetoothCharacteristic?
+-_readingCharacteristic: BluetoothCharacteristic?
+---
+discoverDSOService(): Future<void>
+}
+DataloggerServiceModel ..> BluetoothService
+DataloggerServiceModel ..> DataloggerSettingsModel
+DataloggerServiceModel ..> DataloggerReadingModel
+DataloggerServiceModel ..> DataloggerMetadataModel
+DataloggerServiceModel ..> BluetoothCharacteristic
+class DataloggerSettingsModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+---
+}
+DataloggerSettingsModel ..> BluetoothCharacteristic
+class DataloggerMetadataModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+---
+}
+DataloggerMetadataModel ..> BluetoothCharacteristic
+class DataloggerReadingModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+---
+}
+DataloggerReadingModel ..> BluetoothCharacteristic
+class DSOServiceModel {
+service: BluetoothService
+dsoSettingsModel: DSOSettingsModel?
+dsoReadingModel: DSOReadingModel?
+dsoMetadataModel: DSOMetadataModel?
+-_settingsCharacteristic: BluetoothCharacteristic?
+-_readingCharacteristic: BluetoothCharacteristic?
+---
+discoverDSOService(): Future<void>
+}
+DSOServiceModel ..> BluetoothService
+DSOServiceModel ..> DSOSettingsModel
+DSOServiceModel ..> DSOReadingModel
+DSOServiceModel ..> DSOMetadataModel
+DSOServiceModel ..> BluetoothCharacteristic
+class DSOSettingsModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+command: Command
+triggerLevel: int?
+mode: Mode
+range: int
+sampleWindow: int
+sampleCount: int
+---
+}
+DSOSettingsModel ..> BluetoothCharacteristic
+DSOSettingsModel ..> Command
+DSOSettingsModel ..> Mode
+class DSOMetadataModel {
+status: int
+scale: double
+mode: int
+range: int
+samplingWindow: int
+numberOfSamples: int
+samplingRate: int
+---
+}
+class DSOReadingModel {
+samples: List<int>
+---
+applyScale(): List<double>
+}
+class MMServiceModel {
+service: BluetoothService
+mmReadingModel: MMReadingModel?
+mmSettingsModel: MMSettingsModel?
+settingsCharacteristic: BluetoothCharacteristic?
+---
+discoverMMService(): Future<void>
+initializeWithDevice(): Future<void>
+-_prepareSettingsData(): Future<void>
+}
+MMServiceModel ..> BluetoothService
+MMServiceModel ..> MMReadingModel
+MMServiceModel ..> MMSettingsModel
+MMServiceModel ..> BluetoothCharacteristic
+class MMReadingModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+status: MeterStatus
+value: double
+mode: Mode
+range: int
+rangeString: String?
+---
+}
+MMReadingModel ..> BluetoothCharacteristic
+MMReadingModel ..> MeterStatus
+MMReadingModel ..> Mode
+class MMSettingsModel {
+bluetoothCharacteristic: BluetoothCharacteristic?
+mode: Mode
+range: int
+updateInterval: int
+---
+writeSettings(): Future<void>
+}
+MMSettingsModel ..> BluetoothCharacteristic
+MMSettingsModel ..> Mode
+class PokitProModel {
+device: BluetoothDevice
+services: List<BluetoothService>
+genericAttributeServiceModel: GenericAttributeServiceModel?
+genericAccessServiceModel: GenericAccessServiceModel?
+deviceInfoServiceModel: DeviceInfoServiceModel?
+statusServiceModel: StatusServiceModel?
+mmServiceModel: MMServiceModel?
+---
+bluetoothDevice(): BluetoothDevice
+initializePokitServices(): Future<void>
+-_initializePokitNotifications(): Future<void>
+}
+PokitProModel ..> BluetoothDevice
+PokitProModel ..> GenericAttributeServiceModel
+PokitProModel ..> GenericAccessServiceModel
+PokitProModel ..> DeviceInfoServiceModel
+PokitProModel ..> StatusServiceModel
+PokitProModel ..> MMServiceModel
+class GenericAttributeServiceModel {
+service: BluetoothService
+serviceChangedCharacteristicModel: ServiceChangedCharacteristicModel?
+clientConfigurationCharacteristicModel: ClientConfigurationCharacteristicModel?
+databaseHashCharacteristicModel: DatabaseHashCharacteristicModel?
+clientFeaturesCharacteristicModel: ClientFeaturesCharacteristicModel?
+---
+discoverGenericAttributeService(): Future<void>
+}
+GenericAttributeServiceModel ..> BluetoothService
+GenericAttributeServiceModel ..> ServiceChangedCharacteristicModel
+GenericAttributeServiceModel ..> ClientConfigurationCharacteristicModel
+GenericAttributeServiceModel ..> DatabaseHashCharacteristicModel
+GenericAttributeServiceModel ..> ClientFeaturesCharacteristicModel
+class ServiceChangedCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+clientConfiguration: int?
+---
+}
+ServiceChangedCharacteristicModel ..> BluetoothCharacteristic
+class DatabaseHashCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+databaseHash: String?
+---
+}
+DatabaseHashCharacteristicModel ..> BluetoothCharacteristic
+class ClientFeaturesCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+clientFeatures: String?
+---
+}
+ClientFeaturesCharacteristicModel ..> BluetoothCharacteristic
+class ClientConfigurationCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+clientConfiguration: int?
+---
+}
+ClientConfigurationCharacteristicModel ..> BluetoothCharacteristic
+class DeviceInfoServiceModel {
+service: BluetoothService
+manufacturerName: String?
+modelNumber: String?
+firmwareRev: String?
+softwareRev: String?
+hardwareRev: String?
+serialNumber: String?
+---
+}
+DeviceInfoServiceModel ..> BluetoothService
+class GenericAccessServiceModel {
+service: BluetoothService
+gasDeviceName: String?
+deviceAppearance: int?
+---
+}
+GenericAccessServiceModel ..> BluetoothService
+class StatusServiceModel {
+service: BluetoothService
+deviceNameCharacteristicModel: DeviceNameCharacteristicModel?
+deviceCharacteristicModel: DeviceCharacteristicModel?
+statusCharacteristicModel: StatusCharacteristicModel?
+ledCharacteristicModel: LEDCharacteristicModel?
+torchCharacteristicModel: TorchCharacteristicModel?
+buttonCharacteristicModel: ButtonCharacteristicModel?
+---
+discoverStatusService(): Future<void>
+}
+StatusServiceModel ..> BluetoothService
+StatusServiceModel ..> DeviceNameCharacteristicModel
+StatusServiceModel ..> DeviceCharacteristicModel
+StatusServiceModel ..> StatusCharacteristicModel
+StatusServiceModel ..> LEDCharacteristicModel
+StatusServiceModel ..> TorchCharacteristicModel
+StatusServiceModel ..> ButtonCharacteristicModel
+class DeviceCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+version: String?
+maxVoltage: int?
+maxCurrent: int?
+maxResistance: int?
+maxSampleRate: int?
+sampleBufferSize: int?
+capabilityMask: int?
+macAddress: String?
+---
+}
+DeviceCharacteristicModel ..> BluetoothCharacteristic
+class StatusCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+statusDescription: String?
+batteryLevel: double?
+batteryStatus: String?
+switchPosition: String?
+chargingStatus: String?
+---
+batteryPercentage(): double
+}
+StatusCharacteristicModel ..> BluetoothCharacteristic
+class DeviceNameCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+deviceName: String?
+---
+}
+DeviceNameCharacteristicModel ..> BluetoothCharacteristic
+class LEDCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+ledStatus: int?
+---
+}
+LEDCharacteristicModel ..> BluetoothCharacteristic
+class TorchCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+torchStatus: int?
+---
+}
+TorchCharacteristicModel ..> BluetoothCharacteristic
+class ButtonCharacteristicModel {
+bluetoothCharacteristic: BluetoothCharacteristic
+buttonUnknown: int?
+buttonStatus: String?
+---
+}
+ButtonCharacteristicModel ..> BluetoothCharacteristic
+class BluetoothManager {
+instance: BluetoothManager
+deviceStateNotifier: ValueNotifier<BluetoothConnectionState>
+availableDevicesNotifier: ValueNotifier<List<BluetoothDevice>>
+onDeviceDetailsUpdated: DeviceDetailsCallback?
+-_isDeviceConnected: bool
+-_connectionStateSubscription: StreamSubscription<BluetoothConnectionState>?
+-_subscriptions: Map<String, StreamSubscription>
+-_enabledNotifications: Map<String, StreamSubscription>
+-_device: BluetoothDevice?
+-_pokitProModel: PokitProModel?
+-_mmServiceModel: MMServiceModel?
+-_currentMMReading: MMReadingModel?
+-_currentMMSettings: MMSettingsModel?
+-_minReading: double?
+-_maxReading: double?
+-_readingStreamController: StreamController<MMReadingModel>
+-_selectedMode: Mode
+---
+isConnected(): bool
+pokitProModel(): PokitProModel?
+mmServiceModel(): MMServiceModel?
+currentReading(): MMReadingModel?
+currentSettings(): MMSettingsModel?
+minReading(): double?
+maxReading(): double?
+currentReadingStream(): Stream<MMReadingModel>
+pokitProModel(): void
+setDevice(): void
+setSelectedMode(): void
+dispose(): void
+isMacAddress(): bool
+startBluetoothScan(): Future<void>
+discoverServices(): Future<List<BluetoothService>>
+connectToDevice(): Future<void>
+enableCharacteristicNotifications(): Future<void>
+updateDeviceDetails(): void
+unpairDevice(): void
+resetMinMaxReadings(): void
+updateSwitchPosition(): void
+updateButtonPressed(): void
+updateService(): void
+-_initializeConnectionListener(): void
+-_subscribeToCharacteristic(): StreamSubscription
+}
+BluetoothManager ..> BluetoothManager
+BluetoothManager ..> ValueNotifier
+BluetoothManager ..> DeviceDetailsCallback
+BluetoothManager ..> BluetoothDevice
+BluetoothManager ..> PokitProModel
+BluetoothManager ..> MMServiceModel
+BluetoothManager ..> MMReadingModel
+BluetoothManager ..> MMSettingsModel
+BluetoothManager ..> StreamController
+BluetoothManager ..> Mode
+class Reading {
+status: MeterStatus
+value: double
+mode: Mode
+range: int
+rangeString: String?
+---
+}
+Reading ..> MeterStatus
+Reading ..> Mode
+class Settings {
+mode: Mode
+range: int
+updateInterval: int
+---
+}
+Settings ..> Mode
+class MultimeterService {
+multimeterServiceUUID: String
+settingsCharacteristicUUID: String
+readingCharacteristicUUID: String
+retryDelay: Duration
+-_device: BluetoothDevice?
+-_settingsCharacteristic: BluetoothCharacteristic?
+-_readingCharacteristic: BluetoothCharacteristic?
+-_readingSubscription: StreamSubscription?
+-_currentReading: Reading?
+-_minReading: double?
+-_maxReading: double?
+-_selectedMode: Mode
+instance: MultimeterService
+-_readingStreamController: StreamController<double>
+-_minReadingStreamController: StreamController<double>
+-_maxReadingStreamController: StreamController<double>
+---
+currentReading(): Reading
+minReading(): double?
+maxReading(): double?
+setSelectedMode(): void
+currentReadingStream(): Stream<double>
+minReadingStream(): Stream<double>
+maxReadingStream(): Stream<double>
+setDevice(): void
+initialize(): Future<void>
+writeSettings(): Future<void>
+subscribeToServiceAndReading(): Future<void>
+subscribeToReading(): Future<void>
+unsubscribeFromReading(): Future<void>
+-_onDataReceived(): void
+-_processReceivedData(): void
+resetMinMaxReadings(): void
+}
+MultimeterService ..> BluetoothDevice
+MultimeterService ..> BluetoothCharacteristic
+MultimeterService ..> Reading
+MultimeterService ..> Mode
+MultimeterService ..> MultimeterService
+MultimeterService ..> StreamController
+class MultimeterUIPage {
+---
+createState(): void
+}
+StatefulWidget <|-- MultimeterUIPage
+class _MultimeterUIPageState {
+selectedMode: Mode
+selectedRange: int?
+previousSwitchPosition: String?
+bmcurrentSwitchPosition: String?
+availableModes: List<Mode>
+multimeterService: MultimeterService
+bluetoothManager: BluetoothManager
+showMin: bool
+showMax: bool
+desiredModes: List<Mode>
+---
+initState(): void
+-_setupAndStartMultimeterService(): void
+-_bluetoothStateChanged(): void
+-_updateAvailableModes(): void
+dispose(): void
+getDisplayNameForMode(): String
+modeToDisplay(): String
+build(): Widget
+}
+State <|-- _MultimeterUIPageState
+_MultimeterUIPageState ..> Mode
+_MultimeterUIPageState ..> MultimeterService
+_MultimeterUIPageState ..> BluetoothManager
+class DataloggerService {
+dataloggerServiceUUID: String
+dataloggerSettingCharacteristicUUID: String
+dataloggerMetadataCharacteristicUUID: String
+dataloggerReadingCharacteristicUUID: String
+---
+initializeDSOSettingsCharacteristic(): DataloggerSettingsModel
+handleDSOMetadataCharacteristic(): DataloggerMetadataModel
+handleDSOReadingCharacteristic(): DataloggerReadingModel
+}
+class DSOService {
+dsoServiceUUID: String
+dsoSettingCharacteristicUUID: String
+dsoMetadataCharacteristicUUID: String
+dsoReadingCharacteristicUUID: String
+---
+initializeDSOSettingsCharacteristic(): DSOSettingsModel
+handleDSOMetadataCharacteristic(): DSOMetadataModel
+handleDSOReadingCharacteristic(): DSOReadingModel
+}
+class MMService {
+mmServiceUUID: String
+mmSettingsCharacteristicUUID: String
+mmReadingCharacteristicUUID: String
+---
+initializeMMSettingsCharacteristic(): MMSettingsModel
+handleMMReadingCharacteristic(): MMReadingModel
+-_parseRawData(): _ParsedData
+-_getRangeString(): String
+}
+class _ParsedData {
+status: MeterStatus
+value: double
+mode: Mode
+rangeValue: int
+---
+}
+_ParsedData ..> MeterStatus
+_ParsedData ..> Mode
+class PokitPro {
+genericAttributeServiceUUID: String
+serviceChangedUUID: String
+clientConfigurationUUID: String
+databaseHashUUID: String
+clientFeaturesUUID: String
+genericAccessServiceUUID: String
+gasDeviceNameUUID: String
+deviceAppearanceUUID: String
+deviceInfoServiceUUID: String
+manufacturerNameCharacteristicUUID: String
+modelNumberCharacteristicUUID: String
+firmwareRevCharacteristicUUID: String
+softwareRevCharacteristicUUID: String
+hardwareRevCharacteristicUUID: String
+serialNumberCharacteristicUUID: String
+---
+handleServiceChangedCharacteristic(): ServiceChangedCharacteristicModel?
+handleDatabaseHashCharacteristic(): DatabaseHashCharacteristicModel?
+handleClientFeaturesCharacteristic(): ClientFeaturesCharacteristicModel?
+handleClientConfigurationCharacteristic(): ClientConfigurationCharacteristicModel?
+handleGenericAccessService(): GenericAccessServiceModel?
+handleDeviceInfoService(): Future<DeviceInfoServiceModel?>
+}
+class StatusService {
+statusServiceUUID: String
+deviceCharacteristicUUID: String
+statusCharacteristicUUID: String
+nameCharacteristicUUID: String
+ledCharacteristicUUID: String
+torchCharacteristicUUID: String
+buttonCharacteristicUUID: String
+---
+handleDeviceCharacteristic(): DeviceCharacteristicModel?
+handleStatusCharacteristic(): StatusCharacteristicModel?
+handleDeviceNameCharacteristic(): DeviceNameCharacteristicModel?
+handleLEDCharacteristic(): LEDCharacteristicModel?
+handleTorchCharacteristic(): TorchCharacteristicModel?
+handleButtonCharacteristic(): ButtonCharacteristicModel?
+}
+class CapacitanceRange {
+---
+capacitanceRangeSetValue(): int
+capacitanceRangeMaxValue(): dynamic
+capacitanceRangeToString(): String
+capacitanceRangeFromString(): int?
+}
+class VoltageRange {
+---
+voltageRangeSetValue(): int
+voltageRangeMaxValue(): dynamic
+voltageRangeToString(): String
+voltageRangeFromString(): int?
+}
+class CurrentRange {
+---
+currentRangeSetValue(): int
+currentRangeMaxValue(): dynamic
+currentRangeToString(): String
+currentRangeFromString(): int?
+}
+class ResistanceRange {
+---
+resistanceRangeSetValue(): int
+resistanceRangeMaxValue(): dynamic
+resistanceRangeToString(): String
+resistanceRangeFromString(): int?
+getEnumFromValue(): ResistanceRangeEnum?
+}
+class RectifiersPage {
+---
+importCsv(): Future<void>
+parseCsvFromPath(): Future<List<Rectifier>>
+-_notifyMissingLocations(): void
+-_showSortOptionsDialog(): void
+build(): Widget
+}
+StatelessWidget <|-- RectifiersPage
+class RectifierDetailsPage {
+rectifier: Rectifier
+onStatusChanged:  Function(String, RectifierReadings, TapReadings, RectifierInspection)
+---
+createState(): _RectifierDetailsPageState
+}
+StatefulWidget <|-- RectifierDetailsPage
+RectifierDetailsPage ..> Rectifier
+class _RectifierDetailsPageState {
+-_panelMeterVoltageFocusNode: FocusNode
+-_multimeterVoltageFocusNode: FocusNode
+-_voltageReadingCommentsFocusNode: FocusNode
+-_panelMeterCurrentFocusNode: FocusNode
+-_ammeterCurrentFocusNode: FocusNode
+-_currentReadingCommentsFocusNode: FocusNode
+-_currentRatioFocusNode: FocusNode
+-_voltageRatioFocusNode: FocusNode
+-_voltageDropFocusNode: FocusNode
+-_courseTapFocusNode: FocusNode
+-_mediumTapFocusNode: FocusNode
+-_fineTapFocusNode: FocusNode
+-_oilLevelFindingsFocusNode: FocusNode
+-_oilLevelCommentsFocusNode: FocusNode
+-_deviceDamageFindingsFocusNode: FocusNode
+-_deviceDamageCommentsFocusNode: FocusNode
+-_circuitBreakersCommentsFocusNode: FocusNode
+-_fusesWiringCommentsFocusNode: FocusNode
+-_lightningArrestorsCommentsFocusNode: FocusNode
+-_ventScreensCommentsFocusNode: FocusNode
+-_breathersCommentsFocusNode: FocusNode
+-_removeObstructionsCommentsFocusNode: FocusNode
+-_cleanedCommentsFocusNode: FocusNode
+-_tightenedCommentsFocusNode: FocusNode
+-_polarityConditionCommentsFocusNode: FocusNode
+locationFocusNode: FocusNode
+-_latitudeController: TextEditingController
+-_longitudeController: TextEditingController
+-_panelMeterVoltageController: TextEditingController
+-_multimeterVoltageController: TextEditingController
+-_voltageReadingCommentsController: TextEditingController
+-_panelMeterCurrentController: TextEditingController
+-_ammeterCurrentController: TextEditingController
+-_currentReadingCommentsController: TextEditingController
+-_currentRatioController: TextEditingController
+-_voltageRatioController: TextEditingController
+-_voltageDropController: TextEditingController
+-_courseTapController: TextEditingController
+-_mediumTapController: TextEditingController
+-_fineTapController: TextEditingController
+-_oilLevelFindingsController: TextEditingController
+-_oilLevelCommentsController: TextEditingController
+-_deviceDamageFindingsController: TextEditingController
+-_deviceDamageCommentsController: TextEditingController
+-_circuitBreakersCommentsController: TextEditingController
+-_fusesWiringCommentsController: TextEditingController
+-_lightningArrestorsCommentsController: TextEditingController
+-_ventScreensCommentsController: TextEditingController
+-_breathersCommentsController: TextEditingController
+-_removeObstructionsCommentsController: TextEditingController
+-_cleanedCommentsController: TextEditingController
+-_tightenedCommentsController: TextEditingController
+-_polarityConditionCommentsController: TextEditingController
+-_oilLevel: int?
+-_deviceDamage: int?
+-_circuitBreakers: int?
+-_fusesWiring: int?
+-_lightningArrestors: int?
+-_ventScreens: int?
+-_breathers: int?
+-_removeObstructions: int?
+-_cleaned: int?
+-_tightened: int?
+-_polarityCondition: int?
+latitude: double?
+longitude: double?
+statuses: List<String>
+currentStatusIndex: int
+---
+-_addFocusListener(): void
+-_addTextControllerListener(): void
+-_setupTextController(): void
+initState(): void
+dispose(): void
+currentStatus(): String
+calculateCurrent(): void
+-_updateValues(): void
+-_toggleStatus(): void
+build(): Widget
+-_buildRectifierDetailsContainer(): Widget
+-_buildVoltageContainer(): Widget
+-_buildCurrentContainer(): Widget
+-_buildShuntContainer(): Widget
+-_buildTapReadingsContainer(): Widget
+-_buildOilLevelContainer(): Widget
+-_buildDeviceConditionContainer(): Widget
+-_buildProtectiveDevicesContainer(): Widget
+-_buildCleaningContainer(): Widget
+-_buildCurrentConnectionsContainer(): Widget
+}
+State <|-- _RectifierDetailsPageState
+_RectifierDetailsPageState ..> FocusNode
+_RectifierDetailsPageState ..> TextEditingController
+class RectifierNotifier {
+projectModel: ProjectModel
+-_currentRectifier: Rectifier
+-_rectifiers: List<Rectifier>
+calculatedCurrentNotifier: ValueNotifier<double>
+---
+-_initializeRectifiers(): void
+rectifiers(): List<Rectifier>
+currentRectifier(): Rectifier?
+loadRectifiersFromDatabase(): Future<void>
+setCurrentRectifierByServiceTag(): Future<void>
+fetchRectifiers(): Future<void>
+updateRectifierStatus(): void
+updateRectifier(): void
+computeCurrent(): double
+updateReadings(): RectifierReadings
+updateTapReadings(): TapReadings
+updateInspection(): RectifierInspection
+addRectifier(): Future<void>
+addRectifiers(): Future<void>
+deleteRectifier(): Future<void>
+checkPermission(): Future<void>
+requestStoragePermission(): Future<void>
+createCSV(): Future<void>
+getDownloadsDirectoryPath(): Future<String>
+saveOrShareCSV(): Future<File?>
+sortRectifiersAlphabeticallyAZ(): void
+sortRectifiersByLocation(): void
+sortRectifiersByStatus(): void
+}
+ChangeNotifier <|-- RectifierNotifier
+RectifierNotifier ..> ProjectModel
+RectifierNotifier ..> Rectifier
+RectifierNotifier ..> ValueNotifier
+class TanksPage {
+---
+build(): Widget
+}
+StatelessWidget <|-- TanksPage
+abstract class BaseContainer {
+readings: List<T>
+onReadingUpdated: ValueChanged<T>?
+currentTestStation: TestStation
+scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>
+---
+createState(): BaseContainerState
+}
+StatefulWidget <|-- BaseContainer
+BaseContainer ..> ValueChanged
+BaseContainer ..> TestStation
+BaseContainer ..> GlobalKey
+abstract class BaseContainerState {
+id: int?
+orderIndex: int?
+currentTestStation: TestStation?
+testStation: TestStation
+isTimerActiveON: bool
+isTimerActiveOFF: bool
+isTimerActiveAC: bool
+userEditedOn: bool
+userEditedOff: bool
+userEditedAC: bool
+initialVoltsONDate: DateTime?
+initialVoltsOFFDate: DateTime?
+initialvoltsACDate: DateTime?
+showGraph: bool
+-_passOrFail: int?
+userEditedCurrent: bool
+initialCurrentDate: DateTime?
+selectedWireColor: String?
+lastSavedWireColor: String?
+selectedLugNumber: int?
+lastSavedLugNumber: int?
+wireColors: List<String>
+colorMap: Map<String, List<Color>>
+fullNamesList: List<String>
+selectedSideA: String?
+selectedSideB: String?
+userEditedVoltageDrop: bool
+userEditedCalculated: bool
+initialVoltageDropDate: DateTime?
+initialCalculatedDate: DateTime?
+nameController: TextEditingController
+labelController: TextEditingController?
+acController: TextEditingController?
+onController: TextEditingController?
+offController: TextEditingController?
+currentController: TextEditingController?
+pipeDiameterController: TextEditingController?
+ratioMVController: TextEditingController?
+ratioAmpsController: TextEditingController?
+factorController: TextEditingController?
+vDropController: TextEditingController?
+calculatedController: TextEditingController?
+nameFocusNode: FocusNode
+labelFocusNode: FocusNode?
+acFocusNode: FocusNode?
+onFocusNode: FocusNode?
+offFocusNode: FocusNode?
+currentFocusNode: FocusNode?
+pipeDiameterFocusNode: FocusNode?
+wireColorNode: FocusNode?
+lugNumberNode: FocusNode?
+ratioMVFocusNode: FocusNode?
+ratioAmpsFocusNode: FocusNode?
+factorFocusNode: FocusNode?
+vDropFocusNode: FocusNode?
+calculatedFocusNode: FocusNode?
+---
+colorDisplay(): Widget
+containerName(): String
+initState(): void
+initializeAsyncData(): void
+initializeControllers(): void
+setUpControllers(): void
+initializeFocusNodes(): void
+setUpFocusNodes(): void
+dispose(): void
+formatDateTime(): String?
+saveOrUpdateReading(): void
+performDbOperation(): void
+handleTimerStatusChangedON(): void
+handleTimerStatusChangedOFF(): void
+handleTimerStatusChangedAC(): void
+toggleGraph(): void
+loadShuntNames(): Future<void>
+loadLabels(): Future<List<String>>
+updateFactor(): void
+updateCalculated(): Future<void>
+formatNumbers(): String
+buildContent(): Widget
+buildLabelRow(): Widget
+buildACReadingRow(): Widget
+buildONReadingRow(): Widget
+buildOFFReadingRow(): Widget
+buildCurrentReadingRow(): Widget
+buildPipeDiameterRow(): Widget
+buildPassFailRow(): Widget
+buildWireColorAndLugNumberRow(): Widget
+buildBottomGraph(): Widget
+buildSideAtoSideBDropdowns(): Widget
+buildShuntCalculationRows(): Widget
+build(): Widget
+}
+State <|-- BaseContainerState
+BaseContainerState ..> TestStation
+BaseContainerState ..> DateTime
+BaseContainerState ..> TextEditingController
+BaseContainerState ..> FocusNode
+class AnodeContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- AnodeContainer
+class _AnodeContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _AnodeContainerState
+class BondContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- BondContainer
+class _BondContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _BondContainerState
+class CouponContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- CouponContainer
+class _CouponContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _CouponContainerState
+class ForeignContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- ForeignContainer
+class _ForeignContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _ForeignContainerState
+class IsolationContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- IsolationContainer
+class _IsolationContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _IsolationContainerState
+class PermRefContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- PermRefContainer
+class _PermRefContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _PermRefContainerState
+class PLTestLeadContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- PLTestLeadContainer
+class _PLTestLeadContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _PLTestLeadContainerState
+class RiserContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- RiserContainer
+class _RiserContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _RiserContainerState
+class ShuntContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- ShuntContainer
+class _ShuntContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _ShuntContainerState
+class TestLeadContainer {
+containerName: String
+---
+createState(): void
+}
+BaseContainer <|-- TestLeadContainer
+class _TestLeadContainerState {
+---
+containerName(): String
+buildContent(): Widget
+}
+BaseContainerState <|-- _TestLeadContainerState
+class TestStationDetailsPage {
+testStation: TestStation
+ontsStatusChanged:  Function(int id, int projectID, String area, String tsID, String? officeNotes, String fieldNotes, PLTestLeadReading pltestleadreading, PermRefReading permrefreading, AnodeReading anodereading, ShuntReading shuntreading, RiserReading riserreading, ForeignReading foreignreading, TestLeadReading testleadreading, CouponReading couponreading, BondReading bondreading, IsolationReading isolationreading)
+---
+createState(): void
+}
+StatefulWidget <|-- TestStationDetailsPage
+TestStationDetailsPage ..> TestStation
+class _TestStationDetailsPageState {
+testStation: TestStation?
+scaffoldMessengerKey: GlobalKey<ScaffoldMessengerState>
+-_stateInitialized: bool
+tslocationFocusNode: FocusNode
+dbHelper: DatabaseHelper
+db: Database
+projectName: String
+-_latitudeController: TextEditingController
+-_longitudeController: TextEditingController
+-_officeNotesController: TextEditingController
+-_fieldNotesController: TextEditingController
+fieldNotesFocusNode: FocusNode?
+latitude: double?
+longitude: double?
+officeNotes: String?
+fieldNotes: String?
+tsstatuses: List<String>
+currentTSStatusIndex: int
+-_readingContainers: List<Widget>
+-_loadedContainers: List<Widget>
+-_isExpanded: bool
+containerTypeToTable: Map<String, String>
+---
+-_addFocusListener(): void
+-_setupTextController(): void
+-_loadContainersFromDatabase(): Future<void>
+-_loadContainersForAllTypes(): Future<void>
+initState(): void
+dispose(): void
+currenttsStatus(): String
+-_toggletsStatus(): void
+-_toggleExpand(): void
+-_calculateHeight(): double
+-_getTableNameForContainerType(): String
+-_showAddReadingDialog(): void
+-_addReadingContainer(): Future<void>
+-_saveNewContainer(): Future<void>
+build(): Widget
+-_buildTestStationDetailsContainer(): Widget
+}
+State <|-- _TestStationDetailsPageState
+_TestStationDetailsPageState ..> TestStation
+_TestStationDetailsPageState ..> GlobalKey
+_TestStationDetailsPageState ..> FocusNode
+_TestStationDetailsPageState ..> DatabaseHelper
+_TestStationDetailsPageState ..> Database
+_TestStationDetailsPageState ..> TextEditingController
+class TSNotifier {
+projectModel: ProjectModel
+-_currentTestStation: TestStation
+-_testStations: List<TestStation>
+currentUserLocation: LocationData?
+-_lastProjectIdLoaded: int?
+---
+-_initializeTestStations(): void
+testStations(): List<TestStation>
+currentTestStation(): TestStation
+currentTestStation(): void
+clearTestStationsList(): void
+loadTestStationsFromDatabase(): Future<void>
+setCurrentTestStationByServiceTag(): Future<void>
+fetchTestStation(): Future<void>
+updateTestStationStatus(): void
+updateTestStation(): void
+addTestStation(): Future<void>
+addTestStations(): Future<void>
+deleteTestStation(): Future<void>
+sortTestStationsAlphabeticallyAZ(): void
+sortTestStationsByStatus(): void
+sortTestStationsByLocation(): void
+calculateDistance(): double
+-_degreesToRadians(): double
+calculateBearing(): String
+-_radiansToDegrees(): double
+updateReadingInTestStation(): Future<void>
+checkPermission(): Future<void>
+requestStoragePermission(): Future<void>
+createCSV(): Future<void>
+getDownloadsDirectoryPath(): Future<String>
+saveOrShareCSV(): Future<File?>
+}
+ChangeNotifier <|-- TSNotifier
+TSNotifier ..> ProjectModel
+TSNotifier ..> TestStation
+TSNotifier ..> LocationData
+class TestStationsPage {
+---
+createState(): void
+}
+StatefulWidget <|-- TestStationsPage
+class _TestStationsPageState {
+---
+importCsv(): Future<void>
+parseCsvFromPath(): Future<List<TestStation>>
+-_showErrorDialog(): void
+-_notifyMissingLocations(): void
+-_showSortOptionsDialog(): void
+-_validateInput(): bool
+build(): Widget
+}
+State <|-- _TestStationsPageState
+class BluetoothConnectionPage {
+---
+createState(): _BluetoothConnectionPageState
+}
+StatefulWidget <|-- BluetoothConnectionPage
+class _BluetoothConnectionPageState {
+pairedDevice: PokitProModel?
+statusServiceModel: StatusServiceModel?
+bluetoothManager: BluetoothManager?
+selectedCycle: String?
+selectedRadio: int?
+---
+initState(): void
+build(): Widget
+-_buildDisconnectedView(): Widget
+-_buildConnectedView(): Widget
+-_detailRow(): Widget
+-_detailRowString(): Widget
+-_detailRowInt(): Widget
+-_pairDevice(): void
+}
+State <|-- _BluetoothConnectionPageState
+_BluetoothConnectionPageState ..> PokitProModel
+_BluetoothConnectionPageState ..> StatusServiceModel
+_BluetoothConnectionPageState ..> BluetoothManager
+class InterruptionCycleSelector {
+---
+createState(): _InterruptionCycleSelectorState
+}
+StatefulWidget <|-- InterruptionCycleSelector
+class _InterruptionCycleSelectorState {
+selectedCycle: String?
+cycles: List<String>
+---
+initState(): void
+build(): Widget
+}
+State <|-- _InterruptionCycleSelectorState
+class CycleSettingsModel {
+-_selectedCycle: String?
+-_selectedRadio: int?
+---
+selectedCycle(): String?
+selectedRadio(): int?
+setSelectedCycle(): void
+setSelectedRadio(): void
+}
+class MainSettings {
+---
+createState(): _MainSettingsState
+}
+StatefulWidget <|-- MainSettings
+class _MainSettingsState {
+pairedDevice: PokitProModel?
+bluetoothManager: BluetoothManager
+---
+build(): Widget
+-_showAddRefCellDialog(): void
+}
+State <|-- _MainSettingsState
+_MainSettingsState ..> PokitProModel
+_MainSettingsState ..> BluetoothManager
+class GetDirectoryPage {
+---
+-_getDirectoryPath(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- GetDirectoryPage
+class TextDisplay {
+directoryPath: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class GetMultipleDirectoriesPage {
+---
+-_getDirectoryPaths(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- GetMultipleDirectoriesPage
+class TextDisplay {
+directoriesPaths: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class HomePage {
+---
+build(): Widget
+}
+StatelessWidget <|-- HomePage
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class OpenImagePage {
+---
+-_openImageFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenImagePage
+class ImageDisplay {
+fileName: String
+filePath: String
+---
+build(): Widget
+}
+StatelessWidget <|-- ImageDisplay
+class OpenMultipleImagesPage {
+---
+-_openImageFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenMultipleImagesPage
+class MultipleImagesDisplay {
+files: List<XFile>
+---
+build(): Widget
+}
+StatelessWidget <|-- MultipleImagesDisplay
+class OpenTextPage {
+---
+-_openTextFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenTextPage
+class TextDisplay {
+fileName: String
+fileContent: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class SaveTextPage {
+-_nameController: TextEditingController
+-_contentController: TextEditingController
+---
+-_saveFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- SaveTextPage
+SaveTextPage ..> TextEditingController
+class FileSelectorLinux {
+---
+channel(): MethodChannel
+registerWith(): void
+openFile(): Future<XFile?>
+openFiles(): Future<List<XFile>>
+getSavePath(): Future<String?>
+getSaveLocation(): Future<FileSaveLocation?>
+getDirectoryPath(): Future<String?>
+getDirectoryPaths(): Future<List<String>>
+}
+FileSelectorPlatform <|-- FileSelectorLinux
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+title: String?
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_mediaFileList: List<XFile>?
+-_pickImageError: dynamic
+-_isVideo: bool
+-_controller: VideoPlayerController?
+-_toBeDisposed: VideoPlayerController?
+-_retrieveDataError: String?
+-_picker: ImagePickerPlatform
+maxWidthController: TextEditingController
+maxHeightController: TextEditingController
+qualityController: TextEditingController
+---
+-_setImageFileListFromFile(): void
+-_playVideo(): Future<void>
+-_onImageButtonPressed(): Future<void>
+deactivate(): void
+dispose(): void
+-_disposeVideoController(): Future<void>
+-_previewVideo(): Widget
+-_previewImages(): Widget
+-_buildInlineVideoPlayer(): Widget
+-_handlePreview(): Widget
+build(): Widget
+-_getRetrieveErrorWidget(): Text?
+-_displayPickImageDialog(): Future<void>
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> VideoPlayerController
+_MyHomePageState ..> ImagePickerPlatform
+_MyHomePageState ..> TextEditingController
+class AspectRatioVideo {
+controller: VideoPlayerController?
+---
+createState(): AspectRatioVideoState
+}
+StatefulWidget <|-- AspectRatioVideo
+AspectRatioVideo ..> VideoPlayerController
+class AspectRatioVideoState {
+initialized: bool
+---
+controller(): VideoPlayerController?
+-_onVideoControllerUpdate(): void
+initState(): void
+dispose(): void
+build(): Widget
+}
+State <|-- AspectRatioVideoState
+class ImagePickerLinux {
+fileSelector: FileSelectorPlatform
+---
+registerWith(): void
+pickImage(): Future<PickedFile?>
+pickVideo(): Future<PickedFile?>
+getImage(): Future<XFile?>
+getImageFromSource(): Future<XFile?>
+getVideo(): Future<XFile?>
+getMultiImage(): Future<List<XFile>>
+getMedia(): Future<List<XFile>>
+}
+CameraDelegatingImagePickerPlatform <|-- ImagePickerLinux
+ImagePickerLinux ..> FileSelectorPlatform
+class FakeCameraDelegate {
+result: XFile?
+---
+takePhoto(): Future<XFile?>
+takeVideo(): Future<XFile?>
+}
+ImagePickerCameraDelegate <|-- FakeCameraDelegate
+FakeCameraDelegate ..> XFile
+class MockFileSelectorPlatform {
+---
+openFile(): _i3.Future<_i2.XFile?>
+openFiles(): _i3.Future<List<_i2.XFile>>
+getSavePath(): _i3.Future<String?>
+getDirectoryPath(): _i3.Future<String?>
+getDirectoryPaths(): _i3.Future<List<String>>
+}
+Mock <|-- MockFileSelectorPlatform
+MockFileSelectorPlatform ..|> FileSelectorPlatform
+class _FakeResponse_0 {
+---
+}
+SmartFake <|-- _FakeResponse_0
+_FakeResponse_0 ..|> Response
+class _FakeStreamedResponse_1 {
+---
+}
+SmartFake <|-- _FakeStreamedResponse_1
+_FakeStreamedResponse_1 ..|> StreamedResponse
+class _FakeObject_2 {
+---
+}
+SmartFake <|-- _FakeObject_2
+_FakeObject_2 ..|> Object
+class MockClient {
+---
+head(): _i3.Future<_i2.Response>
+get(): _i3.Future<_i2.Response>
+post(): _i3.Future<_i2.Response>
+put(): _i3.Future<_i2.Response>
+patch(): _i3.Future<_i2.Response>
+delete(): _i3.Future<_i2.Response>
+read(): _i3.Future<String>
+readBytes(): _i3.Future<_i6.Uint8List>
+send(): _i3.Future<_i2.StreamedResponse>
+close(): void
+}
+Mock <|-- MockClient
+MockClient ..|> Client
+class MockAssetManager {
+---
+assetsDir(): String
+getAssetUrl(): String
+loadAsset(): _i3.Future<Object>
+load(): _i3.Future<_i6.ByteData>
+}
+Mock <|-- MockAssetManager
+MockAssetManager ..|> AssetManager
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_packageInfo: PackageInfo
+---
+initState(): void
+-_initPackageInfo(): Future<void>
+-_infoTile(): Widget
+build(): Widget
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> PackageInfo
+class PackageInfo {
+-_fromPlatform: PackageInfo?
+appName: String
+packageName: String
+version: String
+buildNumber: String
+buildSignature: String
+installerStore: String?
+---
+fromPlatform(): Future<PackageInfo>
+setMockInitialValues(): void
+==(): bool
+hashCode(): int
+toString(): String
+-_toMap(): Map<String, dynamic>
+data(): Map<String, dynamic>
+}
+PackageInfo ..> PackageInfo
+class LANGANDCODEPAGE {
+wLanguage: int
+wCodePage: int
+---
+}
+Struct <|-- LANGANDCODEPAGE
+class FileVersionInfoData {
+lpBlock: Pointer<BYTE>
+lpLang: Pointer<LANGANDCODEPAGE>
+---
+}
+FileVersionInfoData ..> Pointer
+class FileVersionInfo {
+filePath: String
+-_data: FileVersionInfoData
+---
+dispose(): void
+companyName(): String
+companyShortName(): String
+productName(): String
+productShortName(): String
+internalName(): String
+productVersion(): String
+specialBuild(): String
+originalFilename(): String
+fileDescription(): String
+fileVersion(): String
+getValue(): String
+getData(): FileVersionInfoData
+}
+FileVersionInfo ..> FileVersionInfoData
+class PackageInfoPlusLinuxPlugin {
+---
+registerWith(): void
+getAll(): Future<PackageInfoData>
+-_getVersionJson(): Future<Map<String, dynamic>>
+}
+PackageInfoPlatform <|-- PackageInfoPlusLinuxPlugin
+class PackageInfoPlusWebPlugin {
+-_client: Client?
+-_assetManager: AssetManager
+---
+registerWith(): void
+versionJsonUrl(): Uri
+getAll(): Future<PackageInfoData>
+-_getVersionMap(): Future<Map<String, dynamic>?>
+-_getResponse(): Future<Response>
+-_decodeVersionMap(): Map<String, dynamic>?
+}
+PackageInfoPlatform <|-- PackageInfoPlusWebPlugin
+PackageInfoPlusWebPlugin ..> Client
+PackageInfoPlusWebPlugin ..> AssetManager
+class PackageInfoPlusWindowsPlugin {
+---
+registerWith(): void
+getAll(): Future<PackageInfoData>
+}
+PackageInfoPlatform <|-- PackageInfoPlusWindowsPlugin
+class MyApp {
+---
+createState(): State<MyApp>
+}
+StatefulWidget <|-- MyApp
+class _MyAppState {
+-_tempDirectory: String?
+-_downloadsDirectory: String?
+-_appSupportDirectory: String?
+-_appCacheDirectory: String?
+-_documentsDirectory: String?
+-_provider: PathProviderLinux
+---
+initState(): void
+initDirectories(): Future<void>
+build(): Widget
+}
+State <|-- _MyAppState
+_MyAppState ..> PathProviderLinux
+class GioUtils {
+-_gio: DynamicLibrary?
+---
+libraryIsPresent(): bool
+gApplicationGetDefault(): int
+gApplicationGetApplicationId(): Pointer<Utf8>
+}
+GioUtils ..> DynamicLibrary
+class PathProviderLinux {
+-_environment: Map<String, String>
+-_executableName: String?
+-_applicationId: String?
+---
+registerWith(): void
+getTemporaryPath(): Future<String?>
+getApplicationSupportPath(): Future<String?>
+getApplicationDocumentsPath(): Future<String?>
+getApplicationCachePath(): Future<String?>
+getDownloadsPath(): Future<String?>
+-_getExecutableName(): Future<String>
+-_getId(): Future<String>
+}
+PathProviderPlatform <|-- PathProviderLinux
+class _FakeGioUtils {
+application: int?
+applicationId: Pointer<Utf8>?
+libraryIsPresent: bool
+---
+gApplicationGetDefault(): int
+gApplicationGetApplicationId(): Pointer<Utf8>
+}
+_FakeGioUtils ..> Pointer
+_FakeGioUtils ..|> GioUtils
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class SharedPreferencesDemo {
+---
+createState(): SharedPreferencesDemoState
+}
+StatefulWidget <|-- SharedPreferencesDemo
+class SharedPreferencesDemoState {
+prefs: SharedPreferencesLinux
+-_counter: Future<int>
+---
+-_incrementCounter(): Future<void>
+initState(): void
+build(): Widget
+}
+State <|-- SharedPreferencesDemoState
+SharedPreferencesDemoState ..> SharedPreferencesLinux
+SharedPreferencesDemoState ..> Future
+class SharedPreferencesLinux {
+instance: SharedPreferencesLinux
+-_defaultPrefix: String
+-_cachedPreferences: Map<String, Object>?
+fs: FileSystem
+pathProvider: PathProviderLinux
+---
+registerWith(): void
+-_getLocalDataFile(): Future<File?>
+-_reload(): Future<Map<String, Object>>
+-_readPreferences(): Future<Map<String, Object>>
+-_writePreferences(): Future<bool>
+clear(): Future<bool>
+clearWithPrefix(): Future<bool>
+clearWithParameters(): Future<bool>
+getAll(): Future<Map<String, Object>>
+getAllWithPrefix(): Future<Map<String, Object>>
+getAllWithParameters(): Future<Map<String, Object>>
+remove(): Future<bool>
+setValue(): Future<bool>
+}
+SharedPreferencesStorePlatform <|-- SharedPreferencesLinux
+SharedPreferencesLinux ..> SharedPreferencesLinux
+SharedPreferencesLinux ..> FileSystem
+SharedPreferencesLinux ..> PathProviderLinux
+class FakePathProviderLinux {
+---
+getApplicationSupportPath(): Future<String?>
+getTemporaryPath(): Future<String?>
+getLibraryPath(): Future<String?>
+getApplicationDocumentsPath(): Future<String?>
+getDownloadsPath(): Future<String?>
+}
+PathProviderPlatform <|-- FakePathProviderLinux
+FakePathProviderLinux ..|> PathProviderLinux
+class ImagePreviews {
+imagePaths: List<String>
+onDelete:  Function(int)?
+---
+build(): Widget
+}
+StatelessWidget <|-- ImagePreviews
+class _ImagePreview {
+imagePath: String
+onDelete: VoidCallback?
+---
+build(): Widget
+}
+StatelessWidget <|-- _ImagePreview
+_ImagePreview ..> VoidCallback
+class DemoApp {
+---
+createState(): DemoAppState
+}
+StatefulWidget <|-- DemoApp
+class DemoAppState {
+text: String
+subject: String
+uri: String
+imageNames: List<String>
+imagePaths: List<String>
+---
+build(): Widget
+-_onDeleteImage(): void
+-_onShareWithResult(): void
+-_onShareXFileFromAssets(): void
+getResultSnackBar(): SnackBar
+}
+State <|-- DemoAppState
+class Share {
+---
+-_platform(): SharePlatform
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+class SharePlusLinuxPlugin {
+urlLauncher: UrlLauncherPlatform
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+SharePlatform <|-- SharePlusLinuxPlugin
+SharePlusLinuxPlugin ..> UrlLauncherPlatform
+class SharePlusWebPlugin {
+urlLauncher: UrlLauncherPlatform
+-_navigator: web.Navigator
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+-_fromXFile(): Future<web.File>
+-_mimeTypeForPath(): String
+}
+SharePlatform <|-- SharePlusWebPlugin
+SharePlusWebPlugin ..> UrlLauncherPlatform
+SharePlusWebPlugin ..> web.Navigator
+class SharePlusWindowsPlugin {
+urlLauncher: UrlLauncherPlatform
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+SharePlatform <|-- SharePlusWindowsPlugin
+SharePlusWindowsPlugin ..> UrlLauncherPlatform
+class VersionHelper {
+instance: VersionHelper
+isWindows10RS5OrGreater: bool
+kWindows10RS5BuildNumber: int
+---
+}
+VersionHelper ..> VersionHelper
+class MockUrlLauncherPlatform {
+url: String?
+canLaunchMockValue: bool
+---
+linkDelegate(): LinkDelegate?
+canLaunch(): Future<bool>
+launch(): Future<bool>
+}
+UrlLauncherPlatform <|-- MockUrlLauncherPlatform
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+title: String
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_launched: Future<void>?
+---
+-_launchInBrowser(): Future<void>
+-_launchStatus(): Widget
+build(): Widget
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> Future
+class UrlLauncherLinux {
+linkDelegate: LinkDelegate?
+---
+registerWith(): void
+canLaunch(): Future<bool>
+launch(): Future<bool>
+launchUrl(): Future<bool>
+supportsMode(): Future<bool>
+supportsCloseForMode(): Future<bool>
+}
+UrlLauncherPlatform <|-- UrlLauncherLinux
+UrlLauncherLinux ..> LinkDelegate
+class WakelockPlusExampleApp {
+---
+createState(): State<WakelockPlusExampleApp>
+}
+StatefulWidget <|-- WakelockPlusExampleApp
+class _WakelockPlusExampleAppState {
+---
+build(): Widget
+}
+State <|-- _WakelockPlusExampleAppState
+class WakelockPlusLinuxPlugin {
+-_object: DBusRemoteObject
+-_cookie: int?
+---
+registerWith(): void
+-_createRemoteObject(): DBusRemoteObject
+-_appName(): Future<String>
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusLinuxPlugin
+WakelockPlusLinuxPlugin ..> DBusRemoteObject
+class WakelockPlusMacOSPlugin {
+-_channel: MethodChannel
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusMacOSPlugin
+WakelockPlusMacOSPlugin ..> MethodChannel
+class WakelockPlusWebPlugin {
+-_jsLoaded: Future<void>
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusWebPlugin
+WakelockPlusWebPlugin ..> Future
+class WakelockPlusWindowsPlugin {
+-_enabled: null
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+isMock(): bool
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusWindowsPlugin
+class WakelockPlus {
+---
+enable(): Future<void>
+disable(): Future<void>
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+class ToggleMessage {
+enable: bool?
+---
+}
+class IsEnabledMessage {
+enabled: bool?
+---
+}
+abstract class WakelockPlusApi {
+---
+toggle(): void
+isEnabled(): IsEnabledMessage
+}
+class GetDirectoryPage {
+---
+-_getDirectoryPath(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- GetDirectoryPage
+class TextDisplay {
+directoryPath: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class GetMultipleDirectoriesPage {
+---
+-_getDirectoryPaths(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- GetMultipleDirectoriesPage
+class TextDisplay {
+directoryPaths: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class HomePage {
+---
+build(): Widget
+}
+StatelessWidget <|-- HomePage
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class OpenImagePage {
+---
+-_openImageFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenImagePage
+class ImageDisplay {
+fileName: String
+filePath: String
+---
+build(): Widget
+}
+StatelessWidget <|-- ImageDisplay
+class OpenMultipleImagesPage {
+---
+-_openImageFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenMultipleImagesPage
+class MultipleImagesDisplay {
+files: List<XFile>
+---
+build(): Widget
+}
+StatelessWidget <|-- MultipleImagesDisplay
+class OpenTextPage {
+---
+-_openTextFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- OpenTextPage
+class TextDisplay {
+fileName: String
+fileContent: String
+---
+build(): Widget
+}
+StatelessWidget <|-- TextDisplay
+class SaveTextPage {
+-_nameController: TextEditingController
+-_contentController: TextEditingController
+---
+-_saveFile(): Future<void>
+build(): Widget
+}
+StatelessWidget <|-- SaveTextPage
+SaveTextPage ..> TextEditingController
+class FileSelectorWindows {
+-_hostApi: FileSelectorApi
+---
+registerWith(): void
+openFile(): Future<XFile?>
+openFiles(): Future<List<XFile>>
+getSavePath(): Future<String?>
+getSaveLocation(): Future<FileSaveLocation?>
+getDirectoryPath(): Future<String?>
+getDirectoryPaths(): Future<List<String>>
+}
+FileSelectorPlatform <|-- FileSelectorWindows
+FileSelectorWindows ..> FileSelectorApi
+class TypeGroup {
+label: String
+extensions: List<String?>
+---
+encode(): Object
+decode(): TypeGroup
+}
+class SelectionOptions {
+allowMultiple: bool
+selectFolders: bool
+allowedTypes: List<TypeGroup?>
+---
+encode(): Object
+decode(): SelectionOptions
+}
+class FileDialogResult {
+paths: List<String?>
+typeGroupIndex: int?
+---
+encode(): Object
+decode(): FileDialogResult
+}
+class _FileSelectorApiCodec {
+---
+writeValue(): void
+readValueOfType(): Object?
+}
+StandardMessageCodec <|-- _FileSelectorApiCodec
+class FileSelectorApi {
+-_binaryMessenger: BinaryMessenger?
+codec: MessageCodec<Object?>
+---
+showOpenDialog(): Future<FileDialogResult>
+showSaveDialog(): Future<FileDialogResult>
+}
+FileSelectorApi ..> BinaryMessenger
+FileSelectorApi ..> MessageCodec
+class TypeGroup {
+label: String
+extensions: List<String?>
+---
+}
+class SelectionOptions {
+allowMultiple: bool
+selectFolders: bool
+allowedTypes: List<TypeGroup?>
+---
+}
+class FileDialogResult {
+paths: List<String?>
+typeGroupIndex: int?
+---
+}
+abstract class FileSelectorApi {
+---
+showOpenDialog(): FileDialogResult
+showSaveDialog(): FileDialogResult
+}
+class _FakeFileDialogResult_0 {
+---
+}
+SmartFake <|-- _FakeFileDialogResult_0
+_FakeFileDialogResult_0 ..|> FileDialogResult
+class MockTestFileSelectorApi {
+---
+showOpenDialog(): _i2.FileDialogResult
+showSaveDialog(): _i2.FileDialogResult
+}
+Mock <|-- MockTestFileSelectorApi
+MockTestFileSelectorApi ..|> TestFileSelectorApi
+class _TestFileSelectorApiCodec {
+---
+writeValue(): void
+readValueOfType(): Object?
+}
+StandardMessageCodec <|-- _TestFileSelectorApiCodec
+abstract class TestFileSelectorApi {
+codec: MessageCodec<Object?>
+---
+-_testBinaryMessengerBinding(): TestDefaultBinaryMessengerBinding?
+showOpenDialog(): FileDialogResult
+showSaveDialog(): FileDialogResult
+setup(): void
+}
+TestFileSelectorApi ..> MessageCodec
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+title: String?
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_mediaFileList: List<XFile>?
+-_pickImageError: dynamic
+-_isVideo: bool
+-_controller: VideoPlayerController?
+-_toBeDisposed: VideoPlayerController?
+-_retrieveDataError: String?
+-_picker: ImagePickerPlatform
+maxWidthController: TextEditingController
+maxHeightController: TextEditingController
+qualityController: TextEditingController
+---
+-_setImageFileListFromFile(): void
+-_playVideo(): Future<void>
+-_onImageButtonPressed(): Future<void>
+deactivate(): void
+dispose(): void
+-_disposeVideoController(): Future<void>
+-_previewVideo(): Widget
+-_previewImages(): Widget
+-_buildInlineVideoPlayer(): Widget
+-_handlePreview(): Widget
+build(): Widget
+-_getRetrieveErrorWidget(): Text?
+-_displayPickImageDialog(): Future<void>
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> VideoPlayerController
+_MyHomePageState ..> ImagePickerPlatform
+_MyHomePageState ..> TextEditingController
+class AspectRatioVideo {
+controller: VideoPlayerController?
+---
+createState(): AspectRatioVideoState
+}
+StatefulWidget <|-- AspectRatioVideo
+AspectRatioVideo ..> VideoPlayerController
+class AspectRatioVideoState {
+initialized: bool
+---
+controller(): VideoPlayerController?
+-_onVideoControllerUpdate(): void
+initState(): void
+dispose(): void
+build(): Widget
+}
+State <|-- AspectRatioVideoState
+class ImagePickerWindows {
+imageFormats: List<String>
+videoFormats: List<String>
+fileSelector: FileSelectorPlatform
+---
+registerWith(): void
+pickImage(): Future<PickedFile?>
+pickVideo(): Future<PickedFile?>
+getImage(): Future<XFile?>
+getImageFromSource(): Future<XFile?>
+getVideo(): Future<XFile?>
+getMultiImage(): Future<List<XFile>>
+getMedia(): Future<List<XFile>>
+}
+CameraDelegatingImagePickerPlatform <|-- ImagePickerWindows
+ImagePickerWindows ..> FileSelectorPlatform
+class FakeCameraDelegate {
+result: XFile?
+---
+takePhoto(): Future<XFile?>
+takeVideo(): Future<XFile?>
+}
+ImagePickerCameraDelegate <|-- FakeCameraDelegate
+FakeCameraDelegate ..> XFile
+class MockFileSelectorPlatform {
+---
+openFile(): _i3.Future<_i2.XFile?>
+openFiles(): _i3.Future<List<_i2.XFile>>
+getSavePath(): _i3.Future<String?>
+getDirectoryPath(): _i3.Future<String?>
+getDirectoryPaths(): _i3.Future<List<String>>
+}
+Mock <|-- MockFileSelectorPlatform
+MockFileSelectorPlatform ..|> FileSelectorPlatform
+class _FakeResponse_0 {
+---
+}
+SmartFake <|-- _FakeResponse_0
+_FakeResponse_0 ..|> Response
+class _FakeStreamedResponse_1 {
+---
+}
+SmartFake <|-- _FakeStreamedResponse_1
+_FakeStreamedResponse_1 ..|> StreamedResponse
+class _FakeObject_2 {
+---
+}
+SmartFake <|-- _FakeObject_2
+_FakeObject_2 ..|> Object
+class MockClient {
+---
+head(): _i3.Future<_i2.Response>
+get(): _i3.Future<_i2.Response>
+post(): _i3.Future<_i2.Response>
+put(): _i3.Future<_i2.Response>
+patch(): _i3.Future<_i2.Response>
+delete(): _i3.Future<_i2.Response>
+read(): _i3.Future<String>
+readBytes(): _i3.Future<_i6.Uint8List>
+send(): _i3.Future<_i2.StreamedResponse>
+close(): void
+}
+Mock <|-- MockClient
+MockClient ..|> Client
+class MockAssetManager {
+---
+assetsDir(): String
+getAssetUrl(): String
+loadAsset(): _i3.Future<Object>
+load(): _i3.Future<_i6.ByteData>
+}
+Mock <|-- MockAssetManager
+MockAssetManager ..|> AssetManager
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_packageInfo: PackageInfo
+---
+initState(): void
+-_initPackageInfo(): Future<void>
+-_infoTile(): Widget
+build(): Widget
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> PackageInfo
+class PackageInfo {
+-_fromPlatform: PackageInfo?
+appName: String
+packageName: String
+version: String
+buildNumber: String
+buildSignature: String
+installerStore: String?
+---
+fromPlatform(): Future<PackageInfo>
+setMockInitialValues(): void
+==(): bool
+hashCode(): int
+toString(): String
+-_toMap(): Map<String, dynamic>
+data(): Map<String, dynamic>
+}
+PackageInfo ..> PackageInfo
+class LANGANDCODEPAGE {
+wLanguage: int
+wCodePage: int
+---
+}
+Struct <|-- LANGANDCODEPAGE
+class FileVersionInfoData {
+lpBlock: Pointer<BYTE>
+lpLang: Pointer<LANGANDCODEPAGE>
+---
+}
+FileVersionInfoData ..> Pointer
+class FileVersionInfo {
+filePath: String
+-_data: FileVersionInfoData
+---
+dispose(): void
+companyName(): String
+companyShortName(): String
+productName(): String
+productShortName(): String
+internalName(): String
+productVersion(): String
+specialBuild(): String
+originalFilename(): String
+fileDescription(): String
+fileVersion(): String
+getValue(): String
+getData(): FileVersionInfoData
+}
+FileVersionInfo ..> FileVersionInfoData
+class PackageInfoPlusLinuxPlugin {
+---
+registerWith(): void
+getAll(): Future<PackageInfoData>
+-_getVersionJson(): Future<Map<String, dynamic>>
+}
+PackageInfoPlatform <|-- PackageInfoPlusLinuxPlugin
+class PackageInfoPlusWebPlugin {
+-_client: Client?
+-_assetManager: AssetManager
+---
+registerWith(): void
+versionJsonUrl(): Uri
+getAll(): Future<PackageInfoData>
+-_getVersionMap(): Future<Map<String, dynamic>?>
+-_getResponse(): Future<Response>
+-_decodeVersionMap(): Map<String, dynamic>?
+}
+PackageInfoPlatform <|-- PackageInfoPlusWebPlugin
+PackageInfoPlusWebPlugin ..> Client
+PackageInfoPlusWebPlugin ..> AssetManager
+class PackageInfoPlusWindowsPlugin {
+---
+registerWith(): void
+getAll(): Future<PackageInfoData>
+}
+PackageInfoPlatform <|-- PackageInfoPlusWindowsPlugin
+class MyApp {
+---
+createState(): State<MyApp>
+}
+StatefulWidget <|-- MyApp
+class _MyAppState {
+-_tempDirectory: String?
+-_downloadsDirectory: String?
+-_appSupportDirectory: String?
+-_documentsDirectory: String?
+-_cacheDirectory: String?
+---
+initState(): void
+initDirectories(): Future<void>
+build(): Widget
+}
+State <|-- _MyAppState
+class WindowsKnownFolder {
+---
+AdminTools(): String
+CDBurning(): String
+CommonAdminTools(): String
+CommonPrograms(): String
+CommonStartMenu(): String
+CommonStartup(): String
+CommonTemplates(): String
+ComputerFolder(): String
+ConnectionsFolder(): String
+ControlPanelFolder(): String
+Cookies(): String
+Desktop(): String
+Documents(): String
+Downloads(): String
+Favorites(): String
+Fonts(): String
+History(): String
+InternetCache(): String
+InternetFolder(): String
+LocalAppData(): String
+Music(): String
+NetHood(): String
+NetworkFolder(): String
+Pictures(): String
+PrintHood(): String
+PrintersFolder(): String
+Profile(): String
+ProgramData(): String
+ProgramFiles(): String
+ProgramFilesCommon(): String
+ProgramFilesCommonX64(): String
+ProgramFilesCommonX86(): String
+ProgramFilesX64(): String
+ProgramFilesX86(): String
+Programs(): String
+PublicDesktop(): String
+PublicDocuments(): String
+PublicMusic(): String
+PublicPictures(): String
+PublicVideos(): String
+Recent(): String
+RecycleBinFolder(): String
+ResourceDir(): String
+RoamingAppData(): String
+SendTo(): String
+StartMenu(): String
+Startup(): String
+System(): String
+SystemX86(): String
+Templates(): String
+Videos(): String
+Windows(): String
+}
+class WindowsKnownFolder {
+---
+}
+class VersionInfoQuerier {
+---
+getStringValue(): String?
+}
+class PathProviderWindows {
+versionInfoQuerier: VersionInfoQuerier
+---
+registerWith(): void
+getTemporaryPath(): Future<String?>
+getApplicationSupportPath(): Future<String?>
+getApplicationDocumentsPath(): Future<String?>
+getApplicationCachePath(): Future<String?>
+getDownloadsPath(): Future<String?>
+getPath(): Future<String?>
+-_getStringValue(): String?
+-_getApplicationSpecificSubdirectory(): String
+-_sanitizedDirectoryName(): String?
+-_createApplicationSubdirectory(): Future<String?>
+}
+PathProviderPlatform <|-- PathProviderWindows
+PathProviderWindows ..> VersionInfoQuerier
+class PathProviderWindows {
+versionInfoQuerier: VersionInfoQuerier
+---
+registerWith(): void
+getPath(): Future<String>
+}
+PathProviderPlatform <|-- PathProviderWindows
+PathProviderWindows ..> VersionInfoQuerier
+class VersionInfoQuerier {
+---
+}
+class FakeVersionInfoQuerier {
+language: String
+encoding: String
+responses: Map<String, String>
+---
+getStringValue(): String?
+}
+FakeVersionInfoQuerier ..|> VersionInfoQuerier
+class PermissionHandlerWidget {
+---
+createPage(): ExamplePage
+createState(): _PermissionHandlerWidgetState
+}
+StatefulWidget <|-- PermissionHandlerWidget
+class _PermissionHandlerWidgetState {
+---
+build(): Widget
+}
+State <|-- _PermissionHandlerWidgetState
+class PermissionWidget {
+-_permission: Permission
+---
+createState(): _PermissionState
+}
+StatefulWidget <|-- PermissionWidget
+PermissionWidget ..> Permission
+class _PermissionState {
+-_permission: Permission
+-_permissionHandler: PermissionHandlerPlatform
+-_permissionStatus: PermissionStatus
+---
+initState(): void
+-_listenForPermissionStatus(): void
+getPermissionColor(): Color
+build(): Widget
+checkServiceStatus(): void
+requestPermission(): Future<void>
+}
+State <|-- _PermissionState
+_PermissionState ..> Permission
+_PermissionState ..> PermissionHandlerPlatform
+_PermissionState ..> PermissionStatus
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class SharedPreferencesDemo {
+---
+createState(): SharedPreferencesDemoState
+}
+StatefulWidget <|-- SharedPreferencesDemo
+class SharedPreferencesDemoState {
+prefs: SharedPreferencesWindows
+-_counter: Future<int>
+---
+-_incrementCounter(): Future<void>
+initState(): void
+build(): Widget
+}
+State <|-- SharedPreferencesDemoState
+SharedPreferencesDemoState ..> SharedPreferencesWindows
+SharedPreferencesDemoState ..> Future
+class SharedPreferencesWindows {
+instance: SharedPreferencesWindows
+-_defaultPrefix: String
+fs: FileSystem
+pathProvider: PathProviderWindows
+-_cachedPreferences: Map<String, Object>?
+-_localDataFilePath: File?
+---
+registerWith(): void
+-_getLocalDataFile(): Future<File?>
+-_reload(): Future<Map<String, Object>>
+-_readPreferences(): Future<Map<String, Object>>
+-_writePreferences(): Future<bool>
+clear(): Future<bool>
+clearWithPrefix(): Future<bool>
+clearWithParameters(): Future<bool>
+getAll(): Future<Map<String, Object>>
+getAllWithPrefix(): Future<Map<String, Object>>
+getAllWithParameters(): Future<Map<String, Object>>
+remove(): Future<bool>
+setValue(): Future<bool>
+}
+SharedPreferencesStorePlatform <|-- SharedPreferencesWindows
+SharedPreferencesWindows ..> SharedPreferencesWindows
+SharedPreferencesWindows ..> FileSystem
+SharedPreferencesWindows ..> PathProviderWindows
+SharedPreferencesWindows ..> File
+class FakePathProviderWindows {
+versionInfoQuerier: VersionInfoQuerier
+---
+getApplicationSupportPath(): Future<String?>
+getTemporaryPath(): Future<String?>
+getLibraryPath(): Future<String?>
+getApplicationDocumentsPath(): Future<String?>
+getDownloadsPath(): Future<String?>
+getPath(): Future<String>
+}
+PathProviderPlatform <|-- FakePathProviderWindows
+FakePathProviderWindows ..> VersionInfoQuerier
+FakePathProviderWindows ..|> PathProviderWindows
+class ImagePreviews {
+imagePaths: List<String>
+onDelete:  Function(int)?
+---
+build(): Widget
+}
+StatelessWidget <|-- ImagePreviews
+class _ImagePreview {
+imagePath: String
+onDelete: VoidCallback?
+---
+build(): Widget
+}
+StatelessWidget <|-- _ImagePreview
+_ImagePreview ..> VoidCallback
+class DemoApp {
+---
+createState(): DemoAppState
+}
+StatefulWidget <|-- DemoApp
+class DemoAppState {
+text: String
+subject: String
+uri: String
+imageNames: List<String>
+imagePaths: List<String>
+---
+build(): Widget
+-_onDeleteImage(): void
+-_onShareWithResult(): void
+-_onShareXFileFromAssets(): void
+getResultSnackBar(): SnackBar
+}
+State <|-- DemoAppState
+class Share {
+---
+-_platform(): SharePlatform
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+class SharePlusLinuxPlugin {
+urlLauncher: UrlLauncherPlatform
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+SharePlatform <|-- SharePlusLinuxPlugin
+SharePlusLinuxPlugin ..> UrlLauncherPlatform
+class SharePlusWebPlugin {
+urlLauncher: UrlLauncherPlatform
+-_navigator: web.Navigator
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+-_fromXFile(): Future<web.File>
+-_mimeTypeForPath(): String
+}
+SharePlatform <|-- SharePlusWebPlugin
+SharePlusWebPlugin ..> UrlLauncherPlatform
+SharePlusWebPlugin ..> web.Navigator
+class SharePlusWindowsPlugin {
+urlLauncher: UrlLauncherPlatform
+---
+registerWith(): void
+shareUri(): Future<ShareResult>
+share(): Future<ShareResult>
+shareXFiles(): Future<ShareResult>
+}
+SharePlatform <|-- SharePlusWindowsPlugin
+SharePlusWindowsPlugin ..> UrlLauncherPlatform
+class VersionHelper {
+instance: VersionHelper
+isWindows10RS5OrGreater: bool
+kWindows10RS5BuildNumber: int
+---
+}
+VersionHelper ..> VersionHelper
+class MockUrlLauncherPlatform {
+url: String?
+canLaunchMockValue: bool
+---
+linkDelegate(): LinkDelegate?
+canLaunch(): Future<bool>
+launch(): Future<bool>
+}
+UrlLauncherPlatform <|-- MockUrlLauncherPlatform
+class MyApp {
+---
+build(): Widget
+}
+StatelessWidget <|-- MyApp
+class MyHomePage {
+title: String
+---
+createState(): State<MyHomePage>
+}
+StatefulWidget <|-- MyHomePage
+class _MyHomePageState {
+-_launched: Future<void>?
+---
+-_launchInBrowser(): Future<void>
+-_launchStatus(): Widget
+build(): Widget
+}
+State <|-- _MyHomePageState
+_MyHomePageState ..> Future
+class UrlLauncherApi {
+-_binaryMessenger: BinaryMessenger?
+codec: MessageCodec<Object?>
+---
+canLaunchUrl(): Future<bool>
+launchUrl(): Future<bool>
+}
+UrlLauncherApi ..> BinaryMessenger
+UrlLauncherApi ..> MessageCodec
+class UrlLauncherWindows {
+-_hostApi: UrlLauncherApi
+linkDelegate: LinkDelegate?
+---
+registerWith(): void
+canLaunch(): Future<bool>
+launch(): Future<bool>
+supportsMode(): Future<bool>
+supportsCloseForMode(): Future<bool>
+}
+UrlLauncherPlatform <|-- UrlLauncherWindows
+UrlLauncherWindows ..> UrlLauncherApi
+UrlLauncherWindows ..> LinkDelegate
+abstract class UrlLauncherApi {
+---
+canLaunchUrl(): bool
+launchUrl(): bool
+}
+class _FakeUrlLauncherApi {
+argument: String?
+canLaunch: bool
+throwError: bool
+---
+canLaunchUrl(): Future<bool>
+launchUrl(): Future<bool>
+}
+_FakeUrlLauncherApi ..|> UrlLauncherApi
+class WakelockPlusExampleApp {
+---
+createState(): State<WakelockPlusExampleApp>
+}
+StatefulWidget <|-- WakelockPlusExampleApp
+class _WakelockPlusExampleAppState {
+---
+build(): Widget
+}
+State <|-- _WakelockPlusExampleAppState
+class WakelockPlusLinuxPlugin {
+-_object: DBusRemoteObject
+-_cookie: int?
+---
+registerWith(): void
+-_createRemoteObject(): DBusRemoteObject
+-_appName(): Future<String>
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusLinuxPlugin
+WakelockPlusLinuxPlugin ..> DBusRemoteObject
+class WakelockPlusMacOSPlugin {
+-_channel: MethodChannel
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusMacOSPlugin
+WakelockPlusMacOSPlugin ..> MethodChannel
+class WakelockPlusWebPlugin {
+-_jsLoaded: Future<void>
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusWebPlugin
+WakelockPlusWebPlugin ..> Future
+class WakelockPlusWindowsPlugin {
+-_enabled: null
+---
+registerWith(): void
+toggle(): Future<void>
+enabled(): Future<bool>
+isMock(): bool
+}
+WakelockPlusPlatformInterface <|-- WakelockPlusWindowsPlugin
+class WakelockPlus {
+---
+enable(): Future<void>
+disable(): Future<void>
+toggle(): Future<void>
+enabled(): Future<bool>
+}
+class ToggleMessage {
+enable: bool?
+---
+}
+class IsEnabledMessage {
+enabled: bool?
+---
+}
+abstract class WakelockPlusApi {
+---
+toggle(): void
+isEnabled(): IsEnabledMessage
+}
+@enduml

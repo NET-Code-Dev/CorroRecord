@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 /// Represents the model for the Pokit Pro device.
+
 class PokitProModel {
   final BluetoothDevice device;
   final List<BluetoothService> services;

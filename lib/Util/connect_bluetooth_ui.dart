@@ -156,6 +156,78 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
   /// The details are obtained from the [pairedDevice] object.
   Widget _buildConnectedView() {
     return Padding(
+      padding: const EdgeInsets.all(6.0),
+      child: Column(
+        children: <Widget>[
+          Card(
+            elevation: 4,
+            child: ListTile(
+              title: Padding(
+                padding: const EdgeInsets.fromLTRB(10, 8, 4, 0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        pairedDevice?.device.platformName ?? 'No device selected',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    //  Expanded(
+                    //   child:
+                    ElevatedButton.icon(
+                      icon: Icon(Icons.power_settings_new),
+                      label: Text('Disconnect'),
+                      onPressed: bluetoothManager?.unpairDevice,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 247, 143, 30), // Custom color
+                      ),
+                    ),
+                    //  ),
+                  ],
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _detailRow(Icons.battery_charging_full, 'Battery Level',
+                        pairedDevice?.statusServiceModel?.statusCharacteristicModel?.batteryLevel), // Double
+                    _detailRowString(Icons.memory, 'Version', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.version), // String
+                    _detailRowString(
+                        Icons.info_outline, 'Status', pairedDevice?.statusServiceModel?.statusCharacteristicModel?.statusDescription), // String
+
+                    _detailRowInt(Icons.electrical_services, 'Max Voltage', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.maxVoltage,
+                        ' V'), // Int with unit
+                    _detailRowInt(Icons.flash_on, 'Max Current', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.maxCurrent,
+                        ' mA'), // Int with unit
+                    _detailRowInt(Icons.build_circle, 'Max Resistance', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.maxResistance,
+                        ' Ω'), // Int with unit
+                    _detailRowInt(Icons.speed, 'Max Sampling Rate', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.maxSampleRate,
+                        ' Hz'), // Int with unit
+                    _detailRowInt(Icons.storage, 'Sampling Buffer Size',
+                        pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.sampleBufferSize, ' Bytes'), // Int with unit
+                    _detailRowInt(
+                        Icons.settings, 'Capability Mask', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.capabilityMask), // Int
+                    _detailRowString(
+                        Icons.bluetooth, 'MAC Address', pairedDevice?.statusServiceModel?.deviceCharacteristicModel?.macAddress), // String
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /*
+  Widget _buildConnectedView() {
+    return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: <Widget>[
@@ -219,7 +291,7 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
       ),
     );
   }
-
+  */
   /// Builds a row widget that displays an icon, title, and progress indicator.
   ///
   /// The [icon] parameter specifies the icon to be displayed.
@@ -344,24 +416,27 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
                   itemBuilder: (context, index) {
                     final device = devices[index];
                     return ListTile(
-                      title: Text(device.localName),
+                      title: Text(device.platformName),
                       subtitle: Text(device.remoteId.toString()),
                       onTap: () {
-                        // Stop the scan here
                         FlutterBluePlus.stopScan();
-                        bluetoothManager?.connectToDevice(device);
+                        bluetoothManager?.connectToDevice(device).then((_) {
+                          setState(() {
+                            pairedDevice = bluetoothManager?.pokitProModel;
+                          });
+                        });
                         Navigator.pop(context);
-                        // print('Connected to ${device.localName}');
                       },
                     );
                   },
                 );
+                // ignore: unrelated_type_equality_checks
               } else if (bluetoothManager?.pokitProModel?.device.connectionState == BluetoothConnectionState.connected) {
                 // Optionally, stop the scan here too
                 FlutterBluePlus.stopScan();
                 return Center(
                     child: Text(
-                        'Connected to ${bluetoothManager?.pokitProModel?.device.localName} Battery Level: ${pairedDevice?.statusServiceModel?.statusCharacteristicModel?.batteryPercentage ?? 'N/A'}%'));
+                        'Connected to ${bluetoothManager?.pokitProModel?.device.platformName} Battery Level: ${pairedDevice?.statusServiceModel?.statusCharacteristicModel?.batteryPercentage ?? 'N/A'}%'));
               } else {
                 return Center(child: Text('Error connecting to device'));
               }

@@ -1,5 +1,6 @@
 import 'package:asset_inspections/Common_Widgets/custom_camera.dart';
 import 'package:asset_inspections/Models/project_model.dart';
+import 'package:asset_inspections/mainpage_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -519,12 +520,13 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   }
 
   double _calculateHeight() {
-    double baseHeight = 230.h; // Default height
+    double baseHeight = 245.h; // Default height
     double expandHeight = _isExpanded ? 80.h : 0;
     // Safely check if officeNotes is not null and not empty
     double notesHeight = (widget.testStation.officeNotes?.isNotEmpty ?? false) ? 160.h : 0;
 
     return baseHeight + expandHeight + notesHeight;
+    //  return baseHeight + expandHeight;
   }
 
   /// A map that maps container types to their corresponding table names.

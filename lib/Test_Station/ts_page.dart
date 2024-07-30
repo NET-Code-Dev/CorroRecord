@@ -19,21 +19,13 @@ import '../Common_Widgets/mapview.dart';
 
 class TestStationsPage extends StatefulWidget {
   // Stateful widget to hold the test stations page
-  const TestStationsPage({Key? key}) : super(key: key); // Ensure key is passed properly to super
+  const TestStationsPage({super.key}); // Ensure key is passed properly to super
 
   @override
   createState() => _TestStationsPageState();
 }
 
 class _TestStationsPageState extends State<TestStationsPage> {
-  /// Imports a CSV file and adds the test stations to the project.
-  ///
-  /// This method prompts the user to select a CSV file using a file picker.
-  /// If a file is selected, it parses the CSV file and adds the test stations
-  /// to the project identified by the [projectID]. The [context] parameter is
-  /// used to access the necessary dependencies.
-  ///
-  /// If the user cancels the file picker, no action is taken.
   Future<void> importCsv(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -75,7 +67,8 @@ class _TestStationsPageState extends State<TestStationsPage> {
 
     List<TestStation> testStations = [];
     List<int> invalidRows = [];
-    RegExp validPattern = RegExp(r'^[a-zA-Z0-9_-]+$');
+    //   RegExp validPattern = RegExp(r'^[a-zA-Z0-9_-]+$');
+    RegExp validPattern = RegExp(r'^[a-zA-Z0-9_\- ]+$');
 
     for (var i = 1; i < rowsAsListOfValues.length; i++) {
       var row = rowsAsListOfValues[i];
@@ -83,14 +76,14 @@ class _TestStationsPageState extends State<TestStationsPage> {
       String tsID = row[1].toString().trim();
 
       if (!validPattern.hasMatch(area) || !validPattern.hasMatch(tsID)) {
-        invalidRows.add(i + 1); // Store the row number, accounting for 0-based index
+        print("Invalid input detected in row $i: Area or TS ID contains invalid characters.");
       }
     }
 
     if (invalidRows.isNotEmpty) {
       // Inform the user about the invalid rows and do not proceed with the import
       String errorMessage =
-          "Import aborted!\n\nInvalid characters found in rows: ${invalidRows.join(', ')}. \nOnly alphanumeric characters, underscores and dashes are allowed in columns 1 and 2.\n\nPlease correct the CSV file and try again.";
+          "Import aborted!\n\nInvalid characters found in rows: ${invalidRows.join(', ')}. \nOnly alphanumeric characters, spaces, underscores and dashes are allowed in columns 1 and 2.\n\nPlease correct the CSV file and try again.";
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -561,224 +554,230 @@ class _TestStationsPageState extends State<TestStationsPage> {
                 size: 24,
               ),
               onPressed: () {
-                Provider.of<TSNotifier>(context, listen: false).createCSV(context);
+                Provider.of<TSNotifier>(context, listen: false).createCSV(
+                  context,
+                );
               },
               tooltip: 'Share', // Tooltip will be shown on long press
             ),
           ],
         ),
       ),
-      body: ListView.builder(
-          padding: EdgeInsets.all(10.w),
-          itemCount: tsNotifier.testStations.length,
-          itemBuilder: (context, index) {
-            TestStation testStation = tsNotifier.testStations[index];
-            // Determine if the station's location is valid (not 0.0, 0.0)
-            bool isValidLocation = testStation.latitude != 0.0 && testStation.longitude != 0.0;
+      body: Consumer<TSNotifier>(
+        builder: (context, tsNotifier, child) {
+          return ListView.builder(
+              padding: EdgeInsets.all(10.w),
+              itemCount: tsNotifier.testStations.length,
+              itemBuilder: (context, index) {
+                TestStation testStation = tsNotifier.testStations[index];
+                // Determine if the station's location is valid (not 0.0, 0.0)
+                bool isValidLocation = testStation.latitude != 0.0 && testStation.longitude != 0.0;
 
-            double distanceInMeters = isValidLocation
-                ? tsNotifier.calculateDistance(
-                    tsNotifier.currentUserLocation,
-                    testStation.latitude,
-                    testStation.longitude,
-                  )
-                : 0.0;
+                double distanceInMeters = isValidLocation
+                    ? tsNotifier.calculateDistance(
+                        tsNotifier.currentUserLocation,
+                        testStation.latitude,
+                        testStation.longitude,
+                      )
+                    : 0.0;
 
-            String direction = isValidLocation
-                ? tsNotifier.calculateBearing(
-                    tsNotifier.currentUserLocation?.latitude ?? 0.0,
-                    tsNotifier.currentUserLocation?.longitude ?? 0.0,
-                    testStation.latitude ?? 0.0,
-                    testStation.longitude ?? 0.0,
-                  )
-                : 'Unknown';
+                String direction = isValidLocation
+                    ? tsNotifier.calculateBearing(
+                        tsNotifier.currentUserLocation?.latitude ?? 0.0,
+                        tsNotifier.currentUserLocation?.longitude ?? 0.0,
+                        testStation.latitude ?? 0.0,
+                        testStation.longitude ?? 0.0,
+                      )
+                    : 'Unknown';
 
-            // Format the distance string to show "Unknown" if the location is invalid
-            String distanceDisplay = isValidLocation ? '${distanceInMeters.toStringAsFixed(2)} m' : 'Unknown';
+                // Format the distance string to show "Unknown" if the location is invalid
+                String distanceDisplay = isValidLocation ? '${distanceInMeters.toStringAsFixed(2)} m' : 'Unknown';
 
-            return GestureDetector(
-                onTap: () {
-                  tsNotifier.currentTestStation = testStation;
-                  Navigator.push(
-                      // Navigate to the details page
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => TestStationDetailsPage(
-                          testStation: testStation,
-                          ontsStatusChanged: (
-                            id,
-                            projectID,
-                            area,
-                            tsstatus,
-                            fieldNotes,
-                            officeNotes,
-                            plTestLeadReading,
-                            permRefReading,
-                            anodeReading,
-                            shuntReading,
-                            riserReading,
-                            foreignReading,
-                            testLeadReading,
-                            couponReading,
-                            bondReading,
-                            isolationReading,
-                          ) {
-                            Provider.of<TSNotifier>(context, listen: false).updateTestStationStatus(
-                              testStation,
-                              tsstatus,
-                              context,
-                            );
-                          },
-                        ),
-                      ));
-                },
-                onLongPress: () {
-                  // Long press to show options
-                  showDialog(
-                    // Show the dialog
-                    context: context,
-                    builder: (context) => SimpleDialog(
-                      title: Center(
-                        child: Text(
-                          'Options for ${testStation.tsID}',
-                          style: TextStyle(
-                            color: Color.fromARGB(255, 0, 43, 92),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24.sp,
-                          ),
-                        ),
-                      ),
-                      children: <Widget>[
-                        Divider(
-                          color: Colors.grey,
-                          thickness: 1,
-                        ),
-                        SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              SimpleDialogOption(
-                                onPressed: () {
-                                  Navigator.of(context).pop(); // Close the dialog
-                                  showEditDialog(context, index); // Trigger the edit dialog
-                                },
-                                child: Center(
-                                  child: const Text(
-                                    'Edit',
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 0, 43, 92),
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Divider(
-                                color: Colors.grey,
-                                thickness: 1,
-                              ),
-                              SimpleDialogOption(
-                                onPressed: () {
-                                  int tsIDToDelete = tsNotifier.testStations[index].id!; // Retrieve the serviceTag
-                                  Provider.of<TSNotifier>(context, listen: false).deleteTestStation(tsIDToDelete, context);
-                                  Navigator.of(context).pop(); // Close the dialog
-                                },
-                                child: Center(
-                                  child: const Text(
-                                    'Delete',
-                                    style: TextStyle(
-                                      color: Colors.red,
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Divider(
-                                color: Colors.grey,
-                                thickness: 1,
-                              ),
-                              SimpleDialogOption(
-                                onPressed: () {
-                                  Navigator.of(context).pop(); // Close the dialog
-                                },
-                                child: Center(
-                                  child: const Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 0, 43, 92),
-                                      fontSize: 18.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Divider(
-                          color: Colors.grey,
-                          thickness: 1,
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10.0),
-                  child: Container(
-                    padding: const EdgeInsets.all(10.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Stack(
-                      alignment: Alignment.centerLeft,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Center(
-                              child: Text(
-                                ' ${tsNotifier.testStations[index].area} - ${tsNotifier.testStations[index].tsID}',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 0, 43, 92),
-                                  fontSize: 24.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                return GestureDetector(
+                    onTap: () {
+                      tsNotifier.currentTestStation = testStation;
+                      Navigator.push(
+                          // Navigate to the details page
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TestStationDetailsPage(
+                              testStation: testStation,
+                              ontsStatusChanged: (
+                                id,
+                                projectID,
+                                area,
+                                tsstatus,
+                                fieldNotes,
+                                officeNotes,
+                                plTestLeadReading,
+                                permRefReading,
+                                anodeReading,
+                                shuntReading,
+                                riserReading,
+                                foreignReading,
+                                testLeadReading,
+                                couponReading,
+                                bondReading,
+                                isolationReading,
+                              ) {
+                                Provider.of<TSNotifier>(context, listen: false).updateTestStationStatus(
+                                  testStation,
+                                  tsstatus,
+                                  context,
+                                );
+                              },
                             ),
-                            SizedBox(height: 5), // Adjust height as needed
-                            Text(
-                              isValidLocation ? '$direction $distanceDisplay' : 'Location Unknown',
+                          ));
+                    },
+                    onLongPress: () {
+                      // Long press to show options
+                      showDialog(
+                        // Show the dialog
+                        context: context,
+                        builder: (context) => SimpleDialog(
+                          title: Center(
+                            child: Text(
+                              'Options for ${testStation.tsID}',
                               style: TextStyle(
                                 color: Color.fromARGB(255, 0, 43, 92),
-                                fontSize: 18.0,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 24.sp,
+                              ),
+                            ),
+                          ),
+                          children: <Widget>[
+                            Divider(
+                              color: Colors.grey,
+                              thickness: 1,
+                            ),
+                            SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // Close the dialog
+                                      showEditDialog(context, index); // Trigger the edit dialog
+                                    },
+                                    child: Center(
+                                      child: const Text(
+                                        'Edit',
+                                        style: TextStyle(
+                                          color: Color.fromARGB(255, 0, 43, 92),
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1,
+                                  ),
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      int tsIDToDelete = tsNotifier.testStations[index].id!; // Retrieve the serviceTag
+                                      Provider.of<TSNotifier>(context, listen: false).deleteTestStation(tsIDToDelete, context);
+                                      Navigator.of(context).pop(); // Close the dialog
+                                    },
+                                    child: Center(
+                                      child: const Text(
+                                        'Delete',
+                                        style: TextStyle(
+                                          color: Colors.red,
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1,
+                                  ),
+                                  SimpleDialogOption(
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // Close the dialog
+                                    },
+                                    child: Center(
+                                      child: const Text(
+                                        'Cancel',
+                                        style: TextStyle(
+                                          color: Color.fromARGB(255, 0, 43, 92),
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(
+                              color: Colors.grey,
+                              thickness: 1,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(10.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Stack(
+                          alignment: Alignment.centerLeft,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Text(
+                                    ' ${tsNotifier.testStations[index].area} - ${tsNotifier.testStations[index].tsID}',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 0, 43, 92),
+                                      fontSize: 24.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 5), // Adjust height as needed
+                                Text(
+                                  isValidLocation ? '$direction $distanceDisplay' : 'Location Unknown',
+                                  style: TextStyle(
+                                    color: Color.fromARGB(255, 0, 43, 92),
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Positioned(
+                              top: 0,
+                              bottom: 0,
+                              right: 0,
+                              child: Consumer<TSNotifier>(
+                                builder: (context, tsNotifier, child) {
+                                  return Container(
+                                    width: 10, // Adjust width as needed
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5.0),
+                                      color: testStation.gettsStatusColor(),
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],
                         ),
-                        Positioned(
-                          top: 0,
-                          bottom: 0,
-                          right: 0,
-                          child: Consumer<TSNotifier>(
-                            builder: (context, tsNotifier, child) {
-                              return Container(
-                                width: 10, // Adjust width as needed
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5.0),
-                                  color: testStation.gettsStatusColor(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ));
-          }),
+                      ),
+                    ));
+              });
+        },
+      ),
     );
   }
 }

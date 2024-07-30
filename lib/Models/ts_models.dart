@@ -53,14 +53,87 @@ class TestStation {
 
   /// Creates a new instance of [TestStation] from a map.
   factory TestStation.fromMap(Map<String, dynamic> map) {
-    List<PLTestLeadReading>? readings;
+/*    
+    List<PLTestLeadReading>? plTestLeadReadings;
     if (map['plTestLeadReadings'] != null) {
       var readingList = List.from(map['plTestLeadReadings']);
-      readings = readingList.map((readingMap) {
+      plTestLeadReadings = readingList.map((readingMap) {
         return PLTestLeadReading.fromMap(readingMap);
       }).toList();
     }
 
+    List<PermRefReading>? permRefReadings;
+    if (map['permRefReadings'] != null) {
+      var readingList = List.from(map['permRefReadings']);
+      permRefReadings = readingList.map((readingMap) {
+        return PermRefReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<AnodeReading>? anodeReadings;
+    if (map['anodeReadings'] != null) {
+      var readingList = List.from(map['anodeReadings']);
+      anodeReadings = readingList.map((readingMap) {
+        return AnodeReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<ShuntReading>? shuntReadings;
+    if (map['shuntReadings'] != null) {
+      var readingList = List.from(map['shuntReadings']);
+      shuntReadings = readingList.map((readingMap) {
+        return ShuntReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<RiserReading>? riserReadings;
+    if (map['riserReadings'] != null) {
+      var readingList = List.from(map['riserReadings']);
+      riserReadings = readingList.map((readingMap) {
+        return RiserReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<ForeignReading>? foreignReadings;
+    if (map['foreignReadings'] != null) {
+      var readingList = List.from(map['foreignReadings']);
+      foreignReadings = readingList.map((readingMap) {
+        return ForeignReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<TestLeadReading>? testLeadReadings;
+    if (map['testLeadReadings'] != null) {
+      var readingList = List.from(map['testLeadReadings']);
+      testLeadReadings = readingList.map((readingMap) {
+        return TestLeadReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<CouponReading>? couponReadings;
+    if (map['couponReadings'] != null) {
+      var readingList = List.from(map['couponReadings']);
+      couponReadings = readingList.map((readingMap) {
+        return CouponReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<BondReading>? bondReadings;
+    if (map['bondReadings'] != null) {
+      var readingList = List.from(map['bondReadings']);
+      bondReadings = readingList.map((readingMap) {
+        return BondReading.fromMap(readingMap);
+      }).toList();
+    }
+
+    List<IsolationReading>? isolationReadings;
+    if (map['isolationReadings'] != null) {
+      var readingList = List.from(map['isolationReadings']);
+      isolationReadings = readingList.map((readingMap) {
+        return IsolationReading.fromMap(readingMap);
+      }).toList();
+    }
+*/
     return _cache.putIfAbsent(
         map['id'] as int,
         () => TestStation(
@@ -74,7 +147,29 @@ class TestStation {
               officeNotes: map['officeNotes'] as String?,
               fieldNotes: map['fieldNotes'] as String?,
               picturePath: map['picturePath'] as String?,
-              plTestLeadReadings: readings,
+              plTestLeadReadings: null,
+              permRefReadings: null,
+              anodeReadings: null,
+              shuntReadings: null,
+              riserReadings: null,
+              foreignReadings: null,
+              testLeadReadings: null,
+              couponReadings: null,
+              bondReadings: null,
+              isolationReadings: null,
+
+/*
+              plTestLeadReadings: plTestLeadReadings,
+              permRefReadings: permRefReadings,
+              anodeReadings: anodeReadings,
+              shuntReadings: shuntReadings,
+              riserReadings: riserReadings,
+              foreignReadings: foreignReadings,
+              testLeadReadings: testLeadReadings,
+              couponReadings: couponReadings,
+              bondReadings: bondReadings,
+              isolationReadings: isolationReadings,
+*/
             ));
   }
 
@@ -174,14 +269,15 @@ class PLTestLeadReading {
   final int? stationID;
   final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final String? wireColor;
-  final int? lugNumber;
   final String? waveForm;
-  final int orderIndex;
 
   /// Constructs a PLTestLeadReading object.
   ///
@@ -199,12 +295,13 @@ class PLTestLeadReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label = '',
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
-    this.wireColor,
-    this.lugNumber,
     this.waveForm,
     required this.orderIndex,
   });
@@ -227,7 +324,17 @@ class PLTestLeadReading {
     return '';
   }
 
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
+
   String get formattedWaveForm => waveForm ?? '';
+
+  String get acVolts => voltsAC != null ? voltsAC.toString() : '';
 
   // String get formattedWaveForm {
   //   return waveForm?.join(';') ?? '';
@@ -239,12 +346,13 @@ class PLTestLeadReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
-      'wireColor': wireColor,
-      'lugNumber': lugNumber,
       'waveForm': waveForm, // This is a list of wave form data
       'order_index': orderIndex,
     };
@@ -262,14 +370,15 @@ class PLTestLeadReading {
       id: map['id'] as int,
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
-      name: map['name'],
+      name: map['name'] ?? '',
+      label: map['label'] ?? '',
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: map['voltsON'],
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      wireColor: map['wireColor'],
-      lugNumber: map['lugNumber'],
-      waveForm: map['waveForm'],
+      waveForm: map['waveForm'] ?? '',
       orderIndex: map['order_index'],
     );
   }
@@ -279,17 +388,18 @@ class PLTestLeadReading {
 class PermRefReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
+  final String? type;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final String? wireColor;
-  final int? lugNumber;
   final String? waveForm;
-  final String? type;
-  final int orderIndex;
 
   /// Constructs a [PermRefReading] object.
   ///
@@ -309,12 +419,13 @@ class PermRefReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
-    this.wireColor,
-    this.lugNumber,
     this.waveForm,
     this.type,
     required this.orderIndex,
@@ -337,6 +448,16 @@ class PermRefReading {
     return '';
   }
 
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
+
+  String get formattedWaveForm => waveForm ?? '';
+
   /// Converts the [PermRefReading] object to a map.
   ///
   /// Returns a map representation of the [PermRefReading] object.
@@ -345,12 +466,13 @@ class PermRefReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
-      'wireColor': wireColor,
-      'lugNumber': lugNumber,
       'waveForm': waveForm,
       'type': type,
       'order_index': orderIndex,
@@ -370,15 +492,16 @@ class PermRefReading {
       id: map['id'] as int,
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
-      name: map['name'],
+      name: map['name'] ?? '',
+      label: map['label'] ?? '',
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: map['voltsON'],
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      wireColor: map['wireColor'],
-      lugNumber: map['lugNumber'],
-      waveForm: map['waveForm'],
-      type: map['type'],
+      waveForm: map['waveForm'] ?? '',
+      type: map['type'] ?? '',
       orderIndex: map['order_index'],
     );
   }
@@ -388,19 +511,22 @@ class PermRefReading {
 class AnodeReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final String? wireColor;
-  final int? lugNumber;
-  final String? waveForm;
   final double? current;
   final DateTime? currentDate;
+  final String? wireColor;
+  final int? lugNumber;
   final String? anodeMaterial;
-  final int orderIndex;
+  final String? waveForm;
 
   /// Creates a new instance of [AnodeReading].
   ///
@@ -420,6 +546,9 @@ class AnodeReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
@@ -458,6 +587,16 @@ class AnodeReading {
     return '';
   }
 
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
+
+  String get formattedWaveForm => waveForm ?? '';
+
   /// Converts the [AnodeReading] object to a map.
   ///
   /// Returns a map representation of the [AnodeReading] object.
@@ -466,6 +605,9 @@ class AnodeReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
@@ -494,6 +636,9 @@ class AnodeReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'] as String,
+      label: map['label'] as String?,
+      voltsAC: (map['voltsAC'] as num?)?.toDouble(),
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: (map['voltsON'] as num?)?.toDouble(),
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: (map['voltsOFF'] as num?)?.toDouble(),
@@ -513,8 +658,12 @@ class AnodeReading {
 class ShuntReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final String? sideA;
   final String? sideB;
   final double? ratioMV;
@@ -524,7 +673,6 @@ class ShuntReading {
   final DateTime? vDropDate;
   final double? calculated;
   final DateTime? calculatedDate;
-  final int orderIndex;
 
   /// Creates a new instance of [ShuntReading].
   ///
@@ -548,6 +696,9 @@ class ShuntReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.sideA,
     this.sideB,
     this.ratioMV,
@@ -570,6 +721,13 @@ class ShuntReading {
   String get formattedvDrop => vDrop != null ? _formatVoltage(vDrop!) : '';
 
   String get formattedcalculated => calculated != null ? _formatVoltage(calculated!) : '';
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
 
   // Helper method to format voltage values
   String _formatVoltage(double value) {
@@ -584,6 +742,9 @@ class ShuntReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'side_a': sideA,
       'side_b': sideB,
       'ratio_mv': ratioMV,
@@ -611,6 +772,9 @@ class ShuntReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       sideA: map['side_a'],
       sideB: map['side_b'],
       ratioMV: map['ratio_mv'],
@@ -631,30 +795,25 @@ class RiserReading {
   final int? stationID;
   final String testStationID;
   final String name;
+  final String? label;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final String? pipeDiameter;
+  final int? pipeDiameter;
   final String? waveForm;
   final int orderIndex;
 
-  /// Constructs a new instance of [RiserReading].
-  ///
-  /// [id] is the unique identifier for the reading.
-  /// [stationID] is the identifier of the station associated with the reading.
-  /// [testStationID] is the identifier of the test station associated with the reading.
-  /// [name] is the name of the reading.
-  /// [voltsON] is the voltage when the reading is turned on.
-  /// [voltsONDate] is the date and time when the reading is turned on.
-  /// [voltsOFF] is the voltage when the reading is turned off.
-  /// [voltsOFFDate] is the date and time when the reading is turned off.
-  /// [orderIndex] is the index used for ordering the readings.
   RiserReading({
     this.id,
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
@@ -664,55 +823,69 @@ class RiserReading {
     required this.orderIndex,
   });
 
-  // Custom getters for formatted voltages
   String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
   String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
 
-  // Helper method to format voltage values
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
+
   String _formatVoltage(double value) {
     return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
   }
 
-  /// Converts the [RiserReading] object to a map.
-  ///
-  /// Returns a map representation of the [RiserReading] object.
+  String get formattedWaveForm => waveForm ?? '';
+
   Map<String, dynamic> toMap() {
     var map = {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate?.toIso8601String(),
       'voltsON': voltsON,
-      'voltsON_Date': voltsONDate,
+      'voltsON_Date': voltsONDate?.toIso8601String(),
       'voltsOFF': voltsOFF,
-      'voltsOFF_Date': voltsOFFDate,
-      'pipeDiameter': pipeDiameter,
+      'voltsOFF_Date': voltsOFFDate?.toIso8601String(),
+      'pipe_Diameter': pipeDiameter,
       'waveForm': waveForm,
       'order_index': orderIndex,
     };
     if (id != null) {
       map['id'] = id;
     }
-
     return map;
   }
 
-  /// Constructs a [RiserReading] object from a map.
-  ///
-  /// [map] is the map representation of the [RiserReading] object.
   factory RiserReading.fromMap(Map<String, dynamic> map) {
     return RiserReading(
-      id: map['id'] as int,
-      stationID: map['stationID'] as int,
+      id: map['id'] is int ? map['id'] : int.tryParse(map['id'].toString()),
+      stationID: map['stationID'] is int ? map['stationID'] : int.tryParse(map['stationID'].toString()),
       testStationID: map['testStationID'].toString(),
-      name: map['name'],
-      voltsON: map['voltsON'],
+      name: map['name'].toString(),
+      label: map['label']?.toString(),
+      voltsAC: map['voltsAC'] is double ? map['voltsAC'] : double.tryParse(map['voltsAC'].toString()),
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
+      voltsON: map['voltsON'] is double ? map['voltsON'] : double.tryParse(map['voltsON'].toString()),
       voltsONDate: _parseDateTime(map['voltsON_Date']),
-      voltsOFF: map['voltsOFF'],
+      voltsOFF: map['voltsOFF'] is double ? map['voltsOFF'] : double.tryParse(map['voltsOFF'].toString()),
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      pipeDiameter: map['pipeDiameter'],
-      waveForm: map['waveForm'],
-      orderIndex: map['order_index'],
+      pipeDiameter: map['pipe_Diameter'] is int ? map['pipe_Diameter'] : int.tryParse(map['pipe_Diameter'].toString()),
+      waveForm: map['waveForm']?.toString(),
+      orderIndex: map['order_index'] is int ? map['order_index'] : int.parse(map['order_index'].toString()),
     );
+  }
+
+  static DateTime? _parseDateTime(dynamic date) {
+    if (date == null) return null;
+    if (date is DateTime) return date;
+    if (date is String) return DateTime.tryParse(date);
+    return null;
   }
 }
 
@@ -720,17 +893,17 @@ class RiserReading {
 class ForeignReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final String? fieldLabel;
-  final String? wireColor;
-  final int? lugNumber;
   final String? waveForm;
-  final int orderIndex;
 
   /// Constructs a [ForeignReading] object.
   ///
@@ -748,13 +921,13 @@ class ForeignReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
-    this.fieldLabel,
-    this.wireColor,
-    this.lugNumber,
     this.waveForm,
     required this.orderIndex,
   });
@@ -764,6 +937,16 @@ class ForeignReading {
 
   /// Gets the formatted voltage when turned off.
   String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+
+  String get formattedWaveForm => waveForm ?? '';
+
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
 
   /// Formats the voltage value.
   ///
@@ -778,13 +961,13 @@ class ForeignReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
-      'fieldLabel': fieldLabel,
-      'wireColor': wireColor,
-      'lugNumber': lugNumber,
       'waveForm': waveForm,
       'order_index': orderIndex,
     };
@@ -804,13 +987,13 @@ class ForeignReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: map['voltsON'],
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      fieldLabel: map['fieldLabel'],
-      wireColor: map['wireColor'],
-      lugNumber: map['lugNumber'],
       waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
@@ -821,17 +1004,18 @@ class ForeignReading {
 class TestLeadReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
   final String? fieldLabel;
-  final String? wireColor;
-  final int? lugNumber;
   final String? waveForm;
-  final int orderIndex;
 
   /// Constructs a [TestLeadReading] object.
   ///
@@ -849,13 +1033,14 @@ class TestLeadReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
     this.fieldLabel,
-    this.wireColor,
-    this.lugNumber,
     this.waveForm,
     required this.orderIndex,
   });
@@ -863,6 +1048,16 @@ class TestLeadReading {
   // Custom getters for formatted voltages
   String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
   String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+
+  String get formattedWaveForm => waveForm ?? '';
+
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
 
   // Helper method to format voltage values
   String _formatVoltage(double value) {
@@ -877,13 +1072,14 @@ class TestLeadReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
       'fieldLabel': fieldLabel,
-      'wireColor': wireColor,
-      'lugNumber': lugNumber,
       'waveForm': waveForm,
       'order_index': orderIndex,
     };
@@ -903,13 +1099,14 @@ class TestLeadReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: map['voltsON'],
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
       fieldLabel: map['fieldLabel'],
-      wireColor: map['wireColor'],
-      lugNumber: map['lugNumber'],
       waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
@@ -920,21 +1117,22 @@ class TestLeadReading {
 class CouponReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final double? voltsON;
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
   final double? current;
   final DateTime? currentDate;
-  final String? wireColor;
-  final int? lugNumber;
-  final String? waveForm;
   final String? connectedTo;
   final String? type;
   final double? size;
-  final int orderIndex;
+  final String? waveForm;
 
   /// Creates a new instance of [CouponReading].
   ///
@@ -958,14 +1156,15 @@ class CouponReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.voltsON,
     this.voltsONDate,
     this.voltsOFF,
     this.voltsOFFDate,
     this.current,
     this.currentDate,
-    this.wireColor,
-    this.lugNumber,
     this.waveForm,
     this.connectedTo,
     this.type,
@@ -978,6 +1177,15 @@ class CouponReading {
   String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
   String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
   String get formattedSize => size != null ? _formatVoltage(size!) : '';
+  String get formattedWaveForm => waveForm ?? '';
+
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
 
   // Helper method to format voltage values
   String _formatVoltage(double value) {
@@ -992,14 +1200,15 @@ class CouponReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'voltsON': voltsON,
       'voltsON_Date': voltsONDate,
       'voltsOFF': voltsOFF,
       'voltsOFF_Date': voltsOFFDate,
       'current': current,
       'current_Date': currentDate,
-      'wireColor': wireColor,
-      'lugNumber': lugNumber,
       'waveForm': waveForm,
       'connected_to': connectedTo,
       'coupon_type': type,
@@ -1022,14 +1231,15 @@ class CouponReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       voltsON: map['voltsON'],
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'],
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
       current: map['current'],
       currentDate: _parseDateTime(map['current_Date']),
-      wireColor: map['wireColor'],
-      lugNumber: map['lugNumber'],
       waveForm: map['waveForm'],
       connectedTo: map['connected_to'],
       type: map['coupon_type'],
@@ -1043,14 +1253,17 @@ class CouponReading {
 class BondReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final String? sideA;
   final String? sideB;
   final double? current;
   final DateTime? currentDate;
-  final String? fieldLabel;
-  final int orderIndex;
+  final String? waveForm;
 
   /// Constructs a [BondReading] object.
   ///
@@ -1068,11 +1281,14 @@ class BondReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.label,
+    this.voltsAC,
+    this.voltsACDate,
     this.sideA,
     this.sideB,
     this.current,
     this.currentDate,
-    this.fieldLabel,
+    this.waveForm,
     required this.orderIndex,
   });
 
@@ -1080,6 +1296,16 @@ class BondReading {
   ///
   /// Returns an empty string if [current] is null.
   String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
+
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
+
+  String get formattedWaveForm => waveForm ?? '';
 
   /// Formats the voltage value.
   ///
@@ -1097,11 +1323,14 @@ class BondReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'side_a': sideA,
       'side_b': sideB,
       'current': current,
       'current_Date': currentDate,
-      'fieldLabel': fieldLabel,
+      'waveForm': waveForm,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -1120,11 +1349,14 @@ class BondReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       sideA: map['side_a'],
       sideB: map['side_b'],
       current: map['current'],
       currentDate: _parseDateTime(map['current_Date']),
-      fieldLabel: map['fieldLabel'],
+      waveForm: map['waveForm'],
       orderIndex: map['order_index'],
     );
   }
@@ -1134,16 +1366,19 @@ class BondReading {
 class IsolationReading {
   final int? id;
   final int? stationID;
-  final String testStationID;
+  final String? testStationID;
   final String name;
+  final String? label;
+  final int orderIndex;
+  final double? voltsAC;
+  final DateTime? voltsACDate;
   final String? sideA;
   final String? sideB;
   final String? type;
-  final String? shorted;
+  final int? shorted;
   final DateTime? shortedDate;
   final double? current;
   final DateTime? currentDate;
-  final int orderIndex;
 
   /// Constructs an instance of [IsolationReading].
   ///
@@ -1164,6 +1399,9 @@ class IsolationReading {
     this.stationID,
     required this.testStationID,
     required this.name,
+    this.voltsAC,
+    this.voltsACDate,
+    this.label,
     this.sideA,
     this.sideB,
     this.type,
@@ -1176,6 +1414,14 @@ class IsolationReading {
 
   // Custom getters for formatted voltages
   String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
+
+  String get formattedvoltsAC {
+    if (voltsAC != null) {
+      final formatter = NumberFormat("0.00");
+      return formatter.format(voltsAC);
+    }
+    return '';
+  }
 
   // Helper method to format voltage values
   String _formatVoltage(double value) {
@@ -1190,6 +1436,9 @@ class IsolationReading {
       'stationID': stationID,
       'testStationID': testStationID,
       'name': name,
+      'label': label,
+      'voltsAC': voltsAC,
+      'voltsAC_Date': voltsACDate,
       'side_a': sideA,
       'side_b': sideB,
       'iso_type': type,
@@ -1215,6 +1464,9 @@ class IsolationReading {
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
       name: map['name'],
+      label: map['label'],
+      voltsAC: map['voltsAC'],
+      voltsACDate: _parseDateTime(map['voltsAC_Date']),
       sideA: map['side_a'],
       sideB: map['side_b'],
       type: map['iso_type'],

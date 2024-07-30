@@ -2,7 +2,6 @@ import 'package:asset_inspections/Models/camera_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'; // Import MaterialApp and Key
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // Import FlutterScreenUtil
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart'; // Import DateFormat
 import 'package:provider/provider.dart'; // Import ChangeNotifierProvider
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
@@ -54,6 +53,7 @@ class MainPageUI extends State<MainPage> {
   Future<void> updateProjectsExist() async {
     projectsExist = hasProjects();
     setState(() {}); // Trigger a rebuild
+    print('updateProjectsExist called');
   }
 
   /// Checks if there are any projects available.
@@ -113,11 +113,13 @@ class MainPageUI extends State<MainPage> {
     var tsNotifier = Provider.of<TSNotifier>(context, listen: false);
     var rectifierNotifier = Provider.of<RectifierNotifier>(context, listen: false);
 
-    tsNotifier.clearTestStationsList();
+//    tsNotifier.clearTestStationsList();
     rectifierNotifier.loadRectifiersFromDatabase(projectID, 'serviceTag');
     tsNotifier.loadTestStationsFromDatabase(projectID);
+    print('_loadProjectData called');
   }
 
+/*
   /// Loads the latest project and performs necessary actions based on the current state.
   /// This method first loads the projects using the [projectModel.loadProjects()] method.
   /// Then, it retrieves the latest project from the database using [dbHelper.getLatestProject()].
@@ -140,13 +142,15 @@ class MainPageUI extends State<MainPage> {
         }
         //  if (mounted) {
         showSelectProjectDialog();
+        print('_loadLatestProject with showSelectProjectDialog called');
         //  }
       } else {
         _selectProject(latestProject);
+        print('_loadLatestProject with _selectProject called');
       }
     }
   }
-
+*/
   /// Handles the selection of a project.
   ///
   /// Updates the current project name, sets the selected project,
@@ -162,6 +166,7 @@ class MainPageUI extends State<MainPage> {
         selectedProjectName = selectedProject;
         _isInitialLoad = false; // Ensure _isInitialLoad is set to false
       });
+      print('onProjectSelected called');
       _loadProjectData(selectedProject.id); // Uncommented causes Test Stations to load twice
     }
   }
@@ -263,6 +268,10 @@ class MainPageUI extends State<MainPage> {
                   // Function to check the validation state
                   void checkValidationState() {
                     setState(() {
+                      //    clientController.text = clientController.text.replaceAll(' ', '_');
+                      //    projectNameController.text = projectNameController.text.replaceAll(' ', '_');
+                      //    techController.text = techController.text.replaceAll(' ', '_');
+
                       //  isValidClient = !(clientController.text.isEmpty && (projectNameController.text.isNotEmpty || techController.text.isNotEmpty));
                       isValidClient = clientController.text.isNotEmpty;
                       //  isValidProjectName = !(projectNameController.text.isEmpty && techController.text.isNotEmpty);
@@ -342,7 +351,7 @@ class MainPageUI extends State<MainPage> {
                           }
 
 // Now that we know fields are not empty, we can validate the project name
-                          final isValidName = RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(projectName);
+                          final isValidName = RegExp(r'^[a-zA-Z0-9_ ]+$').hasMatch(projectName);
                           if (!isValidName) {
 // Show an error dialog for invalid project name
                             showDialog(
@@ -508,12 +517,9 @@ class MainPageUI extends State<MainPage> {
                       projectModel.tech = newValue.tech;
                       projectModel.createDate = newValue.createDate;
                       DatabaseHelper.instance.updateLastLoaded(newValue.id, DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()));
-                      tsNotifier.clearTestStationsList();
-
-                      rectifierNotifier.loadRectifiersFromDatabase(newValue.id, 'serviceTag');
-
-                      tsNotifier.loadTestStationsFromDatabase(newValue.id);
-
+//                      tsNotifier.clearTestStationsList();
+//                      rectifierNotifier.loadRectifiersFromDatabase(newValue.id, 'serviceTag');
+//                      tsNotifier.loadTestStationsFromDatabase(newValue.id);
                       //  _saveSelectedProjectToPrefs(newValue.id);
 
                       Navigator.of(innerContext).pop();
@@ -836,11 +842,14 @@ class MainPageUI extends State<MainPage> {
 
 // Bottom App Bar
             bottomNavigationBar: BottomAppBar(
+              height: 60.0.h,
               color: const Color.fromARGB(255, 0, 43, 92),
-              shape: const CircularNotchedRectangle(),
-              notchMargin: 10.0,
+              //   shape: const CircularNotchedRectangle(),
+              //  notchMargin: 10.0,
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Row(
-                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                //   mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   IconButton(

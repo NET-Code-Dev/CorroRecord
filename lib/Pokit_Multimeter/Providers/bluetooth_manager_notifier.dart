@@ -33,7 +33,7 @@ class BluetoothManager with ChangeNotifier {
 
   //Private member for the PokitProModel
   PokitProModel? _pokitProModel;
-  //PokitProModel? _currentPokitProModel;
+//  PokitProModel? _currentPokitProModel;
 
   // Private member for the MM Service Model
   MMServiceModel? _mmServiceModel;
@@ -134,7 +134,7 @@ class BluetoothManager with ChangeNotifier {
     //FlutterBluePlus.setLogLevel(LogLevel.verbose);
 
     // Check if Bluetooth is available on the device
-    if (await FlutterBluePlus.isAvailable == false) {
+    if (await FlutterBluePlus.isSupported == false) {
       // print("Bluetooth not supported by this device");
       return;
     }
@@ -154,16 +154,18 @@ class BluetoothManager with ChangeNotifier {
     StreamSubscription<List<ScanResult>>? subscription;
     subscription = FlutterBluePlus.scanResults.listen((List<ScanResult> results) {
       for (ScanResult result in results) {
-        // print("Device found: ${result.device.localName}");
+        // print("Device found: ${result.device.platformName}");
 
         // Add the device to the list of available devices if it meets the criteria
-        if (!availableDevicesNotifier.value.contains(result.device) && result.device.localName.isNotEmpty && !isMacAddress(result.device.localName)) {
+        if (!availableDevicesNotifier.value.contains(result.device) &&
+            result.device.platformName.isNotEmpty &&
+            !isMacAddress(result.device.platformName)) {
           availableDevicesNotifier.value = [...availableDevicesNotifier.value, result.device];
         }
 
         // Stop the scan if a device with the name "PokitPro" is found
         ////May need to change this since the user can change the name of the device
-        if (result.device.localName == 'PokitPro') {
+        if (result.device.platformName == 'PokitPro') {
           // print('Found PokitPro, stopping scan');
           FlutterBluePlus.stopScan();
           subscription?.cancel();
@@ -188,11 +190,18 @@ class BluetoothManager with ChangeNotifier {
     try {
       List<BluetoothService> services = await device.discoverServices();
       if (kDebugMode) {
-        print('pokitProModel is set: $pokitProModel');
-      } // Log statement for debugging
+        for (var service in services) {
+          print('Service found: ${service.uuid}');
+          for (var characteristic in service.characteristics) {
+            print('Characteristic found: ${characteristic.uuid} with properties ${characteristic.properties}');
+          }
+        }
+      }
       return services;
     } catch (e) {
-      // Handle exceptions (e.g., log error, notify UI)
+      if (kDebugMode) {
+        print('Error during service discovery: $e');
+      }
       return [];
     }
   }
