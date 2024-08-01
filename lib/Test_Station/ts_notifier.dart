@@ -922,6 +922,10 @@ class TSNotifier extends ChangeNotifier {
         return '(${reading['voltsOFF_Date']})';
       }).join();
 
+      var anodeWaveForm = anodeData.map((reading) {
+        return '(${reading['waveForm']})';
+      }).join();
+
       var permRefNames = permRefData.map((reading) {
         return '(${reading['name']})';
       }).join();
@@ -952,6 +956,10 @@ class TSNotifier extends ChangeNotifier {
 
       var permRefOFFDate = permRefData.map((reading) {
         return '(${reading['voltsOFF_Date']})';
+      }).join();
+
+      var permRefWaveForm = permRefData.map((reading) {
+        return '(${reading['waveForm']})';
       }).join();
 
       var shuntNames = shuntData.map((reading) {
@@ -1158,6 +1166,10 @@ class TSNotifier extends ChangeNotifier {
         return '(${reading['size']})';
       }).join();
 
+      var couponWaveform = couponData.map((reading) {
+        return '(${reading['waveForm']})';
+      }).join();
+
       var bondNames = bondData.map((reading) {
         return '(${reading['name']})';
       }).join();
@@ -1246,6 +1258,7 @@ class TSNotifier extends ChangeNotifier {
         testStation['latitude'],
         testStation['longitude'],
         testStation['fieldNotes'],
+        testStation['officeNotes'],
         plTestLeadNames,
         plTestLeadLabel,
         plTestLeadVoltsAC,
@@ -1263,6 +1276,7 @@ class TSNotifier extends ChangeNotifier {
         anodeONDate,
         anodeVoltsOFF,
         anodeOFFDate,
+        anodeWaveForm,
         permRefNames,
         permRefLabel,
         permRefVoltsAC,
@@ -1271,6 +1285,7 @@ class TSNotifier extends ChangeNotifier {
         permRefONDate,
         permRefVoltsOFF,
         permRefOFFDate,
+        permRefWaveForm,
         shuntNames,
         shuntLabel,
         shuntVoltsAC,
@@ -1322,6 +1337,7 @@ class TSNotifier extends ChangeNotifier {
         couponConnection,
         couponType,
         couponSize,
+        couponWaveform,
         bondNames,
         bondLabel,
         bondVoltsAC,
@@ -1356,6 +1372,7 @@ class TSNotifier extends ChangeNotifier {
       'Latitude',
       'Longitude',
       'Field Notes',
+      'Office Notes',
       'PL Test Leads (PL TL)',
       'PL TL Label',
       'PL TL AC (V)',
@@ -1373,6 +1390,7 @@ class TSNotifier extends ChangeNotifier {
       'AD ON Date',
       'AD OFF (V)',
       'AD OFF Date',
+      'AD Waveform',
       'Perm Ref Cells (PR)',
       'PR Label',
       'PR AC (V)',
@@ -1381,6 +1399,7 @@ class TSNotifier extends ChangeNotifier {
       'PR ON Date',
       'PR OFF (V)',
       'PR OFF Date',
+      'PR Waveform',
       'Shunts (SH)',
       'SH Label',
       'SH AC (V)',
@@ -1432,6 +1451,7 @@ class TSNotifier extends ChangeNotifier {
       'CO Connection',
       'CO Type',
       'CO Size',
+      'CO WaveForm',
       'Bonds (BO)',
       'BO Label',
       'BO AC (V)',

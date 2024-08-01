@@ -84,7 +84,8 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
                 color: Colors.white,
                 fontSize: 22,
               )),
-          backgroundColor: Color.fromARGB(255, 0, 43, 92), // Custom color
+          backgroundColor: Color.fromARGB(255, 0, 43, 92),
+          foregroundColor: Colors.white, // Custom color
           centerTitle: true,
         ),
         body: ValueListenableBuilder<BluetoothConnectionState>(
@@ -140,7 +141,7 @@ class _BluetoothConnectionPageState extends State<BluetoothConnectionPage> {
             label: Text('Scan for Devices'),
             onPressed: _pairDevice,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor, // Use theme color
+              backgroundColor: Color.fromARGB(255, 0, 43, 92), // Custom color
               foregroundColor: Colors.white, // Text color
             ),
           ),

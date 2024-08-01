@@ -51,6 +51,7 @@ class _MainSettingsState extends State<MainSettings> {
         preferredSize: const Size.fromHeight(50.0), // Set height of the AppBar
         child: AppBar(
           backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+          foregroundColor: Colors.white,
           title: const Text(
             'Settings',
             style: TextStyle(
