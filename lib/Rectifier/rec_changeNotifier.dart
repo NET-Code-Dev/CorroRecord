@@ -4,12 +4,14 @@
 import 'dart:io';
 
 import 'package:asset_inspections/Common_Widgets/gps_location.dart';
+import 'package:asset_inspections/phone_id.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as permission_handler;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../Models/project_model.dart'; // Import the ProjectModel class
 import '../Models/rectifier_models.dart'; // Import the Rectifier classes
@@ -371,60 +373,73 @@ class RectifierNotifier extends ChangeNotifier {
   // Create a CSV from provided data and filename
   Future<void> createCSV(BuildContext context) async {
     print('createCSV called');
-
     await requestStoragePermission();
 
-    // Convert the rectifiers into a 2D list
-    List<List<Object?>> rectifierData = rectifiers.map((rectifier) {
+    Database db = await DatabaseHelper.instance.database;
+
+    List<Map<String, dynamic>> rectifiersData = await db.query('Rectifiers', where: 'projectID = ?', whereArgs: [projectModel.id]);
+    List<List<Object?>> rectifierData = rectifiersData.map((reading) {
       return [
-        rectifier.area,
-        rectifier.serviceTag,
-        rectifier.use,
-        rectifier.status,
-        rectifier.maxVoltage,
-        rectifier.maxAmps,
-        rectifier.latitude,
-        rectifier.longitude,
-        rectifier.readings?.panelMeterVoltage,
-        rectifier.readings?.multimeterVoltage,
-        rectifier.readings?.voltageReadingComments,
-        rectifier.readings?.panelMeterAmps,
-        rectifier.readings?.ammeterAmps,
-        rectifier.readings?.currentReadingComments,
-        rectifier.readings?.currentRatio,
-        rectifier.readings?.voltageRatio,
-        rectifier.readings?.voltageDrop,
-        rectifier.readings?.calculatedCurrent,
-        rectifier.tapReadings?.courseTapSettingFound,
-        rectifier.tapReadings?.mediumTapSettingFound,
-        rectifier.tapReadings?.fineTapSettingFound,
-        rectifier.inspection?.oilLevel,
-        rectifier.inspection?.oilLevelFindings,
-        rectifier.inspection?.oilLevelComments,
-        rectifier.inspection?.deviceDamage,
-        rectifier.inspection?.deviceDamageFindings,
-        rectifier.inspection?.deviceDamageComments,
-        rectifier.inspection?.circuitBreakers,
-        rectifier.inspection?.circuitBreakersComments,
-        rectifier.inspection?.fusesWiring,
-        rectifier.inspection?.fusesWiringComments,
-        rectifier.inspection?.lightningArrestors,
-        rectifier.inspection?.lightningArrestorsComments,
-        rectifier.inspection?.ventScreens,
-        rectifier.inspection?.ventScreensComments,
-        rectifier.inspection?.breathers,
-        rectifier.inspection?.breathersComments,
-        rectifier.inspection?.removeObstructions,
-        rectifier.inspection?.removeObstructionsComments,
-        rectifier.inspection?.cleaned,
-        rectifier.inspection?.cleanedComments,
-        rectifier.inspection?.tightened,
-        rectifier.inspection?.tightenedComments,
+        projectModel.createDate,
+        projectModel.client,
+        projectModel.projectName,
+        projectModel.tech,
+        reading['area'],
+        reading['serviceTag'],
+        reading['use'],
+        reading['status'],
+        reading['maxVoltage'],
+        reading['maxAmps'],
+        reading['latitude'],
+        reading['longitude'],
+        reading['panelMeterVoltage'],
+        reading['multimeterVoltage'],
+        reading['voltageReadingComments'],
+        reading['panelMeterAmps'],
+        reading['ammeterAmps'],
+        reading['currentReadingComments'],
+        reading['currentRatio'],
+        reading['voltageRatio'],
+        reading['voltageDrop'],
+        reading['calculatedCurrent'],
+        reading['courseTapSettingFound'],
+        reading['mediumTapSettingFound'],
+        reading['fineTapSettingFound'],
+        reading['reason'],
+        reading['oilLevel'],
+        reading['oilLevelFindings'],
+        reading['oilLevelComments'],
+        reading['deviceDamage'],
+        reading['deviceDamageFindings'],
+        reading['deviceDamageComments'],
+        reading['circuitBreakers'],
+        reading['circuitBreakersComments'],
+        reading['polarityCondition'],
+        reading['polarityConditionComments'],
+        reading['fusesWiring'],
+        reading['fusesWiringComments'],
+        reading['lightningArrestors'],
+        reading['lightningArrestorsComments'],
+        reading['ventScreens'],
+        reading['ventScreensComments'],
+        reading['breathers'],
+        reading['breathersComments'],
+        reading['removeObstructions'],
+        reading['removeObstructionsComments'],
+        reading['cleaned'],
+        reading['cleanedComments'],
+        reading['tightened'],
+        reading['tightenedComments'],
+        reading['picturePath'],
       ];
     }).toList();
 
     // Insert the headers at the beginning of the list
     rectifierData.insert(0, [
+      'Date Created',
+      'Client',
+      'Project Name',
+      'Tech',
       'Area',
       'Service Tag',
       'Use',
@@ -446,6 +461,7 @@ class RectifierNotifier extends ChangeNotifier {
       'Course Tap Setting',
       'Medium Tap Setting',
       'Fine Tap Setting',
+      'Tap Adjustment Reason',
       'Oil Level',
       'Oil Level Findings',
       'Oil Level Comments',
@@ -454,6 +470,8 @@ class RectifierNotifier extends ChangeNotifier {
       'Rectifier Damage/Insects/Animals Comments',
       'Circuit Breakers',
       'Circuit Breakers Comments',
+      'Polarity',
+      'Polarity Comments',
       'Fuses/Wiring ',
       'Fuses/Wiring Comments',
       'Lightning Arrestors',
@@ -468,6 +486,7 @@ class RectifierNotifier extends ChangeNotifier {
       'Cleaned Comments',
       'Tightened',
       'Tightened Comments',
+      'Picture Path',
     ]);
 
     String csvData = const ListToCsvConverter().convert(rectifierData);
@@ -514,8 +533,16 @@ class RectifierNotifier extends ChangeNotifier {
       }
 
       DateTime now = DateTime.now();
-      String formattedDate = "${now.year}-${now.month}-${now.day}_${now.hour}-${now.minute}-${now.second}";
-      File file = File('$directoryPath/rectifiers_$formattedDate.csv');
+      String formattedClient = projectModel.client.replaceAll(' ', '-');
+      String formattedName = projectModel.projectName.replaceAll(' ', '-');
+      String formattedDate =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}_${now.hour}-${now.minute}-${now.second}";
+
+      String deviceId = DeviceInfo().deviceId ?? "0000";
+      String deviceIdDigits = deviceId.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+      String deviceIdLast4 = deviceIdDigits.length >= 4 ? deviceIdDigits.substring(deviceIdDigits.length - 4) : deviceIdDigits;
+
+      File file = File('$directoryPath/${formattedDate}_$deviceIdLast4-REC_${formattedClient}_$formattedName.csv');
       print("Attempting to save to: ${file.path}");
 
       await file.create();

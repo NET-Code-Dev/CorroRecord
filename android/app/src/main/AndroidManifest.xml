@@ -2,7 +2,7 @@
     <!--USED TO WRITE THE DATA TO CSV TO BE ABLE TO EXPORT-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    
+
     <!--USED TO GET PHONE GPS COORDINATES FOR MAPPING ASSETS-->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

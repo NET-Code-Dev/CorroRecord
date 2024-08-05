@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:asset_inspections/Models/camera_model.dart';
+import 'package:asset_inspections/phone_id.dart';
 //import 'package:asset_inspections/database_helper.dart';
 import 'package:flutter/material.dart'; // Import MaterialApp and Key
 import 'package:flutter/services.dart';
@@ -29,6 +30,8 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  await DeviceInfo().initPlatformState();
 
   runApp(
     MultiProvider(
@@ -60,15 +63,11 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // final BluetoothManager bluetoothManager = BluetoothManager.instance;
-
   const MyApp({super.key});
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      // Add this
       designSize: const Size(384, 824),
-
       child: MaterialApp(
         home: MainPage(key: UniqueKey()),
         routes: {

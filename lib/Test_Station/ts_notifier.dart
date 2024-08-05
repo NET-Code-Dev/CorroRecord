@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:asset_inspections/phone_id.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
@@ -2050,9 +2051,16 @@ class TSNotifier extends ChangeNotifier {
       }
 
       DateTime now = DateTime.now();
+      String formattedClient = projectModel.client.replaceAll(' ', '-');
+      String formattedName = projectModel.projectName.replaceAll(' ', '-');
       String formattedDate =
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}_${now.hour}-${now.minute}-${now.second}";
-      File file = File('$directoryPath/CP_Inspection_$formattedDate.csv');
+
+      String deviceId = DeviceInfo().deviceId ?? "0000";
+      String deviceIdDigits = deviceId.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+      String deviceIdLast4 = deviceIdDigits.length >= 4 ? deviceIdDigits.substring(deviceIdDigits.length - 4) : deviceIdDigits;
+
+      File file = File('$directoryPath/${formattedDate}_$deviceIdLast4-TP_${formattedClient}_$formattedName.csv');
       print("Attempting to save to: ${file.path}");
 
       await file.create();
