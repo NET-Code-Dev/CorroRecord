@@ -1,22 +1,23 @@
 import 'package:asset_inspections/Models/camera_model.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart'; // Import MaterialApp and Key
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // Import FlutterScreenUtil
-import 'package:intl/intl.dart'; // Import DateFormat
-import 'package:provider/provider.dart'; // Import ChangeNotifierProvider
-import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 import 'package:asset_inspections/main.dart';
 import 'package:sqflite/sqflite.dart';
 
-import 'Models/project_model.dart'; // Import the ProjectModel
-import 'Pokit_Multimeter/Providers/bluetooth_manager_notifier.dart'; // Import the BluetoothManager
-import 'Pokit_Multimeter/Screens/multimeter_ui.dart'; // Import the MultimeterUIPage
-import 'Rectifier/rec_changeNotifier.dart'; // Import the RectifierNotifier
-import 'Test_Station/ts_notifier.dart'; // Import the TestStationNotifier
-import 'Util/main_settings.dart'; // Import the BluetoothConnectionPage
-import 'database_helper.dart'; // Import the DatabaseHelper
+import 'Models/project_model.dart';
+import 'Pokit_Multimeter/Providers/bluetooth_manager_notifier.dart';
+import 'Pokit_Multimeter/Screens/multimeter_ui.dart';
+import 'Rectifier/rec_changeNotifier.dart';
+import 'Test_Station/ts_notifier.dart';
+import 'Util/main_settings.dart';
+import 'database_helper.dart';
 
 class MainPageUI extends State<MainPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -294,6 +295,7 @@ class MainPageUI extends State<MainPage> {
                           ),
                           onChanged: (value) => checkValidationState(),
                         ),
+                        SizedBox(height: 20.h),
 
 // ProjectName TextField
                         TextField(
@@ -304,6 +306,7 @@ class MainPageUI extends State<MainPage> {
                           ),
                           onChanged: (value) => checkValidationState(),
                         ),
+                        SizedBox(height: 20.h),
 
 // Tech TextField
                         TextField(

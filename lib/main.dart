@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:asset_inspections/Models/camera_model.dart';
 import 'package:asset_inspections/phone_id.dart';
+import 'package:flex_color_scheme/flex_color_scheme.dart';
 //import 'package:asset_inspections/database_helper.dart';
 import 'package:flutter/material.dart'; // Import MaterialApp and Key
 import 'package:flutter/services.dart';
@@ -48,14 +49,7 @@ void main() async {
                   Provider.of<ProjectModel>(context, listen: false),
                 )),
         ChangeNotifierProvider(create: (context) => BluetoothManager.instance),
-
-        // Add the MultimeterService provider here
-        //  ChangeNotifierProvider(create: (context) => MultimeterService()),
         ChangeNotifierProvider(create: (context) => MultimeterService.instance),
-        //  ChangeNotifierProvider(
-        //      create: (context) => CameraSettings(
-        //            Provider.of<ProjectModel>(context, listen: false),
-        //          )),
       ],
       child: const MyApp(),
     ),
@@ -76,6 +70,68 @@ class MyApp extends StatelessWidget {
           '/tanks': (context) => TanksPage(),
           '/iso': (context) => ISOPage(),
         },
+        theme: FlexThemeData.light(
+          colors: const FlexSchemeColor(
+            primary: Color(0xff002b5c),
+            primaryContainer: Color(0xffd0e4ff),
+            secondary: Color(0xfff78f1e),
+            secondaryContainer: Color(0xfffcd3a7),
+            tertiary: Color(0xff32bfe8),
+            tertiaryContainer: Color(0xffb0e6f6),
+            appBarColor: Color(0xfffcd3a7),
+            error: Color(0xffb00020),
+          ),
+          surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+          blendLevel: 10,
+          subThemesData: const FlexSubThemesData(
+            blendOnLevel: 13,
+            useTextTheme: true,
+            useM2StyleDividerInM3: true,
+            outlinedButtonBorderWidth: 1.0,
+            outlinedButtonPressedBorderWidth: 2.0,
+            segmentedButtonBorderWidth: 1.0,
+            sliderTrackHeight: 7,
+            alignedDropdown: true,
+            useInputDecoratorThemeInDialogs: true,
+          ),
+          useMaterial3ErrorColors: true,
+          visualDensity: FlexColorScheme.comfortablePlatformDensity,
+          useMaterial3: true,
+          // To use the Playground font, add GoogleFonts package and uncomment
+          // fontFamily: GoogleFonts.notoSans().fontFamily,
+        ),
+        darkTheme: FlexThemeData.dark(
+          colors: const FlexSchemeColor(
+            primary: Color(0xff002b5c),
+            primaryContainer: Color(0xffd0e4ff),
+            secondary: Color(0xfff78f1e),
+            secondaryContainer: Color(0xfffcd3a7),
+            tertiary: Color(0xff32bfe8),
+            tertiaryContainer: Color(0xffb0e6f6),
+            appBarColor: Color(0xfffcd3a7),
+            error: Color(0xffb00020),
+          ).defaultError.toDark(10, true),
+          surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+          blendLevel: 8,
+          subThemesData: const FlexSubThemesData(
+            blendOnLevel: 20,
+            useTextTheme: true,
+            useM2StyleDividerInM3: true,
+            outlinedButtonBorderWidth: 1.0,
+            outlinedButtonPressedBorderWidth: 2.0,
+            segmentedButtonBorderWidth: 1.0,
+            sliderTrackHeight: 7,
+            alignedDropdown: true,
+            useInputDecoratorThemeInDialogs: true,
+          ),
+          useMaterial3ErrorColors: true,
+          visualDensity: FlexColorScheme.comfortablePlatformDensity,
+          useMaterial3: true,
+          // To use the Playground font, add GoogleFonts package and uncomment
+          // fontFamily: GoogleFonts.notoSans().fontFamily,
+        ),
+        // uncomment this line to let the device system mode control the theme mode:
+        themeMode: ThemeMode.system,
       ),
     );
   }
