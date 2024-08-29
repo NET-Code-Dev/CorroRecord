@@ -1,6 +1,6 @@
 // ignore_for_file: override_on_non_overriding_member, library_private_types_in_public_api, prefer_const_constructors_in_immutables, use_key_in_widget_constructors, prefer_const_constructors, non_constant_identifier_names, sort_child_properties_last, avoid_types_as_parameter_names, avoid_print, prefer_const_literals_to_create_immutables
 
-import 'package:asset_inspections/mainpage_ui.dart';
+//import 'package:asset_inspections/mainpage_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';

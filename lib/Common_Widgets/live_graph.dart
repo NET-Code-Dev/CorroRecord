@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
@@ -13,6 +14,8 @@ class LiveGraph extends StatefulWidget {
 }
 
 class _LiveGraphState extends State<LiveGraph> {
+  // ignore: unused_field
+  StreamSubscription<double>? _readingSubscription;
   List<FlSpot> dataPoints = [];
   final int maxDataPoints = 50;
 
@@ -20,15 +23,27 @@ class _LiveGraphState extends State<LiveGraph> {
   Widget build(BuildContext context) {
     // Fetch the multimeter service from the Provider context
     final multimeterService = Provider.of<MultimeterService>(context, listen: true);
-    Reading currentReading = multimeterService.currentReading;
+
+    //Commented out the following line because it I believe it is not needed
+    //Reading currentReading = multimeterService.currentReading;
+
+    // Subscribe to the stream of readings
+    _readingSubscription = multimeterService.currentReadingStream.listen((reading) {
+      // Update the UI with the new reading
+      setState(() {
+        if (dataPoints.length >= maxDataPoints) {
+          dataPoints.clear(); // Clear the data points to start over
+        }
+
+        // Add the new data point
+        dataPoints.add(FlSpot(dataPoints.length.toDouble(), reading));
+      });
+    });
 
 // Update dataPoints list
     if (dataPoints.length >= maxDataPoints) {
       dataPoints.clear(); // Clear the data points to start over
     }
-
-    // Add the new data point
-    dataPoints.add(FlSpot(dataPoints.length.toDouble(), currentReading.value));
 
     double getNiceNumber(double value, bool roundUp) {
       // print('getNiceNumber - value: $value, roundUp: $roundUp');

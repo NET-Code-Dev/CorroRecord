@@ -2,6 +2,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -76,7 +77,9 @@ class _TestStationsPageState extends State<TestStationsPage> {
       String tsID = row[1].toString().trim();
 
       if (!validPattern.hasMatch(area) || !validPattern.hasMatch(tsID)) {
-        print("Invalid input detected in row $i: Area or TS ID contains invalid characters.");
+        if (kDebugMode) {
+          print("Invalid input detected in row $i: Area or TS ID contains invalid characters.");
+        }
       }
     }
 
@@ -309,6 +312,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                       area,
                       tsID,
                       existingTestStation.tsstatus,
+                      existingTestStation.fieldNotes,
                       existingTestStation.plTestLeadReadings,
                       existingTestStation.permRefReadings,
                       existingTestStation.anodeReadings,

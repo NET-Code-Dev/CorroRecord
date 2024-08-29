@@ -1,3 +1,4 @@
+/*
 // ignore_for_file: prefer_final_fields
 
 import 'dart:async';
@@ -263,3 +264,4 @@ class _DCvoltsButtonCycledState extends State<DCvoltsButtonCycled> {
     );
   }
 }
+*/

@@ -1,6 +1,6 @@
 import 'dart:async';
 //import 'package:flutter/foundation.dart';
-import 'package:asset_inspections/Pokit_Multimeter/Models/pokitpro_model.dart';
+//import 'package:asset_inspections/Pokit_Multimeter/Models/pokitpro_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +28,20 @@ import 'package:asset_inspections/Util/cycle_settings_notifier.dart';
 /// - [offController]: A text editing controller for the off timer.
 /// - [offTimerStatusChanged]: A callback function that is called when the off timer status changes.
 /// - [onButtonPressed]: A callback function that is called when the button is pressed.
+///
+/// Though the controllers are optional, atleast one of them must be provided if you want the data to be passed to a controller.
+///
+/// For example:
+/// If you wanted to get a static AC voltage reading, you would use the following code:
+/// ```dart
+/// VoltageButton(
+///  cycleMode: CycleMode.staticMode,
+///  selectedMode: Mode.acVoltage,
+///  acController: acController, //Where acController is a TextEditingController instance in your widget
+///  multimeterService: MultimeterService.instance,
+///  onSaveOrUpdate: (containerName, [readings]) {
+/// },
+///
 class VoltageButton extends StatefulWidget {
   final CycleMode cycleMode;
   final Mode selectedMode;
@@ -80,10 +94,16 @@ class _VoltageButtonState extends State<VoltageButton> {
 
   @override
   void dispose() {
-    _timer?.cancel();
-    _readingSubscription?.cancel();
+    _clearSubscriptionAndTimer();
     _cycleTimer?.cancel();
     super.dispose();
+  }
+
+  void _clearSubscriptionAndTimer() {
+    _readingSubscription?.cancel();
+    _readingSubscription = null;
+    _timer?.cancel();
+    _timer = null;
   }
 
   void _updateController(TextEditingController? controller, double value) {
@@ -153,7 +173,7 @@ class _VoltageButtonState extends State<VoltageButton> {
       List<String> stringReadings = _readings.map((reading) => reading.toStringAsFixed(3)).toList();
       widget.onSaveOrUpdate(widget.containerName, stringReadings);
       widget.multimeterService.subscribeToServiceAndReading(idleMode);
-      _readingSubscription?.cancel();
+      _clearSubscriptionAndTimer();
     }
   }
 
@@ -188,11 +208,12 @@ class _VoltageButtonState extends State<VoltageButton> {
       }
       widget.onSaveOrUpdate(widget.containerName);
       widget.multimeterService.subscribeToServiceAndReading(idleMode);
-      _readingSubscription?.cancel();
+      _clearSubscriptionAndTimer();
     });
   }
 
   Future<void> _startService() async {
+    _clearSubscriptionAndTimer();
     if (kDebugMode) {
       print('Starting service with cycleMode: ${widget.cycleMode}');
       print(

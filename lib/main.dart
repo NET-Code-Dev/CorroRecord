@@ -63,6 +63,7 @@ class MyApp extends StatelessWidget {
     return ScreenUtilInit(
       designSize: const Size(384, 824),
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: MainPage(key: UniqueKey()),
         routes: {
           '/test_stations': (context) => const TestStationsPage(),

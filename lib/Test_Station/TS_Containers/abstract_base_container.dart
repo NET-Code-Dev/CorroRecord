@@ -1,17 +1,16 @@
-import 'package:asset_inspections/Common_Widgets/acvolts_mm_button.dart';
-import 'package:asset_inspections/Common_Widgets/volts_button.dart';
+//import 'package:asset_inspections/Common_Widgets/acvolts_mm_button.dart';
+import 'package:flutter/material.dart';
+
 import 'package:asset_inspections/Common_Widgets/custom_radio.dart';
 import 'package:asset_inspections/Common_Widgets/textfield_dropdown.dart';
-//import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-//import 'package:flutter/widgets.dart';
+import 'package:asset_inspections/Common_Widgets/volts_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import 'package:asset_inspections/Common_Widgets/bottomsheet_livegraph.dart';
 import 'package:asset_inspections/Common_Widgets/custom_textfield.dart';
-import 'package:asset_inspections/Common_Widgets/dcvolts_button_cycled.dart';
+//import 'package:asset_inspections/Common_Widgets/dcvolts_button_cycled.dart';
 import 'package:asset_inspections/Common_Widgets/dcvolts_mm_button.dart';
 import 'package:asset_inspections/Models/ts_models.dart';
 import 'package:asset_inspections/Pokit_Multimeter/Providers/bluetooth_manager_notifier.dart';
@@ -55,6 +54,7 @@ abstract class BaseContainer<T> extends StatefulWidget {
 abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   // Common variables for all containers
   int? id;
+  int? projectID;
   int? orderIndex;
   TestStation? currentTestStation;
   TestStation testStation = TestStation(
@@ -470,14 +470,6 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       }
     });
 
-    labelFocusNode?.addListener(() {
-      if (!labelFocusNode!.hasFocus) {
-        if (labelController!.text.isNotEmpty) {
-          saveOrUpdateReading(containerName, []);
-        }
-      }
-    });
-
     if (containerName == 'PLTestLeadContainers' ||
         containerName == 'TestLeadContainers' ||
         containerName == 'ForeignContainers' ||
@@ -490,6 +482,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'CouponContainers') {
       acFocusNode?.addListener(() {
         if (!acFocusNode!.hasFocus) {
+          saveOrUpdateReading(containerName, []);
+        }
+      });
+
+      labelFocusNode?.addListener(() {
+        if (!labelFocusNode!.hasFocus) {
           saveOrUpdateReading(containerName, []);
         }
       });

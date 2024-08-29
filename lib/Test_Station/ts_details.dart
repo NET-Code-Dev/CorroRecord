@@ -1,5 +1,6 @@
 import 'package:asset_inspections/Common_Widgets/custom_camera.dart';
 import 'package:asset_inspections/Models/project_model.dart';
+import 'package:asset_inspections/Test_Station/TS_Containers/abstract_base_container.dart';
 import 'package:asset_inspections/mainpage_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +32,7 @@ import 'ts_notifier.dart';
 /// It also requires a callback function [ontsStatusChanged] that will be called when the status of the test station changes.
 class TestStationDetailsPage extends StatefulWidget {
   final TestStation testStation;
+  final GlobalKey<ScaffoldMessengerState>? scaffoldMessengerKey;
   final Function(
       int id,
       int projectID,
@@ -49,7 +51,7 @@ class TestStationDetailsPage extends StatefulWidget {
       BondReading bondreading,
       IsolationReading isolationreading) ontsStatusChanged;
 
-  const TestStationDetailsPage({super.key, required this.testStation, required this.ontsStatusChanged});
+  const TestStationDetailsPage({super.key, required this.testStation, this.scaffoldMessengerKey, required this.ontsStatusChanged});
 
   @override
   createState() => _TestStationDetailsPageState();
@@ -65,6 +67,7 @@ class TestStationDetailsPage extends StatefulWidget {
 /// lists of reading containers.
 class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   TestStation? testStation;
+  TestStation? currentTestStation;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _stateInitialized = false;
   final FocusNode tslocationFocusNode = FocusNode();
@@ -97,6 +100,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     focusNode.addListener(() {
       if (!focusNode.hasFocus) {
         // _updatePLTestLeadReading();
+
         // _updateTSValues();
       }
     });
@@ -436,42 +440,101 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       officeNotes = _officeNotesController.text;
     });
 
+    _addFocusListener(tslocationFocusNode);
+
+    // Load the initial field notes
+    _fieldNotesController.text = widget.testStation.fieldNotes ?? '';
+
+    fieldNotesFocusNode = FocusNode();
+    fieldNotesFocusNode!.addListener(() {
+      if (!fieldNotesFocusNode!.hasFocus) {
+        saveFieldNotes();
+      }
+    });
+
+    // Add this line to load field notes when the page is initialized
+    loadFieldNotes();
+
+/*
     _setupTextController(_fieldNotesController, widget.testStation.fieldNotes ?? '', () {
       fieldNotes = _fieldNotesController.text;
     });
-
-    _addFocusListener(tslocationFocusNode);
 
     fieldNotesFocusNode = FocusNode();
 
     fieldNotesFocusNode!.addListener(() {
       if (!fieldNotesFocusNode!.hasFocus) {
-        Provider.of<TSNotifier>(context, listen: false).updateTestStation(
-            widget.testStation,
-            widget.testStation.area,
-            widget.testStation.tsID,
-            widget.testStation.tsstatus,
-            widget.testStation.plTestLeadReadings,
-            widget.testStation.permRefReadings,
-            widget.testStation.anodeReadings,
-            widget.testStation.shuntReadings,
-            widget.testStation.riserReadings,
-            widget.testStation.foreignReadings,
-            widget.testStation.testLeadReadings,
-            widget.testStation.couponReadings,
-            widget.testStation.bondReadings,
-            widget.testStation.isolationReadings,
-            latitude: latitude,
-            longitude: longitude,
-            context: context);
+        saveOrUpdateFieldNotes();
       }
     });
-
+*/
     currentTSStatusIndex = tsstatuses.indexOf(widget.testStation.tsstatus);
     if (currentTSStatusIndex == -1) {
       // Handle or log error, as tsstatus is not valid
       currentTSStatusIndex = 0; // Or set to a default index
     }
+  }
+
+  void saveFieldNotes() {
+    int id = widget.testStation.id ?? 0;
+    String tsID = widget.testStation.tsID;
+
+    var readingMap = {
+      'id': id,
+      'tsID': tsID,
+      'fieldNotes': _fieldNotesController.text,
+    };
+
+    performDbOperation(id, tsID, readingMap);
+  }
+
+  void loadFieldNotes() async {
+    DatabaseHelper dbHelper = DatabaseHelper.instance;
+    int id = widget.testStation.id ?? 0;
+
+    Map<String, dynamic>? loadedData = await dbHelper.getFieldNotes(id);
+    if (loadedData != null && loadedData['fieldNotes'] != null) {
+      setState(() {
+        _fieldNotesController.text = loadedData['fieldNotes'];
+      });
+    }
+  }
+
+/*
+  void saveOrUpdateFieldNotes() {
+    int id = widget.testStation.id ?? 0;
+    String tsID = widget.testStation.tsID;
+    //  int currentOrderIndex = widget.testStation.orderIndex!;
+
+    var readingMap = {
+      'id': widget.testStation.id,
+      'tsID': tsID,
+    };
+
+    readingMap['fieldNotes'] = _fieldNotesController.text ?? '';
+
+    performDbOperation(id, tsID, readingMap);
+  }
+*/
+
+  void performDbOperation(int id, String tsID, Map<String, dynamic> readingMap) async {
+    DatabaseHelper dbHelper = DatabaseHelper.instance;
+
+    await dbHelper.insertOrUpdateFieldNotes(id, readingMap).then((insertedId) {
+      if (insertedId > 0) {
+        widget.scaffoldMessengerKey?.currentState?.showSnackBar(
+          const SnackBar(content: Text('Reading Saved!')),
+        );
+      } else {
+        widget.scaffoldMessengerKey?.currentState?.showSnackBar(
+          const SnackBar(content: Text('Failed to Save Reading!')),
+        );
+      }
+    }).catchError((e) {
+      widget.scaffoldMessengerKey?.currentState?.showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    });
   }
 
   @override
@@ -1024,7 +1087,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                 if (_readingContainers.isNotEmpty) SizedBox(height: 10.h),
                 ListView.separated(
                   shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  physics: const PageScrollPhysics(),
                   itemCount: _readingContainers.length,
                   itemBuilder: (context, index) => _readingContainers[index],
                   separatorBuilder: (context, index) => SizedBox(height: 10.h),
@@ -1133,12 +1196,12 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                           Container(
                             width: 315.w,
                             height: 140.h,
-                            padding: EdgeInsets.symmetric(horizontal: 8.w),
-                            decoration: BoxDecoration(
-                              color: Colors.grey,
-                              borderRadius: BorderRadius.circular(10.r),
-                              border: Border.all(color: Colors.white),
-                            ),
+                            //  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                            //  decoration: BoxDecoration(
+                            //    color: Colors.grey,
+                            //    borderRadius: BorderRadius.circular(10.r),
+                            //    border: Border.all(color: Colors.white),
+                            //  ),
                             child: SingleChildScrollView(
                               child: TextField(
                                 controller: _officeNotesController,
@@ -1176,15 +1239,16 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                         Container(
                           width: 315.w,
                           height: 70.h,
-                          padding: EdgeInsets.symmetric(horizontal: 8.w),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10.r),
-                            border: Border.all(color: Colors.white),
-                          ),
+                          //  padding: EdgeInsets.symmetric(horizontal: 8.w),
+                          //  decoration: BoxDecoration(
+                          //    color: Colors.white,
+                          //    borderRadius: BorderRadius.circular(10.r),
+                          //    border: Border.all(color: Colors.white),
+                          //  ),
                           child: SingleChildScrollView(
                             child: TextField(
                               controller: _fieldNotesController,
+                              focusNode: fieldNotesFocusNode,
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.black,
@@ -1272,6 +1336,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                                   widget.testStation.area,
                                   widget.testStation.tsID,
                                   widget.testStation.tsstatus,
+                                  widget.testStation.fieldNotes,
                                   widget.testStation.plTestLeadReadings,
                                   widget.testStation.permRefReadings,
                                   widget.testStation.anodeReadings,

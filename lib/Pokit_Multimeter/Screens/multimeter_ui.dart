@@ -123,7 +123,7 @@ class _MultimeterUIPageState extends State<MultimeterUIPage> {
 
   @override
   void dispose() {
-    multimeterService.unsubscribeFromReading();
+    //   multimeterService.unsubscribeFromReading();
     bluetoothManager.removeListener(_bluetoothStateChanged);
     WakelockPlus.disable();
     super.dispose();
@@ -396,12 +396,15 @@ class _MultimeterUIPageState extends State<MultimeterUIPage> {
                               onTap: isSupported
                                   ? () async {
                                       Navigator.of(context).pop();
-                                      await multimeterService.unsubscribeFromReading();
+                                      //  await multimeterService.unsubscribeFromReading();
                                       multimeterService.resetMinMaxReadings();
                                       setState(() {
                                         selectedMode = mode;
                                       });
                                       multimeterService.setSelectedMode(selectedMode);
+
+                                      multimeterService.setDevice(BluetoothManager.instance.pokitProModel!.device);
+                                      await multimeterService.initialize();
                                       await multimeterService.subscribeToServiceAndReading(selectedMode);
                                       //  _updateAvailableModes(BluetoothManager.instance);
                                     }

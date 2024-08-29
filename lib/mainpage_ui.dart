@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path/path.dart' as p;
-import 'package:flex_color_scheme/flex_color_scheme.dart';
+//import 'package:flex_color_scheme/flex_color_scheme.dart';
 
 import 'package:asset_inspections/main.dart';
 import 'package:sqflite/sqflite.dart';
@@ -29,6 +29,7 @@ class MainPageUI extends State<MainPage> {
   final bluetoothManager = BluetoothManager.instance;
   // get tsNotifier => Provider.of<TSNotifier>(context, listen: false);
   String? currentName;
+  // ignore: unused_field
   bool _isInitialLoad = true;
 
   /// Loads the project names from the database and updates the UI.
@@ -54,7 +55,9 @@ class MainPageUI extends State<MainPage> {
   Future<void> updateProjectsExist() async {
     projectsExist = hasProjects();
     setState(() {}); // Trigger a rebuild
-    print('updateProjectsExist called');
+    if (kDebugMode) {
+      print('updateProjectsExist called');
+    }
   }
 
   /// Checks if there are any projects available.
@@ -117,7 +120,9 @@ class MainPageUI extends State<MainPage> {
 //    tsNotifier.clearTestStationsList();
     rectifierNotifier.loadRectifiersFromDatabase(projectID, 'serviceTag');
     tsNotifier.loadTestStationsFromDatabase(projectID);
-    print('_loadProjectData called');
+    if (kDebugMode) {
+      print('_loadProjectData called');
+    }
   }
 
 /*
@@ -167,7 +172,9 @@ class MainPageUI extends State<MainPage> {
         selectedProjectName = selectedProject;
         _isInitialLoad = false; // Ensure _isInitialLoad is set to false
       });
-      print('onProjectSelected called');
+      if (kDebugMode) {
+        print('onProjectSelected called');
+      }
       _loadProjectData(selectedProject.id); // Uncommented causes Test Stations to load twice
     }
   }
@@ -181,6 +188,7 @@ class MainPageUI extends State<MainPage> {
   /// - [latestProject]: The latest project to be selected.
   ///
   /// Returns: A [Future] that completes when the project selection and data loading is done.
+  // ignore: unused_element
   Future<void> _selectProject(Project? latestProject) async {
     if (latestProject != null) {
       setState(() {
@@ -478,8 +486,8 @@ class MainPageUI extends State<MainPage> {
   /// The selected project is saved to preferences.
   /// Finally, the dialog is closed.
   Future<void> showSelectProjectDialog() async {
-    var tsNotifier = Provider.of<TSNotifier>(context, listen: false);
-    var rectifierNotifier = Provider.of<RectifierNotifier>(context, listen: false);
+    // var tsNotifier = Provider.of<TSNotifier>(context, listen: false);
+    // var rectifierNotifier = Provider.of<RectifierNotifier>(context, listen: false);
 
     if (!mounted) {
       return;

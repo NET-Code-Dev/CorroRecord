@@ -8,8 +8,8 @@ enum PokitProMode {
   diode, // 6
   continuity, // 7
   temperature, // 8
-  dsoMode, // 9
-  dataloggerMode, // 10
+  capacitance, // 9
+  externalTemperature, // 10
 }
 
 enum PokitProStatus {

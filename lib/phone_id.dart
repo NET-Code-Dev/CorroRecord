@@ -1,6 +1,7 @@
+//import 'dart:io';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
-import 'dart:io';
 
 class DeviceInfo {
   static final DeviceInfo _instance = DeviceInfo._internal();

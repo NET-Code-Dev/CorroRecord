@@ -61,108 +61,6 @@ class TSNotifier extends ChangeNotifier {
     print('Cleared Test Stations list: ${_testStations.length}');
   }
 
-  /// Loads the test stations from the database based on the project ID and test station ID.
-  ///
-  /// Parameters:
-  /// - projectID: The ID of the project.
-  /// - testStationID: The ID of the test station.
-  /*
-  Future<void> loadTestStationsFromDatabase(int projectID) async {
-    if (_lastProjectIdLoaded == projectID) {
-      return;
-    }
-    _lastProjectIdLoaded = projectID;
-    clearTestStationsList();
-
-    final dbHelper = DatabaseHelper.instance;
-    final rows = await dbHelper.queryTestStationsByProjectID(projectID);
-
-    const int batchSize = 10;
-    for (int i = 0; i < rows.length; i += batchSize) {
-      final batch = rows.skip(i).take(batchSize);
-      for (var row in batch) {
-        await _processTestStationRow(row);
-      }
-      notifyListeners();
-      // Slight delay to allow UI to update and avoid blocking the main thread.
-      await Future.delayed(const Duration(milliseconds: 50));
-    }
-
-    // Final update to ensure all test stations are added to the provider.
-    notifyListeners();
-  }
-
-  Future<void> _processTestStationRow(Map<String, dynamic> row) async {
-    TestStation testStation = TestStation.fromMap(row);
-
-    bool isDuplicate = _testStations.any((existingTestStation) => existingTestStation.id == testStation.id);
-    if (isDuplicate) {
-      return;
-    }
-
-    if (testStation.id != null) {
-      await _loadReadingsForTestStation(testStation);
-      _testStations.add(testStation);
-    } else {
-      // Handle case where testStation.id is null, if necessary.
-    }
-  }
-
-  Future<void> _loadReadingsForTestStation(TestStation testStation) async {
-    try {
-      testStation.plTestLeadReadings = await _queryReadings<PLTestLeadReading>('PLTestLeadContainers', testStation.id);
-      testStation.permRefReadings = await _queryReadings<PermRefReading>('PermRefContainers', testStation.id);
-      testStation.anodeReadings = await _queryReadings<AnodeReading>('AnodeContainers', testStation.id);
-      testStation.shuntReadings = await _queryReadings<ShuntReading>('ShuntContainers', testStation.id);
-      testStation.riserReadings = await _queryReadings<RiserReading>('RiserContainers', testStation.id);
-      testStation.foreignReadings = await _queryReadings<ForeignReading>('ForeignContainers', testStation.id);
-      testStation.testLeadReadings = await _queryReadings<TestLeadReading>('TestLeadContainers', testStation.id);
-      testStation.couponReadings = await _queryReadings<CouponReading>('CouponContainers', testStation.id);
-      testStation.bondReadings = await _queryReadings<BondReading>('BondContainers', testStation.id);
-      testStation.isolationReadings = await _queryReadings<IsolationReading>('IsolationContainers', testStation.id);
-    } catch (e) {
-      print('Error loading readings for test station ID: ${testStation.id} - $e');
-    }
-  }
-
-  Future<List<T>> _queryReadings<T>(String table, int? testStationId) async {
-    if (testStationId == null) {
-      print('Test station ID is null for table $table, returning empty list');
-      return [];
-    }
-
-    final dbHelper = DatabaseHelper.instance;
-    final rows = await dbHelper.queryReadingsByTestStationID(table, testStationId);
-    print('$table for test station ID $testStationId: $rows');
-    return rows.map((row) => _mapRowToReading<T>(row)).toList();
-  }
-
-  T _mapRowToReading<T>(Map<String, dynamic> row) {
-    if (T == PLTestLeadReading) {
-      return PLTestLeadReading.fromMap(row) as T;
-    } else if (T == PermRefReading) {
-      return PermRefReading.fromMap(row) as T;
-    } else if (T == AnodeReading) {
-      return AnodeReading.fromMap(row) as T;
-    } else if (T == ShuntReading) {
-      return ShuntReading.fromMap(row) as T;
-    } else if (T == RiserReading) {
-      return RiserReading.fromMap(row) as T;
-    } else if (T == ForeignReading) {
-      return ForeignReading.fromMap(row) as T;
-    } else if (T == TestLeadReading) {
-      return TestLeadReading.fromMap(row) as T;
-    } else if (T == CouponReading) {
-      return CouponReading.fromMap(row) as T;
-    } else if (T == BondReading) {
-      return BondReading.fromMap(row) as T;
-    } else if (T == IsolationReading) {
-      return IsolationReading.fromMap(row) as T;
-    } else {
-      throw Exception('Unknown reading type: $T');
-    }
-  }
-*/
   Future<void> loadTestStationsFromDatabase(int projectID) async {
     clearTestStationsList();
 
@@ -176,116 +74,6 @@ class TSNotifier extends ChangeNotifier {
 
     notifyListeners();
   }
-
-/*
-  Future<void> loadTestStationsFromDatabase(int projectID) async {
-    if (_lastProjectIdLoaded == projectID) {
-      print('Attempt to load test stations for project $projectID again. Ignoring.');
-      return;
-    }
-    _lastProjectIdLoaded = projectID;
-    clearTestStationsList();
-    print('Loading Test Stations...');
-
-    final dbHelper = DatabaseHelper.instance;
-    final rows = await dbHelper.queryTestStationsByProjectID(projectID);
-    print('Query returned ${rows.length} test stations for projectID $projectID');
-
-    for (var i = 0; i < rows.length; i++) {
-      var row = rows[i];
-      print('Processing test station ${i + 1}/${rows.length} with data: $row');
-      TestStation testStation = TestStation.fromMap(row);
-      print('Converted $row to TestStation: ${testStation.id}');
-/*
-      bool isDuplicate = _testStations.any((existingTestStation) => existingTestStation.id == testStation.id);
-      if (isDuplicate) {
-        print('Duplicate Test Station found: ${testStation.id}');
-        continue;
-      }
-*/
-      print('Loading readings for test station ID: ${testStation.id}');
-      try {
-        final plTestLeadRows = await dbHelper.queryReadingsByTestStationID('PLTestLeadContainers', testStation.id);
-//        print('PLTestLeadRows for test station ID ${testStation.id}: $plTestLeadRows');
-
-        final permRefRows = await dbHelper.queryReadingsByTestStationID('PermRefContainers', testStation.id);
-//        print('PermRefRows for test station ID ${testStation.id}: $permRefRows');
-
-        final anodeRows = await dbHelper.queryReadingsByTestStationID('AnodeContainers', testStation.id);
-//        print('AnodeRows for test station ID ${testStation.id}: $anodeRows');
-
-        final shuntRows = await dbHelper.queryReadingsByTestStationID('ShuntContainers', testStation.id);
-//        print('ShuntRows for test station ID ${testStation.id}: $shuntRows');
-
-        final riserRows = await dbHelper.queryReadingsByTestStationID('RiserContainers', testStation.id);
-//        print('RiserRows for test station ID ${testStation.id}: $riserRows');
-
-        final foreignRows = await dbHelper.queryReadingsByTestStationID('ForeignContainers', testStation.id);
-//        print('ForeignRows for test station ID ${testStation.id}: $foreignRows');
-
-        final testLeadRows = await dbHelper.queryReadingsByTestStationID('TestLeadContainers', testStation.id);
-//        print('TestLeadRows for test station ID ${testStation.id}: $testLeadRows');
-
-        final couponRows = await dbHelper.queryReadingsByTestStationID('CouponContainers', testStation.id);
-//        print('CouponRows for test station ID ${testStation.id}: $couponRows');
-
-        final bondRows = await dbHelper.queryReadingsByTestStationID('BondContainers', testStation.id);
-//        print('BondRows for test station ID ${testStation.id}: $bondRows');
-
-        final isolationRows = await dbHelper.queryReadingsByTestStationID('IsolationContainers', testStation.id);
-//        print('IsolationRows for test station ID ${testStation.id}: $isolationRows');
-
-        List<PLTestLeadReading> plTestLeadReadings = plTestLeadRows.map((row) => PLTestLeadReading.fromMap(row)).toList();
-        List<PermRefReading> permRefReadings = permRefRows.map((row) => PermRefReading.fromMap(row)).toList();
-        List<AnodeReading> anodeReadings = anodeRows.map((row) => AnodeReading.fromMap(row)).toList();
-        List<ShuntReading> shuntReadings = shuntRows.map((row) => ShuntReading.fromMap(row)).toList();
-        List<RiserReading> riserReadings = riserRows.map((row) => RiserReading.fromMap(row)).toList();
-        List<ForeignReading> foreignReadings = foreignRows.map((row) => ForeignReading.fromMap(row)).toList();
-        List<TestLeadReading> testLeadReadings = testLeadRows.map((row) => TestLeadReading.fromMap(row)).toList();
-        List<CouponReading> couponReadings = couponRows.map((row) => CouponReading.fromMap(row)).toList();
-        List<BondReading> bondReadings = bondRows.map((row) => BondReading.fromMap(row)).toList();
-        List<IsolationReading> isolationReadings = isolationRows.map((row) => IsolationReading.fromMap(row)).toList();
-
-        testStation.plTestLeadReadings = plTestLeadReadings;
-        testStation.permRefReadings = permRefReadings;
-        testStation.anodeReadings = anodeReadings;
-        testStation.shuntReadings = shuntReadings;
-        testStation.riserReadings = riserReadings;
-        testStation.foreignReadings = foreignReadings;
-        testStation.testLeadReadings = testLeadReadings;
-        testStation.couponReadings = couponReadings;
-        testStation.bondReadings = bondReadings;
-        testStation.isolationReadings = isolationReadings;
-
-        _testStations.add(testStation);
-        print('Added test station ID: ${testStation.id} to _testStations');
-
-        // Introducing a slight delay to test timing hypothesis
-        await Future.delayed(Duration(milliseconds: 100));
-      } catch (e, stackTrace) {
-        print('Error loading readings for test station ID: ${testStation.id} - $e');
-        print('Stack Trace: $stackTrace');
-      }
-    }
-
-    notifyListeners();
-
-    // Print the count of loaded test stations
-    print('Loaded Test Stations: ${_testStations.length}');
-
-    // Print individual fields of each test station
-    for (var testStation in _testStations) {
-      print('Test Station ID: ${testStation.id}');
-      print('Area: ${testStation.area}');
-      print('TS ID: ${testStation.tsID}');
-      print('TS Status: ${testStation.tsstatus}');
-      print('Latitude: ${testStation.latitude}');
-      print('Longitude: ${testStation.longitude}');
-      print('Office Notes: ${testStation.officeNotes}');
-      print('PL Test Lead Readings: ${testStation.plTestLeadReadings}');
-    }
-  }
-*/
 
   /// Sets the current test station based on the service tag.
   ///
@@ -378,6 +166,7 @@ class TSNotifier extends ChangeNotifier {
     String? newArea,
     String newtsID,
     String newStatus,
+    String? newFieldNotes,
     List<PLTestLeadReading>? newPLTestLeadReading,
     List<PermRefReading>? newPermRefReading,
     List<AnodeReading>? newAnodeReading,
@@ -401,6 +190,7 @@ class TSNotifier extends ChangeNotifier {
       _testStations[index].area = newArea ?? _testStations[index].area;
       _testStations[index].tsID = newtsID;
       _testStations[index].tsstatus = newStatus;
+      _testStations[index].officeNotes = newFieldNotes ?? _testStations[index].officeNotes;
       _testStations[index].latitude = latitude ?? _testStations[index].latitude;
       _testStations[index].longitude = longitude ?? _testStations[index].longitude;
 
@@ -988,11 +778,11 @@ class TSNotifier extends ChangeNotifier {
       }).join();
 
       var shuntMV = shuntData.map((reading) {
-        return '(${reading['mV']})';
+        return '(${reading['ratio_mv']})';
       }).join();
 
       var shuntAmp = shuntData.map((reading) {
-        return '(${reading['amps']})';
+        return '(${reading['ratio_current']})';
       }).join();
 
       var shuntFactor = shuntData.map((reading) {
@@ -1000,15 +790,19 @@ class TSNotifier extends ChangeNotifier {
       }).join();
 
       var shuntVDrop = shuntData.map((reading) {
-        return '(${reading['vDrop']})';
+        return '(${reading['voltage_drop']})';
       }).join();
 
       var shuntVDropDate = shuntData.map((reading) {
-        return '(${reading['vDrop_Date']})';
+        return '(${reading['voltage_drop_Date']})';
       }).join();
 
       var shuntCalculated = shuntData.map((reading) {
         return '(${reading['calculated']})';
+      }).join();
+
+      var shuntCalculatedDate = shuntData.map((reading) {
+        return '(${reading['calculated_Date']})';
       }).join();
 
       var riserNames = riserData.map((reading) {
@@ -1041,6 +835,10 @@ class TSNotifier extends ChangeNotifier {
 
       var riserOFFDate = riserData.map((reading) {
         return '(${reading['voltsOFF_Date']})';
+      }).join();
+
+      var riserPipeDiameter = riserData.map((reading) {
+        return '(${reading['pipe_Diameter']})';
       }).join();
 
       var riserWaveform = riserData.map((reading) {
@@ -1299,6 +1097,7 @@ class TSNotifier extends ChangeNotifier {
         shuntVDrop,
         shuntVDropDate,
         shuntCalculated,
+        shuntCalculatedDate,
         riserNames,
         riserLabel,
         riserVoltsAC,
@@ -1307,6 +1106,7 @@ class TSNotifier extends ChangeNotifier {
         riserONDate,
         riserVoltsOFF,
         riserOFFDate,
+        riserPipeDiameter,
         riserWaveform,
         foreignNames,
         foreignLabel,
@@ -1413,6 +1213,7 @@ class TSNotifier extends ChangeNotifier {
       'SH V Drop',
       'SH V Drop Date',
       'SH Calculated',
+      'SH Calculated Date',
       'Risers (RI)',
       'RI Label',
       'RI AC (V)',
@@ -1421,6 +1222,7 @@ class TSNotifier extends ChangeNotifier {
       'RI ON Date',
       'RI OFF (V)',
       'RI OFF Date',
+      'RI Pipe Diameter',
       'RI Waveform',
       'Foreign Structures (FS)',
       'FS Label',
@@ -1494,524 +1296,6 @@ class TSNotifier extends ChangeNotifier {
     }
   }
 
-  /*
-  Future<void> createCSV(BuildContext context) async {
-    print('createCSV called');
-
-    await requestStoragePermission();
-
-    // Convert the test stations into a 2D list
-    List<List<Object?>> tsData = testStations.map((testStation) {
-      var plTestLeadNames = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var plTestLeadVoltsON = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var plTestLeadONDate = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var plTestLeadVoltsOFF = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var plTestLeadOFFDate = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var plTestLeadWaveForm = testStation.plTestLeadReadings?.map((reading) {
-            return '(${reading.formattedWaveForm})';
-          }).join() ??
-          '';
-
-      var anodeNames = testStation.anodeReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var anodeVoltsON = testStation.anodeReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var anodeONDate = testStation.anodeReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var anodeVoltsOFF = testStation.anodeReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var anodeOFFDate = testStation.anodeReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-/*
-      var anodeWireColor = testStation.anodeReadings?.map((reading) {
-            return '(${reading.wireColor})';
-          }).join() ??
-          '';
-
-      var anodeLugNumber = testStation.anodeReadings?.map((reading) {
-            return '(${reading.lugNumber})';
-          }).join() ??
-          '';
-
-      var anodeCurrent = testStation.anodeReadings?.map((reading) {
-            return '(${reading.formattedCurrent})';
-          }).join() ??
-          '';
-*/
-      var permRefNames = testStation.permRefReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-/*
-      var permRefType = testStation.permRefReadings?.map((reading) {
-            return '(${reading.type})';
-          }).join() ??
-          '';
-*/
-      var permRefVoltsON = testStation.permRefReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-      var permRefONDate = testStation.permRefReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var permRefVoltsOFF = testStation.permRefReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var permRefOFFDate = testStation.permRefReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var shuntNames = testStation.shuntReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var shuntSideA = testStation.shuntReadings?.map((reading) {
-            return '(${reading.sideA})';
-          }).join() ??
-          '';
-
-      var shuntSideB = testStation.shuntReadings?.map((reading) {
-            return '(${reading.sideB})';
-          }).join() ??
-          '';
-
-      var shuntMV = testStation.shuntReadings?.map((reading) {
-            return '(${reading.formattedratioMV})';
-          }).join() ??
-          '';
-
-      var shuntAmp = testStation.shuntReadings?.map((reading) {
-            return '(${reading.formattedratioAMPS})';
-          }).join() ??
-          '';
-
-      var shuntFactor = testStation.shuntReadings?.map((reading) {
-            return '(${reading.formattedfactor})';
-          }).join() ??
-          '';
-
-      var shuntVDrop = testStation.shuntReadings?.map((reading) {
-            return '(${reading.formattedvDrop})';
-          }).join() ??
-          '';
-
-      var shuntVDropDate = testStation.shuntReadings?.map((reading) {
-            return '(${reading.vDropDate})';
-          }).join() ??
-          '';
-
-      var shuntCalculated = testStation.shuntReadings?.map((reading) {
-            return '(${reading.formattedcalculated})';
-          }).join() ??
-          '';
-
-      var riserNames = testStation.riserReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var riserVoltsON = testStation.riserReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var riserONDate = testStation.riserReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var riserVoltsOFF = testStation.riserReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var riserOFFDate = testStation.riserReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var riserWaveform = testStation.riserReadings?.map((reading) {
-            return '(${reading.formattedWaveForm})';
-          }).join() ??
-          '';
-
-      var foreignNames = testStation.foreignReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var foreignVoltsON = testStation.foreignReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var foreignONDate = testStation.foreignReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var foreignVoltsOFF = testStation.foreignReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var foreignOFFDate = testStation.foreignReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var testLeadNames = testStation.testLeadReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var testLeadVoltsON = testStation.testLeadReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var testLeadONDate = testStation.testLeadReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var testLeadVoltsOFF = testStation.testLeadReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var testLeadOFFDate = testStation.testLeadReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var couponNames = testStation.couponReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var couponVoltsON = testStation.couponReadings?.map((reading) {
-            return '(${reading.formattedVoltsON})';
-          }).join() ??
-          '';
-
-      var couponONDate = testStation.couponReadings?.map((reading) {
-            return '(${reading.voltsONDate})';
-          }).join() ??
-          '';
-
-      var couponVoltsOFF = testStation.couponReadings?.map((reading) {
-            return '(${reading.formattedVoltsOFF})';
-          }).join() ??
-          '';
-
-      var couponOFFDate = testStation.couponReadings?.map((reading) {
-            return '(${reading.voltsOFFDate})';
-          }).join() ??
-          '';
-
-      var couponCurrent = testStation.couponReadings?.map((reading) {
-            return '(${reading.formattedCurrent})';
-          }).join() ??
-          '';
-
-      var couponConnection = testStation.couponReadings?.map((reading) {
-            return '(${reading.connectedTo})';
-          }).join() ??
-          '';
-
-      var couponType = testStation.couponReadings?.map((reading) {
-            return '(${reading.type})';
-          }).join() ??
-          '';
-
-      var couponSize = testStation.couponReadings?.map((reading) {
-            return '(${reading.size})';
-          }).join() ??
-          '';
-
-      var bondNames = testStation.bondReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var bondSideA = testStation.bondReadings?.map((reading) {
-            return '(${reading.sideA})';
-          }).join() ??
-          '';
-
-      var bondSideB = testStation.bondReadings?.map((reading) {
-            return '(${reading.sideB})';
-          }).join() ??
-          '';
-
-      var bondCurrent = testStation.bondReadings?.map((reading) {
-            return '(${reading.formattedCurrent})';
-          }).join() ??
-          '';
-
-      var bondCurrentDate = testStation.bondReadings?.map((reading) {
-            return '(${reading.currentDate})';
-          }).join() ??
-          '';
-
-      var isoNames = testStation.isolationReadings?.map((reading) {
-            return '(${reading.name})';
-          }).join() ??
-          '';
-
-      var isoSideA = testStation.isolationReadings?.map((reading) {
-            return '(${reading.sideA})';
-          }).join() ??
-          '';
-
-      var isoSideB = testStation.isolationReadings?.map((reading) {
-            return '(${reading.sideB})';
-          }).join() ??
-          '';
-
-      var isoType = testStation.isolationReadings?.map((reading) {
-            return '(${reading.type})';
-          }).join() ??
-          '';
-
-      var isoShorted = testStation.isolationReadings?.map((reading) {
-            return '(${reading.shorted})';
-          }).join() ??
-          '';
-
-      var isoShortedDate = testStation.isolationReadings?.map((reading) {
-            return '(${reading.shortedDate})';
-          }).join() ??
-          '';
-
-      var isoCurrent = testStation.isolationReadings?.map((reading) {
-            return '(${reading.formattedCurrent})';
-          }).join() ??
-          '';
-
-      var isoCurrentDate = testStation.isolationReadings?.map((reading) {
-            return '(${reading.currentDate})';
-          }).join() ??
-          '';
-
-      return [
-        projectModel.createDate,
-        projectModel.client,
-        projectModel.projectName,
-        projectModel.tech,
-        testStation.area,
-        testStation.tsID,
-        testStation.tsstatus,
-        testStation.latitude,
-        testStation.longitude,
-        //     testStation.officeNotes,
-        testStation.fieldNotes,
-        //     testStation.picturePath,
-        plTestLeadNames,
-        plTestLeadVoltsON,
-        plTestLeadONDate,
-        plTestLeadVoltsOFF,
-        plTestLeadOFFDate,
-        plTestLeadWaveForm,
-        anodeNames,
-        anodeVoltsON,
-        anodeONDate,
-        anodeVoltsOFF,
-        anodeOFFDate,
-//        anodeWireColor,
-//        anodeLugNumber,
-//        anodeCurrent,
-        permRefNames,
-//        permRefType,
-        permRefVoltsON,
-        permRefONDate,
-        permRefVoltsOFF,
-        permRefOFFDate,
-        shuntNames,
-        shuntSideA,
-        shuntSideB,
-        shuntMV,
-        shuntAmp,
-        shuntFactor,
-        shuntVDrop,
-        shuntVDropDate,
-        shuntCalculated,
-        riserNames,
-        riserVoltsON,
-        riserONDate,
-        riserVoltsOFF,
-        riserOFFDate,
-        riserWaveform,
-        foreignNames,
-        foreignVoltsON,
-        foreignONDate,
-        foreignVoltsOFF,
-        foreignOFFDate,
-        testLeadNames,
-        testLeadVoltsON,
-        testLeadONDate,
-        testLeadVoltsOFF,
-        testLeadOFFDate,
-        couponNames,
-        couponVoltsON,
-        couponONDate,
-        couponVoltsOFF,
-        couponOFFDate,
-        couponCurrent,
-        couponConnection,
-        couponType,
-        couponSize,
-        bondNames,
-        bondSideA,
-        bondSideB,
-        bondCurrent,
-        bondCurrentDate,
-        isoNames,
-        isoSideA,
-        isoSideB,
-        isoType,
-        isoShorted,
-        isoShortedDate,
-        isoCurrent,
-        isoCurrentDate,
-      ];
-    }).toList();
-
-    tsData.insert(0, [
-      'Date Created',
-      'Client',
-      'Project Name',
-      'Tech',
-      'Area',
-      'TS ID',
-      'Status',
-      'Latitude',
-      'Longitude',
-      'Field Notes',
-      'PL Test Leads (PL TL)',
-      'PL TL ON (V)',
-      'PL TL ON Date',
-      'PL TL OFF (V)',
-      'PL TL OFF Date',
-      'PL TL Waveform',
-      'Anodes (AD)',
-      'AD ON (V)',
-      'AD ON Date',
-      'AD OFF (V)',
-      'AD OFF Date',
-      'Perm Ref Cells (PR)',
-      'PR ON (V)',
-      'PR ON Date',
-      'PR OFF (V)',
-      'PR OFF Date',
-      'Shunts (SH)',
-      'SH Side A',
-      'SH Side B',
-      'SH mV',
-      'SH Amps',
-      'SH Factor',
-      'SH V Drop',
-      'SH V Drop Date',
-      'SH Calculated',
-      'Risers (RI)',
-      'RI ON (V)',
-      'RI ON Date',
-      'RI OFF (V)',
-      'RI OFF Date',
-      'RI Waveform',
-      'Foreign Structures (FS)',
-      'FS ON (V)',
-      'FS ON Date',
-      'FS OFF (V)',
-      'FS OFF Date',
-      'Test Leads (TL)',
-      'TL ON (V)',
-      'TL ON Date',
-      'TL OFF (V)',
-      'TL OFF Date',
-      'Coupons (CO)',
-      'CO ON (V)',
-      'CO ON Date',
-      'CO OFF (V)',
-      'CO OFF Date',
-      'CO Current (A)',
-      'CO Connection',
-      'CO Type',
-      'CO Size',
-      'Bonds (BO)',
-      'BO Side A',
-      'BO Side B',
-      'BO Current (A)',
-      'BO Current Date',
-      'Isolations (IK)',
-      'IK Side A',
-      'IK Side B',
-      'IK Type',
-      'IK Shorted',
-      'IK Current (A)',
-    ]);
-
-    String csvData = const ListToCsvConverter().convert(tsData);
-
-    // Save or share the CSV file
-    try {
-      File? file = await saveOrShareCSV(csvData, context);
-      if (file != null) {
-        print('CSV file saved or shared at ${file.path}');
-
-        // Provide feedback using a snackbar
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CSV file saved or shared successfully!')));
-      }
-    } catch (e) {
-      print('Failed to save or share file: $e');
-
-      // Provide feedback using a snackbar in case of error
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save or share CSV file.')));
-    }
-  }
-*/
   /// Retrieves the path of the downloads directory.
   ///
   /// On Android, the downloads directory is '/storage/emulated/0/Download'.

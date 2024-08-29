@@ -802,7 +802,7 @@ class RiserReading {
   final DateTime? voltsONDate;
   final double? voltsOFF;
   final DateTime? voltsOFFDate;
-  final int? pipeDiameter;
+  final double? pipeDiameter;
   final String? waveForm;
   final int orderIndex;
 
@@ -840,6 +840,8 @@ class RiserReading {
 
   String get formattedWaveForm => waveForm ?? '';
 
+  String get formattedPipeDiameter => pipeDiameter != null ? pipeDiameter.toString() : '';
+
   Map<String, dynamic> toMap() {
     var map = {
       'stationID': stationID,
@@ -875,7 +877,7 @@ class RiserReading {
       voltsONDate: _parseDateTime(map['voltsON_Date']),
       voltsOFF: map['voltsOFF'] is double ? map['voltsOFF'] : double.tryParse(map['voltsOFF'].toString()),
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      pipeDiameter: map['pipe_Diameter'] is int ? map['pipe_Diameter'] : int.tryParse(map['pipe_Diameter'].toString()),
+      pipeDiameter: map['pipe_Diameter'] is double ? map['pipe_Diameter'] : double.tryParse(map['pipe_Diameter'].toString()),
       waveForm: map['waveForm']?.toString(),
       orderIndex: map['order_index'] is int ? map['order_index'] : int.parse(map['order_index'].toString()),
     );

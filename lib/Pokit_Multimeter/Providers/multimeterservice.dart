@@ -393,7 +393,7 @@ class MultimeterService with ChangeNotifier {
     Settings initialSettings = Settings(
       mode: selectedMode,
       range: 255, // Auto Range
-      updateInterval: 500, // Interval is in milliseconds
+      updateInterval: 100, // Interval is in milliseconds
     );
     await writeSettings(initialSettings);
 
