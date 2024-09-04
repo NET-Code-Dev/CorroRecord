@@ -828,6 +828,7 @@ class MainPageUI extends State<MainPage> {
               centerTitle: true,
               actions: <Widget>[
                 PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert, color: Colors.white),
                   onSelected: _choiceAction,
                   itemBuilder: (BuildContext context) {
                     return ['Multimeter', 'Settings', 'Copy DB to Downloads'].map((String choice) {

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:asset_inspections/Common_Widgets/custom_camera.dart';
 import 'package:asset_inspections/Models/project_model.dart';
 import 'package:asset_inspections/Test_Station/TS_Containers/abstract_base_container.dart';
@@ -1018,6 +1020,36 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     }
   }
 
+  Widget _buildPictureSection() {
+    if (widget.testStation.picturePath != null) {
+      File imageFile = File(widget.testStation.picturePath!);
+      if (imageFile.existsSync()) {
+        return Column(
+          children: [
+            const Text('Station Picture', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => FullScreenImageViewer(imagePath: widget.testStation.picturePath!),
+                ));
+              },
+              child: Image.file(
+                imageFile,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ],
+        );
+      } else {
+        return const Text('Image file not found', style: TextStyle(color: Colors.red));
+      }
+    }
+    return const SizedBox.shrink();
+  }
+
   /// Builds the widget tree for the TestStationDetails screen.
   ///
   /// This method returns a [Scaffold] widget that displays the details of a test station.
@@ -1063,7 +1095,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
             centerTitle: true,
             actions: [
               IconButton(
-                icon: const Icon(Icons.home),
+                icon: const Icon(Icons.home, color: Colors.white),
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
@@ -1084,6 +1116,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildTestStationDetailsContainer(),
+                _buildPictureSection(),
                 if (_readingContainers.isNotEmpty) SizedBox(height: 10.h),
                 ListView.separated(
                   shrinkWrap: true,
@@ -1318,7 +1351,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                                     projectID,
                                     projectClient,
                                     projectName,
-                                    stationID: stationID,
+                                    stationID: tsNotifier.currentTestStation.id,
                                     stationArea: stationArea,
                                     stationTSID: stationTSID,
                                   );
@@ -1382,6 +1415,28 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class FullScreenImageViewer extends StatelessWidget {
+  final String imagePath;
+
+  const FullScreenImageViewer({super.key, required this.imagePath});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: InteractiveViewer(
+          panEnabled: false,
+          boundaryMargin: const EdgeInsets.all(20),
+          minScale: 0.5,
+          maxScale: 4,
+          child: Image.file(File(imagePath)),
+        ),
       ),
     );
   }

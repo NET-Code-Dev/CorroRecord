@@ -775,6 +775,16 @@ class DatabaseHelper {
     return null;
   }
 
+  Future<void> updateTestStationPicture(int stationID, String picturePath) async {
+    final db = await database;
+    await db.update(
+      'TestStations',
+      {'picturePath': picturePath},
+      where: 'id = ?',
+      whereArgs: [stationID],
+    );
+  }
+
   /// Retrieves the project ID from the database based on the given [projectID].
   /// Returns the project ID as an [int] if found, otherwise returns null.
   Future<int?> getProjectID(int projectID) async {

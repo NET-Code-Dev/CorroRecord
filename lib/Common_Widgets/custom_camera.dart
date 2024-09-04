@@ -328,6 +328,34 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     if (imageFile != null) {
       setState(() {
         _thumbnailImageBytes = imageFile;
+        _isFlashVisible = true;
+      });
+      final imageInfo = await _saveImageToFile(imageFile);
+      _saveImagePathToDatabase(imageInfo['path']!, imageInfo['name']!);
+
+      Future.delayed(const Duration(milliseconds: 100), () {
+        setState(() {
+          _isFlashVisible = false;
+        });
+      });
+    }
+  }
+
+  Future<void> _saveImagePathToDatabase(String imagePath, String fileName) async {
+    final dbHelper = DatabaseHelper.instance;
+    int? stationID = widget.stationID;
+
+    if (stationID != null) {
+      await dbHelper.updateTestStationPicture(stationID, imagePath);
+    }
+  }
+
+/*
+  void _captureImageWithOverlay() async {
+    final imageFile = await screenshotController.capture();
+    if (imageFile != null) {
+      setState(() {
+        _thumbnailImageBytes = imageFile;
         _isFlashVisible = true; // Trigger the flash animation
       });
       final fileName = await _saveImageToFile(imageFile);
@@ -341,7 +369,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
       });
     }
   }
-
+*/
 /*
   Future<void> _saveImagePathToDatabase(String imagePath) async {
     final databasePath = await getDatabasesPath();
@@ -354,7 +382,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     );
   }
 */
-  Future<String> _saveImageToFile(Uint8List imageBytes) async {
+  // Future<String> _saveImageToFile(Uint8List imageBytes) async {
+  Future<Map<String, String>> _saveImageToFile(Uint8List imageBytes) async {
     Directory? directory;
     try {
       directory = await getExternalStorageDirectory();
@@ -389,7 +418,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
 
     final file = File('${directory.path}/$fileName');
     await file.writeAsBytes(imageBytes);
-    return file.path;
+    //return file.path;
+    return {'path': file.path, 'name': fileName};
   }
 
   void _saveCapturedImage(Uint8List? imageFile) {

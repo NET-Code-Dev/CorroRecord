@@ -538,9 +538,11 @@ class _TestStationsPageState extends State<TestStationsPage> {
         ),
       ),
       backgroundColor: Color(0xFFE0E8F0),
+
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(40.0), // Set height of the AppBar
         child: AppBar(
+          foregroundColor: Colors.white,
           backgroundColor: Color.fromARGB(255, 0, 43, 92),
           iconTheme: IconThemeData(color: Colors.white),
           title: Text('Test Stations',
@@ -556,6 +558,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                 // Icon to share the CSV
                 IconData(0xf016a, fontFamily: 'MaterialIcons'),
                 size: 24,
+                color: Colors.white,
               ),
               onPressed: () {
                 Provider.of<TSNotifier>(context, listen: false).createCSV(
