@@ -33,6 +33,7 @@ abstract class BaseContainer<T> extends StatefulWidget {
   final ValueChanged<T>? onReadingUpdated;
   final TestStation currentTestStation;
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey;
+  final Function(Widget)? onDelete;
 
   const BaseContainer({
     super.key,
@@ -40,6 +41,7 @@ abstract class BaseContainer<T> extends StatefulWidget {
     this.onReadingUpdated,
     required this.currentTestStation,
     required this.scaffoldMessengerKey,
+    this.onDelete,
   });
 
   @override
@@ -188,6 +190,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       initializeAsyncData();
     });
   }
+
+  void deleteContainer();
 
 /*
   void initializeWireColorAndLugNumber() {
@@ -992,15 +996,16 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                   Align(
                     alignment: Alignment.bottomRight,
                     //  heightFactor: 1.5,
-                    child: IconButton(
-                      icon: const Icon(Icons.edit),
-                      color: Colors.white,
-                      iconSize: 18.sp,
-                      onPressed: () {
-                        nameFocusNode.requestFocus();
-                        //TODO: Add functionality to edit/delete/modifiy the container
-                        //? Add functionality to add different kinds of readings, such as Native, Connected, Disconnected??
-                      },
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          color: Colors.white,
+                          iconSize: 18.sp,
+                          onPressed: deleteContainer,
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1147,7 +1152,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     ),
                     SizedBox(width: 5.w),
                     Text(
-                      formattedvoltsACDate ?? '',
+                      formattedvoltsACDate,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 12.sp,
@@ -1258,7 +1263,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     ),
                     SizedBox(width: 5.w),
                     Text(
-                      formattedVoltsONDate ?? '',
+                      formattedVoltsONDate,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 11.sp,
@@ -1353,7 +1358,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     ),
                     SizedBox(width: 5.w),
                     Text(
-                      formattedVoltsOFFDate ?? '',
+                      formattedVoltsOFFDate,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 12.sp,
@@ -1426,7 +1431,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     ),
                     SizedBox(width: 5.w),
                     Text(
-                      formattedCurrentDate ?? '',
+                      formattedCurrentDate,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 11.sp,

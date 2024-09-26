@@ -13,6 +13,8 @@ import 'package:asset_inspections/Util/cycle_settings_notifier.dart';
 import 'package:asset_inspections/mainpage_ui.dart';
 //import 'package:sqflite/sqflite.dart';
 
+import 'GPS/gps_ble_service.dart';
+import 'GPS/offline_map_manager.dart';
 import 'ISO_OVP/isokit_page.dart'; // Import the ISOPage
 import 'Models/project_model.dart'; // Import the ProjectModel
 import 'Pokit_Multimeter/Providers/bluetooth_manager_notifier.dart'; // Import the BluetoothManager
@@ -22,8 +24,10 @@ import 'Tanks/tanks_page.dart'; // Import the TanksPage
 import 'Test_Station/ts_notifier.dart'; // Import the TestStationNotifier
 import 'Test_Station/ts_page.dart'; // Import the TestStationsPage
 //import 'Models/camera_model.dart'; // Import the CameraSettings
+import 'dart:developer' as developer;
 
 void main() async {
+  developer.log('App started', name: 'Main');
   WidgetsFlutterBinding.ensureInitialized();
 
   // Lock the device orientation to portrait up and portrait down
@@ -48,6 +52,7 @@ void main() async {
             create: (context) => TSNotifier(
                   Provider.of<ProjectModel>(context, listen: false),
                 )),
+        Provider<GpsBleService>(create: (_) => GpsBleService()),
         ChangeNotifierProvider(create: (context) => BluetoothManager.instance),
         ChangeNotifierProvider(create: (context) => MultimeterService.instance),
       ],
@@ -66,6 +71,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         home: MainPage(key: UniqueKey()),
         routes: {
+          '/offline_maps': (context) => const OfflineGoogleMaps(),
           '/test_stations': (context) => const TestStationsPage(),
           '/rectifiers': (context) => RectifiersPage(),
           '/tanks': (context) => TanksPage(),

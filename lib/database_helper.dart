@@ -13,6 +13,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as pth;
 import 'package:permission_handler/permission_handler.dart' as permission_handler;
@@ -863,6 +864,25 @@ class DatabaseHelper {
       // Handle exceptions, e.g. by logging or rethrowing.
       print('Error deleting project name: $e');
     }
+  }
+
+  Future<int> deleteReading(String tableName, int stationID, int orderIndex) async {
+    if (kDebugMode) {
+      print('Deleting reading from $tableName where stationID=$stationID and orderIndex=$orderIndex');
+    }
+
+    Database db = await database;
+    int deletedRows = await db.delete(
+      tableName,
+      where: 'stationID = ? AND order_index = ?',
+      whereArgs: [stationID, orderIndex],
+    );
+
+    if (kDebugMode) {
+      print('Deleted $deletedRows rows from $tableName');
+    }
+
+    return deletedRows;
   }
 
   // TODO: Add cascade deletion for when a project is deleted, it deletes all tables that reference it

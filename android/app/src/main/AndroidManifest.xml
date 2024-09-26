@@ -21,10 +21,10 @@ https://developer.android.com/about/versions/12/features/bluetooth-permissions -
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
 
     <application
+        android:name="${applicationName}"
         android:requestLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="true"
         android:label="asset_inspections"
-        android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <meta-data
             android:name="com.google.android.geo.API_KEY"

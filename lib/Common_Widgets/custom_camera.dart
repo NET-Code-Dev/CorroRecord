@@ -46,9 +46,9 @@ class CustomCamera extends StatefulWidget {
     this.rectifierServiceTag,
   });
 
-  static void navigateToCustomCamera(BuildContext context, int projectID, String projectClient, String projectName,
-      {int? stationID, String? stationArea, String? stationTSID, int? rectifierID, String? rectifierArea, String? rectifierServiceTag}) {
-    Navigator.of(context).push(
+  static Future<List<String>?> navigateToCustomCamera(BuildContext context, int projectID, String projectClient, String projectName,
+      {int? stationID, String? stationArea, String? stationTSID, int? rectifierID, String? rectifierArea, String? rectifierServiceTag}) async {
+    final result = await Navigator.of(context).push<List<String>>(
       MaterialPageRoute(
         builder: (context) => CustomCamera(
           projectID: projectID,
@@ -63,6 +63,7 @@ class CustomCamera extends StatefulWidget {
         ),
       ),
     );
+    return result;
   }
 
   @override
@@ -71,6 +72,7 @@ class CustomCamera extends StatefulWidget {
 
 class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingObserver {
 //  final GlobalKey _imageKey = GlobalKey();
+  List<String> capturedImagePaths = [];
   Uint8List? _thumbnailImageBytes;
   bool _isFlashVisible = false;
   // String _imagePath = '';
@@ -119,12 +121,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _requestPermissionsSequentially();
-    //  _initCamera();
     final cameraSettings = Provider.of<CameraSettings>(context, listen: false);
     cameraSettings.loadCameraSettingsFromDatabase();
-    //  _startLocationStream();
-    //  getCurrentLocation();
-    //  _fetchAndSetCurrentPlacemark();
   }
 
   @override
@@ -323,6 +321,23 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     }
   }
 
+  Future<void> _saveImagePathToDatabase(String imagePath) async {
+    final dbHelper = DatabaseHelper.instance;
+    int? stationID = widget.stationID;
+
+    if (stationID != null) {
+      // Fetch current picturePath
+      var currentTestStation = await dbHelper.queryTestStationBytsID(widget.projectID, widget.stationTSID!);
+      String currentPicturePath = currentTestStation?['picturePath'] ?? '';
+
+      // Append new path
+      String updatedPicturePath = currentPicturePath.isEmpty ? imagePath : '$currentPicturePath,$imagePath';
+
+      // Update database
+      await dbHelper.updateTestStationPicture(stationID, updatedPicturePath);
+    }
+  }
+
   void _captureImageWithOverlay() async {
     final imageFile = await screenshotController.capture();
     if (imageFile != null) {
@@ -331,57 +346,15 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
         _isFlashVisible = true;
       });
       final imageInfo = await _saveImageToFile(imageFile);
-      _saveImagePathToDatabase(imageInfo['path']!, imageInfo['name']!);
+      await _saveImagePathToDatabase(imageInfo['path']!);
 
-      Future.delayed(const Duration(milliseconds: 100), () {
-        setState(() {
-          _isFlashVisible = false;
-        });
-      });
-    }
-  }
-
-  Future<void> _saveImagePathToDatabase(String imagePath, String fileName) async {
-    final dbHelper = DatabaseHelper.instance;
-    int? stationID = widget.stationID;
-
-    if (stationID != null) {
-      await dbHelper.updateTestStationPicture(stationID, imagePath);
-    }
-  }
-
-/*
-  void _captureImageWithOverlay() async {
-    final imageFile = await screenshotController.capture();
-    if (imageFile != null) {
       setState(() {
-        _thumbnailImageBytes = imageFile;
-        _isFlashVisible = true; // Trigger the flash animation
-      });
-      final fileName = await _saveImageToFile(imageFile);
-      // _saveImagePathToDatabase(fileName);
-
-      // Hide the flash animation after a short delay
-      Future.delayed(const Duration(milliseconds: 100), () {
-        setState(() {
-          _isFlashVisible = false;
-        });
+        _isFlashVisible = false;
+        capturedImagePaths.add(imageInfo['path']!);
       });
     }
   }
-*/
-/*
-  Future<void> _saveImagePathToDatabase(String imagePath) async {
-    final databasePath = await getDatabasesPath();
-    final db = await openDatabase(path.join(databasePath, 'your_database.db'));
 
-    await db.insert(
-      'your_table',
-      {'image_path': imagePath},
-    //  conflictAlgorithm: ConflictAlgorithm.replace,
-    );
-  }
-*/
   // Future<String> _saveImageToFile(Uint8List imageBytes) async {
   Future<Map<String, String>> _saveImageToFile(Uint8List imageBytes) async {
     Directory? directory;
@@ -501,7 +474,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                                   settings.mapPosition ??= MapPosition.bottomLeft; // Default position when toggled ON
                                 }
                               });
-                              //  settings.updateMapOverlayVisibility(value);
                               settings.updateCameraSettingsToDatabase();
                             }),
                         IconButton(
@@ -540,12 +512,10 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                             size: 16.sp,
                             color: Colors.blue,
                           ),
-
                           onPressed: () {
                             Navigator.of(context).pop();
                             _showDataOptionsDialog();
                           },
-                          // child: const Text("Settings..."),
                         ),
                       ],
                     ),
@@ -562,11 +532,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
 
   void _showMapOptionsDialog() {
     final settings = Provider.of<CameraSettings>(context, listen: false);
-    // Temporary state for dialog
-    //String tempMapType = _mapType;
-    // double tempMapOpacity = _mapOpacity;
-    // double tempMapSize = _mapSize;
-    // double tempMapScale = _mapScale;
     String tempMapType = settings.mapType;
     double tempMapOpacity = settings.mapOpacity;
     double tempMapSize = settings.mapSize;
@@ -643,7 +608,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                       min: 0,
                       max: 1,
                       divisions: 10,
-                      //   label: tempMapOpacity.toString(),
                       onChanged: (double value) {
                         setState(() {
                           // This now refers to the StatefulBuilder's setState
@@ -686,7 +650,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                       onChanged: (double value) {
                         setState(() {
                           tempMapScale = value;
-                          //  _updateMapSettings(tempMapType, tempMapOpacity, tempMapSize, tempMapScale);
                         });
                         _updateMapZoomInstantly(value);
                         settings.updateMapScale(value);
@@ -701,7 +664,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                     Navigator.of(context).pop();
                     settings.updateCameraSettingsToDatabase();
                     // Update the main state once dialog is popped
-                    //  _updateMapSettings(tempMapType, tempMapOpacity, tempMapSize, tempMapScale);
                   },
                   child: const Text('Done'),
                 ),
@@ -1230,6 +1192,18 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                     ),
                   FloatingActionButton(
                     backgroundColor: Colors.black,
+                    onPressed: () {
+                      Navigator.of(context).pop(capturedImagePaths);
+                    },
+                    tooltip: 'Back',
+                    child: Icon(
+                      Icons.arrow_back,
+                      size: 40.sp,
+                      color: Colors.white,
+                    ),
+                  ),
+                  FloatingActionButton(
+                    backgroundColor: Colors.black,
                     onPressed: _captureImageWithOverlay,
                     tooltip: 'Capture Image',
                     child: Icon(
@@ -1258,16 +1232,6 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
   }
 }
 
-/*
-enum MapPosition {
-  topLeft,
-  topCenter,
-  topRight,
-  bottomLeft,
-  bottomCenter,
-  bottomRight,
-}
-*/
 class DisplayCapturedImageScreen extends StatelessWidget {
   final Uint8List imageBytes;
 

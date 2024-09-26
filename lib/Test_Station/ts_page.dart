@@ -15,6 +15,7 @@ import 'package:asset_inspections/Models/ts_models.dart';
 import 'package:asset_inspections/Test_Station/ts_notifier.dart';
 import 'package:asset_inspections/Common_Widgets/gps_location.dart';
 
+import '../GPS/gps_status_bar.dart';
 import 'ts_details.dart';
 import '../Common_Widgets/mapview.dart';
 
@@ -445,46 +446,67 @@ class _TestStationsPageState extends State<TestStationsPage> {
                           ),
                         ),
                         actions: [
-                          TextButton(
-                            child: Text('Import CSV'),
-                            onPressed: () {
-                              importCsv(context);
-                              // Future.delayed(Duration duration());
-                              // Navigator.of(context).pop();
-                            },
-                          ),
-                          TextButton(
-                            // Text button to cancel the add test station
-                            child: Text('Cancel'),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          TextButton(
-                            // Text button to add the test station
-                            child: Text('Add'),
-                            onPressed: () {
-                              if (areaController.text.isEmpty || tsIDController.text.isEmpty) {
-                                _showErrorDialog(context, 'Pipeline/Service/Area and Test Station ID are required!');
-                                return;
-                              }
-                              final enteredArea = areaController.text;
-                              final enteredtsID = tsIDController.text;
-                              const enteredtsStatus = 'Unknown';
-                              final enteredLatitude = double.tryParse(latitudeController.text) ?? 00.000000;
-                              final enteredLongitude = double.tryParse(longitudeController.text) ?? 00.000000;
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              TextButton(
+                                child: Text('Import CSV'),
+                                onPressed: () {
+                                  importCsv(context);
+                                  // Future.delayed(Duration duration());
+                                  // Navigator.of(context).pop();
+                                },
+                              ),
+                              //  TextButton(
+                              SizedBox(
+                                width: 50.w,
+                                height: 50.h,
+                                child: FloatingActionButton(
+                                  // Text button to cancel the add test station
+                                  //  child: Text('Cancel'),
+                                  backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                  child: Icon(Icons.block, color: Colors.red),
+                                  onPressed: () => Navigator.of(context).pop(),
+                                ),
+                              ),
+                              //  TextButton(
+                              SizedBox(
+                                width: 50.w,
+                                height: 50.h,
+                                child: FloatingActionButton(
+                                  // Text button to add the test station
+                                  // child: Text('Add'),
+                                  backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                  onPressed: () {
+                                    if (areaController.text.isEmpty || tsIDController.text.isEmpty) {
+                                      _showErrorDialog(context, 'Pipeline/Service/Area and Test Station ID are required!');
+                                      return;
+                                    }
+                                    final enteredArea = areaController.text;
+                                    final enteredtsID = tsIDController.text;
+                                    const enteredtsStatus = 'Unknown';
+                                    final enteredLatitude = double.tryParse(latitudeController.text) ?? 00.000000;
+                                    final enteredLongitude = double.tryParse(longitudeController.text) ?? 00.000000;
 
-                              final projectID = Provider.of<ProjectModel>(context, listen: false).id;
+                                    final projectID = Provider.of<ProjectModel>(context, listen: false).id;
 
-                              context.read<TSNotifier>().addTestStation(
-                                    // Add the test station
-                                    enteredArea,
-                                    enteredtsID,
-                                    enteredtsStatus,
-                                    enteredLatitude,
-                                    enteredLongitude,
-                                    projectID,
-                                  );
-                              Navigator.of(context).pop();
-                            },
+                                    context.read<TSNotifier>().addTestStation(
+                                          // Add the test station
+                                          enteredArea,
+                                          enteredtsID,
+                                          enteredtsStatus,
+                                          enteredLatitude,
+                                          enteredLongitude,
+                                          projectID,
+                                        );
+                                    Navigator.of(context).pop();
+                                  },
+                                  // Text button to add the test station
+                                  // child: Text('Add'),
+                                  child: Icon(Icons.check, color: Colors.green),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -570,220 +592,229 @@ class _TestStationsPageState extends State<TestStationsPage> {
           ],
         ),
       ),
-      body: Consumer<TSNotifier>(
-        builder: (context, tsNotifier, child) {
-          return ListView.builder(
-              padding: EdgeInsets.all(10.w),
-              itemCount: tsNotifier.testStations.length,
-              itemBuilder: (context, index) {
-                TestStation testStation = tsNotifier.testStations[index];
-                // Determine if the station's location is valid (not 0.0, 0.0)
-                bool isValidLocation = testStation.latitude != 0.0 && testStation.longitude != 0.0;
+      body: Column(
+        children: [
+          const GPSStatusBar(),
+          //    const InternalGPSStatusBar(),
+          //  ),
+          Expanded(
+            child: Consumer<TSNotifier>(
+              builder: (context, tsNotifier, child) {
+                return ListView.builder(
+                    padding: EdgeInsets.all(10.w),
+                    itemCount: tsNotifier.testStations.length,
+                    itemBuilder: (context, index) {
+                      TestStation testStation = tsNotifier.testStations[index];
+                      // Determine if the station's location is valid (not 0.0, 0.0)
+                      bool isValidLocation = testStation.latitude != 0.0 && testStation.longitude != 0.0;
 
-                double distanceInMeters = isValidLocation
-                    ? tsNotifier.calculateDistance(
-                        tsNotifier.currentUserLocation,
-                        testStation.latitude,
-                        testStation.longitude,
-                      )
-                    : 0.0;
+                      double distanceInMeters = isValidLocation
+                          ? tsNotifier.calculateDistance(
+                              tsNotifier.currentUserLocation,
+                              testStation.latitude,
+                              testStation.longitude,
+                            )
+                          : 0.0;
 
-                String direction = isValidLocation
-                    ? tsNotifier.calculateBearing(
-                        tsNotifier.currentUserLocation?.latitude ?? 0.0,
-                        tsNotifier.currentUserLocation?.longitude ?? 0.0,
-                        testStation.latitude ?? 0.0,
-                        testStation.longitude ?? 0.0,
-                      )
-                    : 'Unknown';
+                      String direction = isValidLocation
+                          ? tsNotifier.calculateBearing(
+                              tsNotifier.currentUserLocation?.latitude ?? 0.0,
+                              tsNotifier.currentUserLocation?.longitude ?? 0.0,
+                              testStation.latitude ?? 0.0,
+                              testStation.longitude ?? 0.0,
+                            )
+                          : 'Unknown';
 
-                // Format the distance string to show "Unknown" if the location is invalid
-                String distanceDisplay = isValidLocation ? '${distanceInMeters.toStringAsFixed(2)} m' : 'Unknown';
+                      // Format the distance string to show "Unknown" if the location is invalid
+                      String distanceDisplay = isValidLocation ? '${distanceInMeters.toStringAsFixed(2)} m' : 'Unknown';
 
-                return GestureDetector(
-                    onTap: () {
-                      tsNotifier.currentTestStation = testStation;
-                      Navigator.push(
-                          // Navigate to the details page
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TestStationDetailsPage(
-                              testStation: testStation,
-                              ontsStatusChanged: (
-                                id,
-                                projectID,
-                                area,
-                                tsstatus,
-                                fieldNotes,
-                                officeNotes,
-                                plTestLeadReading,
-                                permRefReading,
-                                anodeReading,
-                                shuntReading,
-                                riserReading,
-                                foreignReading,
-                                testLeadReading,
-                                couponReading,
-                                bondReading,
-                                isolationReading,
-                              ) {
-                                Provider.of<TSNotifier>(context, listen: false).updateTestStationStatus(
-                                  testStation,
-                                  tsstatus,
-                                  context,
-                                );
-                              },
-                            ),
-                          ));
-                    },
-                    onLongPress: () {
-                      // Long press to show options
-                      showDialog(
-                        // Show the dialog
-                        context: context,
-                        builder: (context) => SimpleDialog(
-                          title: Center(
-                            child: Text(
-                              'Options for ${testStation.tsID}',
-                              style: TextStyle(
-                                color: Color.fromARGB(255, 0, 43, 92),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24.sp,
+                      return GestureDetector(
+                          onTap: () {
+                            tsNotifier.currentTestStation = testStation;
+                            Navigator.push(
+                                // Navigate to the details page
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TestStationDetailsPage(
+                                    testStation: testStation,
+                                    ontsStatusChanged: (
+                                      id,
+                                      projectID,
+                                      area,
+                                      tsstatus,
+                                      fieldNotes,
+                                      officeNotes,
+                                      plTestLeadReading,
+                                      permRefReading,
+                                      anodeReading,
+                                      shuntReading,
+                                      riserReading,
+                                      foreignReading,
+                                      testLeadReading,
+                                      couponReading,
+                                      bondReading,
+                                      isolationReading,
+                                    ) {
+                                      Provider.of<TSNotifier>(context, listen: false).updateTestStationStatus(
+                                        testStation,
+                                        tsstatus,
+                                        context,
+                                      );
+                                    },
+                                  ),
+                                ));
+                          },
+                          onLongPress: () {
+                            // Long press to show options
+                            showDialog(
+                              // Show the dialog
+                              context: context,
+                              builder: (context) => SimpleDialog(
+                                title: Center(
+                                  child: Text(
+                                    'Options for ${testStation.tsID}',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 0, 43, 92),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 24.sp,
+                                    ),
+                                  ),
+                                ),
+                                children: <Widget>[
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1,
+                                  ),
+                                  SingleChildScrollView(
+                                    child: Column(
+                                      children: [
+                                        SimpleDialogOption(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(); // Close the dialog
+                                            showEditDialog(context, index); // Trigger the edit dialog
+                                          },
+                                          child: Center(
+                                            child: const Text(
+                                              'Edit',
+                                              style: TextStyle(
+                                                color: Color.fromARGB(255, 0, 43, 92),
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          color: Colors.grey,
+                                          thickness: 1,
+                                        ),
+                                        SimpleDialogOption(
+                                          onPressed: () {
+                                            int tsIDToDelete = tsNotifier.testStations[index].id!; // Retrieve the serviceTag
+                                            Provider.of<TSNotifier>(context, listen: false).deleteTestStation(tsIDToDelete, context);
+                                            Navigator.of(context).pop(); // Close the dialog
+                                          },
+                                          child: Center(
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Divider(
+                                          color: Colors.grey,
+                                          thickness: 1,
+                                        ),
+                                        SimpleDialogOption(
+                                          onPressed: () {
+                                            Navigator.of(context).pop(); // Close the dialog
+                                          },
+                                          child: Center(
+                                            child: const Text(
+                                              'Cancel',
+                                              style: TextStyle(
+                                                color: Color.fromARGB(255, 0, 43, 92),
+                                                fontSize: 18.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Divider(
+                                    color: Colors.grey,
+                                    thickness: 1,
+                                  ),
+                                ],
                               ),
-                            ),
-                          ),
-                          children: <Widget>[
-                            Divider(
-                              color: Colors.grey,
-                              thickness: 1,
-                            ),
-                            SingleChildScrollView(
-                              child: Column(
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 10.0),
+                            child: Container(
+                              padding: const EdgeInsets.all(10.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Stack(
+                                alignment: Alignment.centerLeft,
                                 children: [
-                                  SimpleDialogOption(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(); // Close the dialog
-                                      showEditDialog(context, index); // Trigger the edit dialog
-                                    },
-                                    child: Center(
-                                      child: const Text(
-                                        'Edit',
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Center(
+                                        child: Text(
+                                          ' ${tsNotifier.testStations[index].area} - ${tsNotifier.testStations[index].tsID}',
+                                          style: TextStyle(
+                                            color: Color.fromARGB(255, 0, 43, 92),
+                                            fontSize: 24.0,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: 5), // Adjust height as needed
+                                      Text(
+                                        isValidLocation ? '$direction $distanceDisplay' : 'Location Unknown',
                                         style: TextStyle(
                                           color: Color.fromARGB(255, 0, 43, 92),
                                           fontSize: 18.0,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                  Divider(
-                                    color: Colors.grey,
-                                    thickness: 1,
-                                  ),
-                                  SimpleDialogOption(
-                                    onPressed: () {
-                                      int tsIDToDelete = tsNotifier.testStations[index].id!; // Retrieve the serviceTag
-                                      Provider.of<TSNotifier>(context, listen: false).deleteTestStation(tsIDToDelete, context);
-                                      Navigator.of(context).pop(); // Close the dialog
-                                    },
-                                    child: Center(
-                                      child: const Text(
-                                        'Delete',
-                                        style: TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  Divider(
-                                    color: Colors.grey,
-                                    thickness: 1,
-                                  ),
-                                  SimpleDialogOption(
-                                    onPressed: () {
-                                      Navigator.of(context).pop(); // Close the dialog
-                                    },
-                                    child: Center(
-                                      child: const Text(
-                                        'Cancel',
-                                        style: TextStyle(
-                                          color: Color.fromARGB(255, 0, 43, 92),
-                                          fontSize: 18.0,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                  Positioned(
+                                    top: 0,
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Consumer<TSNotifier>(
+                                      builder: (context, tsNotifier, child) {
+                                        return Container(
+                                          width: 10, // Adjust width as needed
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(5.0),
+                                            color: testStation.gettsStatusColor(),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            Divider(
-                              color: Colors.grey,
-                              thickness: 1,
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(10.0),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Stack(
-                          alignment: Alignment.centerLeft,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Center(
-                                  child: Text(
-                                    ' ${tsNotifier.testStations[index].area} - ${tsNotifier.testStations[index].tsID}',
-                                    style: TextStyle(
-                                      color: Color.fromARGB(255, 0, 43, 92),
-                                      fontSize: 24.0,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 5), // Adjust height as needed
-                                Text(
-                                  isValidLocation ? '$direction $distanceDisplay' : 'Location Unknown',
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 0, 43, 92),
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Positioned(
-                              top: 0,
-                              bottom: 0,
-                              right: 0,
-                              child: Consumer<TSNotifier>(
-                                builder: (context, tsNotifier, child) {
-                                  return Container(
-                                    width: 10, // Adjust width as needed
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(5.0),
-                                      color: testStation.gettsStatusColor(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ));
-              });
-        },
+                          ));
+                    });
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

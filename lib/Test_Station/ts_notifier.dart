@@ -1,10 +1,11 @@
-// ignore_for_file: use_build_context_synchronously, file_names, avoid_print, unrelated_type_equality_checks
+// ignore_for_file: use_build_context_synchronously, file_names, avoid_print, unrelated_type_equality_checks, unused_field, unused_element
 
 import 'dart:io';
 import 'dart:math';
 
 import 'package:asset_inspections/phone_id.dart';
 import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart' as permission_handler;
@@ -230,6 +231,14 @@ class TSNotifier extends ChangeNotifier {
     }
   }
 
+  void updateTestStationPicture(int? stationID, String? picturePaths) {
+    int index = _testStations.indexWhere((station) => station.id == stationID);
+    if (index != -1) {
+      _testStations[index].picturePath = picturePaths;
+      notifyListeners();
+    }
+  }
+
   /// Adds a new test station to the database.
   ///
   /// - The [area] parameter specifies the area of the test station.
@@ -349,6 +358,90 @@ class TSNotifier extends ChangeNotifier {
 
     await loadTestStationsFromDatabase(projectModel.id);
     notifyListeners();
+  }
+
+  void removeReading(String containerName, int stationID, int orderIndex) {
+    if (kDebugMode) {
+      print('Removing reading from $containerName for stationID=$stationID and orderIndex=$orderIndex');
+    }
+
+    int stationIndex = _testStations.indexWhere((station) => station.id == stationID);
+    if (stationIndex != -1) {
+      bool removed = false;
+      int? beforeCount;
+      int? afterCount;
+
+      switch (containerName) {
+        case 'PLTestLeadContainers':
+          beforeCount = _testStations[stationIndex].plTestLeadReadings?.length;
+          _testStations[stationIndex].plTestLeadReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].plTestLeadReadings?.length;
+          break;
+        case 'PermRefContainers':
+          beforeCount = _testStations[stationIndex].permRefReadings?.length;
+          _testStations[stationIndex].permRefReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].permRefReadings?.length;
+          break;
+        case 'AnodeContainers':
+          beforeCount = _testStations[stationIndex].anodeReadings?.length;
+          _testStations[stationIndex].anodeReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].anodeReadings?.length;
+          break;
+        case 'ShuntContainers':
+          beforeCount = _testStations[stationIndex].shuntReadings?.length;
+          _testStations[stationIndex].shuntReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].shuntReadings?.length;
+          break;
+        case 'RiserContainers':
+          beforeCount = _testStations[stationIndex].riserReadings?.length;
+          _testStations[stationIndex].riserReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].riserReadings?.length;
+          break;
+        case 'ForeignContainers':
+          beforeCount = _testStations[stationIndex].foreignReadings?.length;
+          _testStations[stationIndex].foreignReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].foreignReadings?.length;
+          break;
+        case 'TestLeadContainers':
+          beforeCount = _testStations[stationIndex].testLeadReadings?.length;
+          _testStations[stationIndex].testLeadReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].testLeadReadings?.length;
+          break;
+        case 'CouponContainers':
+          beforeCount = _testStations[stationIndex].couponReadings?.length;
+          _testStations[stationIndex].couponReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].couponReadings?.length;
+          break;
+        case 'BondContainers':
+          beforeCount = _testStations[stationIndex].bondReadings?.length;
+          _testStations[stationIndex].bondReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].bondReadings?.length;
+          break;
+        case 'IsolationContainers':
+          beforeCount = _testStations[stationIndex].isolationReadings?.length;
+          _testStations[stationIndex].isolationReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          afterCount = _testStations[stationIndex].isolationReadings?.length;
+          break;
+        default:
+          if (kDebugMode) {
+            print('Unknown container type: $containerName');
+          }
+          return;
+      }
+
+      removed = beforeCount != null && afterCount != null && beforeCount > afterCount;
+
+      if (kDebugMode) {
+        print('Reading removed from $containerName: $removed');
+        print('Before count: $beforeCount, After count: $afterCount');
+      }
+
+      notifyListeners();
+    } else {
+      if (kDebugMode) {
+        print('Station with ID $stationID not found');
+      }
+    }
   }
 
   /// Sorts the test stations alphabetically based on the specified [sortOption].

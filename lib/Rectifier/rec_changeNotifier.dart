@@ -599,9 +599,10 @@ class RectifierNotifier extends ChangeNotifier {
   void sortRectifiersByLocation(BuildContext context, RectifierNotifier rectifierNotifier, LocationService locationService) async {
     LocationData? userLocation = await locationService.getCurrentLocation();
     if (userLocation == null) {
-      // Handle the case where user location is not available
+      // Handle the case when location is not available
       return;
     }
+    // Rest of your sorting logic here
   }
 
   void sortRectifiersByStatus(BuildContext context, RectifierNotifier rectifierNotifier) {

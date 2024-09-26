@@ -1,21 +1,24 @@
-import 'dart:io';
+// ignore_for_file: unused_local_variable, unnecessary_type_check, sized_box_for_whitespace
 
 import 'package:asset_inspections/Common_Widgets/custom_camera.dart';
+import 'package:asset_inspections/GPS/digital_compass.dart';
+import 'package:asset_inspections/GPS/gps_ble_service.dart';
 import 'package:asset_inspections/Models/project_model.dart';
 import 'package:asset_inspections/Test_Station/TS_Containers/abstract_base_container.dart';
-import 'package:asset_inspections/mainpage_ui.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:marquee/marquee.dart';
 
-import 'package:asset_inspections/Common_Widgets/gps_location.dart';
 import 'package:asset_inspections/Models/ts_models.dart';
 import 'package:asset_inspections/database_helper.dart';
 import 'package:asset_inspections/main.dart';
 
+import '../Common_Widgets/gps_location.dart';
+import '../Common_Widgets/image_viewer.dart';
+import '../GPS/gps_fix_view.dart';
+import '../GPS/gps_status_bar.dart';
 import 'TS_Containers/new_anode.dart';
 import 'TS_Containers/new_bond.dart';
 import 'TS_Containers/new_coupon.dart';
@@ -68,8 +71,10 @@ class TestStationDetailsPage extends StatefulWidget {
 /// and longitude values, current test station status index, and
 /// lists of reading containers.
 class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
+  GpsBleService? gpsService;
   TestStation? testStation;
   TestStation? currentTestStation;
+  List<String> picturePaths = [];
   final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _stateInitialized = false;
   final FocusNode tslocationFocusNode = FocusNode();
@@ -140,24 +145,24 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   /// For each new container, the function checks if a similar container already exists in the [_readingContainers] list.
   /// If the container does not exist, it is added to the [_readingContainers] list and, if [isAddingNewContainer] is false, to the [_loadedContainers] list.
   Future<void> _loadContainersFromDatabase(String containerType, int? stationID, String? testStationID, {bool isAddingNewContainer = false}) async {
-    if (kDebugMode) {
-      print('Starting _loadContainersFromDatabase for $containerType with stationID: $stationID');
-    }
+//    if (kDebugMode) {
+//      print('Starting _loadContainersFromDatabase for $containerType with stationID: $stationID');
+//    }
 
     if (stationID == null) {
       // Handle the null case, possibly with an error message
-      if (kDebugMode) {
-        print('stationID is null');
-      }
+//      if (kDebugMode) {
+//        print('stationID is null');
+//      }
       return;
     }
 
     Database db = await DatabaseHelper.instance.database;
     String tableName = _getTableNameForContainerType(containerType);
 
-    if (kDebugMode) {
-      print('Querying database for $tableName with stationID: $stationID');
-    }
+//    if (kDebugMode) {
+//      print('Querying database for $tableName with stationID: $stationID');
+//    }
 
     List<Map<String, dynamic>> containerData = await db.query(
       tableName,
@@ -166,16 +171,16 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       orderBy: 'order_index',
     );
 
-    if (kDebugMode) {
-      print('Retrieved container data from $tableName: $containerData');
-    }
+//    if (kDebugMode) {
+//      print('Retrieved container data from $tableName: $containerData');
+//    }
 
     // Initialize readings as an empty list
     List<dynamic> readings = [];
 
-    if (kDebugMode) {
-      print('Processing container data for type $containerType');
-    }
+//    if (kDebugMode) {
+//      print('Processing container data for type $containerType');
+//    }
 
     if (containerType == 'PL Test Lead') {
       readings = containerData.map((data) => PLTestLeadReading.fromMap(data)).toList();
@@ -201,9 +206,9 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       throw UnimplementedError('Reading type $containerType not implemented in loadContainersFromDatabase');
     }
 
-    if (kDebugMode) {
-      print('Mapped readings1: $readings');
-    }
+//    if (kDebugMode) {
+//      print('Mapped readings1: $readings');
+//    }
 
     // Dynamic creation of container widgets based on the type of readings
     List<Widget> newContainers = readings.map<Widget>((reading) {
@@ -272,12 +277,12 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       }
     }).toList();
 
-    if (kDebugMode) {
-      print('Mapped readings2: $readings');
-    }
-    if (kDebugMode) {
-      print('Created new containers2: $newContainers');
-    }
+//    if (kDebugMode) {
+//      print('Mapped readings2: $readings');
+//    }
+//    if (kDebugMode) {
+//      print('Created new containers2: $newContainers');
+//    }
 
     for (var newContainer in newContainers) {
       bool containerExists = _readingContainers.any((existingContainer) {
@@ -343,40 +348,40 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
         return false;
       });
 
-      if (kDebugMode) {
-        print('Checking if container exists...');
-      }
+//      if (kDebugMode) {
+//        print('Checking if container exists...');
+//      }
 
       if (!containerExists) {
-        if (kDebugMode) {
-          print('Container does not exist, adding new container...');
-        }
+//        if (kDebugMode) {
+//          print('Container does not exist, adding new container...');
+//        }
 
         setState(() {
           _readingContainers.add(newContainer);
-          if (kDebugMode) {
-            print('Added to _readingContainers: $_readingContainers');
-          }
+//          if (kDebugMode) {
+//            print('Added to _readingContainers: $_readingContainers');
+//          }
 
           if (!isAddingNewContainer) {
             _loadedContainers.add(newContainer);
-            if (kDebugMode) {
-              print('Added to _loadedContainers: $_loadedContainers');
-            }
+//            if (kDebugMode) {
+//              print('Added to _loadedContainers: $_loadedContainers');
+//            }
           } else {
-            if (kDebugMode) {
-              print('Is adding new container, not adding to _loadedContainers.');
-            }
+//            if (kDebugMode) {
+//              print('Is adding new container, not adding to _loadedContainers.');
+//            }
           }
         });
 
-        if (kDebugMode) {
-          print('setState called to add new container.');
-        }
+//        if (kDebugMode) {
+//          print('setState called to add new container.');
+//        }
       } else {
-        if (kDebugMode) {
-          print('Container exists, not adding.');
-        }
+//        if (kDebugMode) {
+//          print('Container exists, not adding.');
+//        }
       }
     }
   }
@@ -390,14 +395,14 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   ///
   /// Note: The [_loadContainersFromDatabase] method is responsible for handling errors and logging.
   Future<void> _loadContainersForAllTypes() async {
-    if (kDebugMode) {
-      print('Starting _loadContainersForAllTypes');
-    }
+//    if (kDebugMode) {
+//      print('Starting _loadContainersForAllTypes');
+//    }
 
     for (String containerType in containerTypeToTable.keys) {
-      if (kDebugMode) {
-        print('Loading containers for type: $containerType');
-      }
+//      if (kDebugMode) {
+//        print('Loading containers for type: $containerType');
+//      }
       await _loadContainersFromDatabase(
         containerType,
         widget.testStation.id,
@@ -417,13 +422,17 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   @override
   void initState() {
     super.initState();
+    //  testStation = Provider.of<TSNotifier>(context, listen: false).currentTestStation;
+    testStation = widget.testStation;
+    if (testStation?.picturePath != null) {
+      picturePaths = testStation!.picturePath!.split(',');
+    }
 
-    testStation = Provider.of<TSNotifier>(context, listen: false).currentTestStation;
     // Initialize the state only if it hasn't been initialized before.
     if (!_stateInitialized) {
-      if (kDebugMode) {
-        print('initState called for TestStationDetailsPage');
-      }
+//      if (kDebugMode) {
+//       print('initState called for TestStationDetailsPage');
+//      }
       _loadContainersForAllTypes();
       _stateInitialized = true; // Set this to true after initialization.
     }
@@ -474,6 +483,50 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     if (currentTSStatusIndex == -1) {
       // Handle or log error, as tsstatus is not valid
       currentTSStatusIndex = 0; // Or set to a default index
+    }
+  }
+
+  Future<void> _takePictures() async {
+    final projectModel = Provider.of<ProjectModel>(context, listen: false);
+    final tsNotifier = Provider.of<TSNotifier>(context, listen: false);
+
+    final List<String>? newPicturePaths = await CustomCamera.navigateToCustomCamera(
+      context,
+      projectModel.id,
+      projectModel.client,
+      projectModel.projectName,
+      stationID: testStation?.id,
+      stationArea: testStation?.area,
+      stationTSID: testStation?.tsID,
+    );
+
+    if (newPicturePaths != null && newPicturePaths.isNotEmpty) {
+      setState(() {
+        picturePaths.addAll(newPicturePaths);
+        testStation?.picturePath = picturePaths.join(',');
+      });
+
+      // Update the TestStation in the TSNotifier
+      tsNotifier.updateTestStationPicture(testStation?.id, testStation?.picturePath!);
+
+      // Show a confirmation to the user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${newPicturePaths.length} new picture(s) added')),
+        );
+      }
+    }
+  }
+
+  void _viewPhotos() {
+    if (picturePaths.isNotEmpty) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => FullScreenImageViewer(imagePaths: picturePaths),
+      ));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No photos available')),
+      );
     }
   }
 
@@ -787,6 +840,49 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     );
   }
 
+  Future<void> deleteContainer(String containerName, int orderIndex) async {
+//    if (kDebugMode) {
+//      print('Deleting container: $containerName, orderIndex: $orderIndex');
+//    }
+
+    final dbHelper = DatabaseHelper.instance;
+    final tsNotifier = Provider.of<TSNotifier>(context, listen: false);
+    final tableName = containerName;
+
+    // Delete from database
+    int deletedRows = await dbHelper.deleteReading(tableName, widget.testStation.id!, orderIndex);
+
+//    if (kDebugMode) {
+//      print('Rows deleted from database: $deletedRows');
+//    }
+
+    // Update TSNotifier
+    tsNotifier.removeReading(containerName, widget.testStation.id!, orderIndex);
+
+    // Remove from UI
+    setState(() {
+      _readingContainers.removeWhere((container) {
+        if (container is BaseContainer) {
+          return container.readings.isNotEmpty && container.readings[0] is dynamic && (container.readings[0] as dynamic).orderIndex == orderIndex;
+        }
+        return false;
+      });
+    });
+
+    // Show confirmation
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${containerName.replaceAll('Containers', '')} deleted successfully')),
+      );
+    }
+  }
+
+  void removeContainer(Widget container) {
+    setState(() {
+      _readingContainers.remove(container);
+    });
+  }
+
   /// Adds a reading container based on the reading type and optional data.
   ///
   /// The [readingType] parameter specifies the type of reading container to add.
@@ -972,11 +1068,11 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
 
     await _saveNewContainer(readingType, widget.testStation.id);
     await _loadContainersFromDatabase(readingType, widget.testStation.id, widget.testStation.tsID, isAddingNewContainer: true);
-    if (kDebugMode) {
-      print('station ID: ${widget.testStation.id}');
-      print('Loaded Containers $_loadedContainers');
-      print('$_readingContainers');
-    }
+//    if (kDebugMode) {
+//      print('station ID: ${widget.testStation.id}');
+//     print('Loaded Containers $_loadedContainers');
+//      print('$_readingContainers');
+//    }
   }
 
   /// Saves a new container of the specified [containerType] for the given [stationID] in the database.
@@ -1021,33 +1117,34 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   }
 
   Widget _buildPictureSection() {
-    if (widget.testStation.picturePath != null) {
-      File imageFile = File(widget.testStation.picturePath!);
-      if (imageFile.existsSync()) {
-        return Column(
+    return Column(
+      children: [
+        const Text('Station Pictures', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 43, 92))),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            const Text('Station Picture', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                  builder: (context) => FullScreenImageViewer(imagePath: widget.testStation.picturePath!),
-                ));
-              },
-              child: Image.file(
-                imageFile,
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            ElevatedButton(
+                onPressed: _takePictures,
+                //  child: const Text('Take Pictures'),
+                child: Icon(
+                  Icons.add_a_photo,
+                  size: 30.sp,
+                )),
+            ElevatedButton(
+              onPressed: _viewPhotos,
+              child: SizedBox(
+                  child: Row(
+                children: [
+                  const Icon(Icons.photo_library, size: 30),
+                  Text(' (${picturePaths.length})'),
+                ],
+              )),
             ),
           ],
-        );
-      } else {
-        return const Text('Image file not found', style: TextStyle(color: Colors.red));
-      }
-    }
-    return const SizedBox.shrink();
+        ),
+      ],
+    );
   }
 
   /// Builds the widget tree for the TestStationDetails screen.
@@ -1108,26 +1205,33 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(12.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildTestStationDetailsContainer(),
-                _buildPictureSection(),
-                if (_readingContainers.isNotEmpty) SizedBox(height: 10.h),
-                ListView.separated(
-                  shrinkWrap: true,
-                  physics: const PageScrollPhysics(),
-                  itemCount: _readingContainers.length,
-                  itemBuilder: (context, index) => _readingContainers[index],
-                  separatorBuilder: (context, index) => SizedBox(height: 10.h),
-                )
-              ],
+        body: Column(
+          children: [
+            const GPSStatusBar(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.all(12.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildTestStationDetailsContainer(),
+                      _buildPictureSection(),
+                      if (_readingContainers.isNotEmpty) SizedBox(height: 10.h),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const PageScrollPhysics(),
+                        itemCount: _readingContainers.length,
+                        itemBuilder: (context, index) => _readingContainers[index],
+                        separatorBuilder: (context, index) => SizedBox(height: 10.h),
+                      )
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -1328,6 +1432,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                               }
                             },
                           ),
+/*
                           IconButton(
                               icon: Icon(
                                 Icons.add_a_photo_outlined,
@@ -1362,6 +1467,9 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                                   }
                                 }
                               }),
+                              
+*/
+/*
                           LocationButton(
                             onLocationFetched: (latitude, longitude) {
                               Provider.of<TSNotifier>(context, listen: false).updateTestStation(
@@ -1393,6 +1501,25 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                             latitude: widget.testStation.latitude,
                             longitude: widget.testStation.longitude,
                           ),
+*/
+                          IconButton(
+                            icon: Icon(
+                              Icons.gps_fixed,
+                              color: Colors.blue,
+                              size: 40.sp,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => GpsFixView(
+                                    gpsBleService: Provider.of<GpsBleService>(context, listen: false),
+                                    onCoordinatesUpdated: _updateTestStationCoordinates,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                           IconButton(
                             // Delete button
                             icon: Icon(
@@ -1418,8 +1545,45 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       ),
     );
   }
+
+  void _updateTestStationCoordinates(double latitude, double longitude) {
+    // Round to 6 decimal places
+    double roundedLatitude = double.parse(latitude.toStringAsFixed(6));
+    double roundedLongitude = double.parse(longitude.toStringAsFixed(6));
+
+    Provider.of<TSNotifier>(context, listen: false).updateTestStation(
+      widget.testStation,
+      widget.testStation.area,
+      widget.testStation.tsID,
+      widget.testStation.tsstatus,
+      widget.testStation.fieldNotes,
+      widget.testStation.plTestLeadReadings,
+      widget.testStation.permRefReadings,
+      widget.testStation.anodeReadings,
+      widget.testStation.shuntReadings,
+      widget.testStation.riserReadings,
+      widget.testStation.foreignReadings,
+      widget.testStation.testLeadReadings,
+      widget.testStation.couponReadings,
+      widget.testStation.bondReadings,
+      widget.testStation.isolationReadings,
+      latitude: roundedLatitude,
+      longitude: roundedLongitude,
+      context: context,
+    );
+
+    setState(() {
+      widget.testStation.latitude = roundedLatitude;
+      widget.testStation.longitude = roundedLongitude;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Coordinates updated: $roundedLatitude, $roundedLongitude')),
+    );
+  }
 }
 
+/*
 class FullScreenImageViewer extends StatelessWidget {
   final String imagePath;
 
@@ -1441,3 +1605,4 @@ class FullScreenImageViewer extends StatelessWidget {
     );
   }
 }
+*/

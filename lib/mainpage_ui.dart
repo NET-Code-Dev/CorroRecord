@@ -674,7 +674,7 @@ class MainPageUI extends State<MainPage> {
                           mainAxisAlignment: MainAxisAlignment.start,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            SizedBox(height: 280.h), // Additional space for image
+                            SizedBox(height: 280.h),
                             Align(
                               alignment: Alignment.bottomCenter,
                               child: SizedBox(
@@ -703,6 +703,7 @@ class MainPageUI extends State<MainPage> {
                                 ),
                               ),
                             ),
+
                             SizedBox(height: 20.h), // Adjust the height spacing as needed
                             Align(
                               alignment: Alignment.bottomCenter,
