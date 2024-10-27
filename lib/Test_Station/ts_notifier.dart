@@ -1,8 +1,10 @@
 // ignore_for_file: use_build_context_synchronously, file_names, avoid_print, unrelated_type_equality_checks, unused_field, unused_element
 
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:asset_inspections/GPS/gps_ble_service.dart';
 import 'package:asset_inspections/phone_id.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
@@ -24,10 +26,15 @@ enum SortOption { area, tsID }
 
 class TSNotifier extends ChangeNotifier {
   final ProjectModel projectModel;
+  final GpsBleService _gpsBleService = GpsBleService();
   late TestStation _currentTestStation;
   late List<TestStation> _testStations = [];
-  LocationData? currentUserLocation;
+  Map<String, dynamic>? _lastKnownGoodLocation;
+  Map<String, dynamic>? currentGpsLocation;
+  // LocationData? currentUserLocation;
   int? _lastProjectIdLoaded;
+  StreamSubscription? _gpsSubscription;
+  bool _isGpsConnected = false;
 
   /// Initializes the [TSNotifier] with the given [projectModel].
   /// It also initializes the test stations and loads them from the database.
@@ -49,9 +56,105 @@ class TSNotifier extends ChangeNotifier {
   /// Returns the current test station.
   TestStation get currentTestStation => _currentTestStation;
 
+  // Add getter for GPS connection state
+  bool get isGpsConnected => _isGpsConnected;
+
   /// Sets the current test station and notifies the listeners.
   set currentTestStation(TestStation station) {
     _currentTestStation = station;
+    notifyListeners();
+  }
+
+  // Initialize GPS connection
+  Future<void> initializeGps() async {
+    try {
+      await _gpsBleService.startGps();
+      // Wait a short time to allow connection to establish
+      await Future.delayed(const Duration(seconds: 2));
+
+      // Check if we're receiving GPS data
+      await _waitForGpsData();
+    } catch (e) {
+      debugPrint('Error initializing GPS: $e');
+      _isGpsConnected = false;
+      notifyListeners();
+    }
+  }
+
+  // Wait for GPS data and set up subscription
+  Future<void> _waitForGpsData() async {
+    // Cancel any existing subscription
+    await _gpsSubscription?.cancel();
+
+    // Set up a timeout
+    bool hasReceivedData = false;
+    Timer? timeoutTimer;
+
+    try {
+      // Listen for GPS data with timeout
+      await Future.any([
+        // Wait for first GPS data
+        _gpsBleService.gpsDataStream.first.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => throw TimeoutException('No GPS data received'),
+        ),
+        // Or timeout after 5 seconds total
+        Future.delayed(const Duration(seconds: 5), () {
+          if (!hasReceivedData) {
+            throw TimeoutException('GPS connection timeout');
+          }
+        }),
+      ]);
+
+      // If we get here, we received data successfully
+      _isGpsConnected = true;
+      subscribeToGpsUpdates();
+      notifyListeners();
+    } on TimeoutException {
+      _isGpsConnected = false;
+      notifyListeners();
+      debugPrint('GPS connection timed out');
+    } catch (e) {
+      _isGpsConnected = false;
+      notifyListeners();
+      debugPrint('Error waiting for GPS data: $e');
+    } finally {
+      timeoutTimer?.cancel();
+    }
+  }
+
+  // Subscribe to GPS updates once connected
+  // Subscribe to GPS updates with data validation
+  void subscribeToGpsUpdates() {
+    if (!_isGpsConnected) {
+      debugPrint('Cannot subscribe to GPS updates - GPS not connected');
+      return;
+    }
+
+    _gpsSubscription = _gpsBleService.gpsDataStream.listen(
+      (data) {
+        // Only update if we have valid coordinates
+        final latitude = data['latitude'] as double?;
+        final longitude = data['longitude'] as double?;
+
+        if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
+          _lastKnownGoodLocation = data;
+          notifyListeners();
+        }
+      },
+      onError: (error) {
+        debugPrint('GPS data stream error: $error');
+        _isGpsConnected = false;
+        notifyListeners();
+      },
+    );
+  }
+
+  // Reset location data when GPS disconnects
+  void handleGpsDisconnect() {
+    _isGpsConnected = false;
+    _lastKnownGoodLocation = null;
+    _gpsSubscription?.cancel();
     notifyListeners();
   }
 
@@ -490,6 +593,7 @@ class TSNotifier extends ChangeNotifier {
     Navigator.of(context).pop(); // Close the dialog
   }
 
+/*
   /// Sorts the test stations by location.
   ///
   /// This method takes in the [context], [tsNotifier], and [locationService] as parameters.
@@ -553,12 +657,116 @@ class TSNotifier extends ChangeNotifier {
     const double kilometersToMeters = 1000;
     return distanceInKilometers * kilometersToMeters;
   }
+*/
 
-  /// Converts degrees to radians.
-  ///
-  /// Takes a [degrees] value and returns the equivalent value in radians.
-  double _degreesToRadians(double degrees) {
-    return degrees * (pi / 180.0);
+  Future<void> sortTestStationsByLocation(BuildContext context, TSNotifier tsNotifier) async {
+    if (!_isGpsConnected || _lastKnownGoodLocation == null) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text(!_isGpsConnected ? 'GPS Not Connected' : 'No GPS Data'),
+              content: Text(!_isGpsConnected
+                  ? 'Please ensure the GPS device is connected and providing data before sorting by location.'
+                  : 'Waiting for valid GPS data. Please try again in a moment.'),
+              actions: <Widget>[
+                if (!_isGpsConnected)
+                  TextButton(
+                    child: const Text('Retry Connection'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      initializeGps();
+                    },
+                  ),
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+      return;
+    }
+
+    final currentLat = _lastKnownGoodLocation!['latitude'] as double?;
+    final currentLon = _lastKnownGoodLocation!['longitude'] as double?;
+
+    if (currentLat == null || currentLon == null) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Invalid GPS Data'),
+              content: const Text('GPS coordinates are not available. Please wait for valid GPS data.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+      return;
+    }
+
+    // Sort test stations based on distance from current GPS location
+    testStations.sort((a, b) {
+      final aLat = a.latitude ?? 0.0;
+      final aLon = a.longitude ?? 0.0;
+      final bLat = b.latitude ?? 0.0;
+      final bLon = b.longitude ?? 0.0;
+
+      if ((aLat == 0.0 && aLon == 0.0) || (bLat == 0.0 && bLon == 0.0)) {
+        if (aLat == 0.0 && aLon == 0.0 && bLat == 0.0 && bLon == 0.0) {
+          return 0;
+        }
+        if (aLat == 0.0 && aLon == 0.0) {
+          return 1;
+        }
+        return -1;
+      }
+
+      final distanceA = calculateDistance(currentLat, currentLon, aLat, aLon);
+      final distanceB = calculateDistance(currentLat, currentLon, bLat, bLon);
+      return distanceA.compareTo(distanceB);
+    });
+
+    notifyListeners();
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  // Modified distance calculation method
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    // If any of the coordinates are 0.0 (invalid), return a large value
+    if (lat1 == 0.0 && lon1 == 0.0 || lat2 == 0.0 && lon2 == 0.0) {
+      return double.infinity;
+    }
+
+    const double radiusOfEarthInKm = 6371.0;
+
+    double dLat = _degreesToRadians(lat2 - lat1);
+    double dLon = _degreesToRadians(lon2 - lon1);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) + cos(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    double distanceInKilometers = radiusOfEarthInKm * c;
+
+    // Convert distance from kilometers to meters
+    const double kilometersToMeters = 1000;
+    return distanceInKilometers * kilometersToMeters;
   }
 
   /// Calculates the bearing between two coordinates using the Haversine formula.
@@ -614,6 +822,13 @@ class TSNotifier extends ChangeNotifier {
   /// Takes a [radians] value and returns the equivalent value in degrees.
   double _radiansToDegrees(double radians) {
     return radians * (180.0 / pi);
+  }
+
+  /// Converts degrees to radians.
+  ///
+  /// Takes a [degrees] value and returns the equivalent value in radians.
+  double _degreesToRadians(double degrees) {
+    return degrees * (pi / 180.0);
   }
 
   /// Updates the reading in the test station.

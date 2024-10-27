@@ -174,7 +174,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
               child: const Text('Sort Anyway'),
               onPressed: () {
                 LocationService locationService = LocationService();
-                tsNotifier.sortTestStationsByLocation(context, tsNotifier, locationService);
+                tsNotifier.sortTestStationsByLocation(context, tsNotifier);
                 Navigator.of(context).pop();
               },
             ),
@@ -233,8 +233,9 @@ class _TestStationsPageState extends State<TestStationsPage> {
                     _notifyMissingLocations(context, missingLocationStations, tsNotifier);
                   } else {
                     // If no missing locations, proceed to sort
-                    LocationService locationService = LocationService();
-                    tsNotifier.sortTestStationsByLocation(context, tsNotifier, locationService);
+                    tsNotifier.sortTestStationsByLocation(context, tsNotifier);
+                    //  LocationService locationService = LocationService();
+                    //  tsNotifier.sortTestStationsByLocation(context, tsNotifier, locationService);
                   }
                 },
               ),
@@ -600,32 +601,55 @@ class _TestStationsPageState extends State<TestStationsPage> {
           Expanded(
             child: Consumer<TSNotifier>(
               builder: (context, tsNotifier, child) {
+                if (!tsNotifier.isGpsConnected) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('GPS Not Connected'),
+                        ElevatedButton(
+                          onPressed: () => tsNotifier.initializeGps(),
+                          child: const Text('Connect GPS'),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Get current GPS coordinates from last known good location
+                final currentGpsData = tsNotifier.currentGpsLocation;
+                final currentLat = currentGpsData?['latitude'] as double?;
+                final currentLon = currentGpsData?['longitude'] as double?;
+
                 return ListView.builder(
                     padding: EdgeInsets.all(10.w),
                     itemCount: tsNotifier.testStations.length,
                     itemBuilder: (context, index) {
                       TestStation testStation = tsNotifier.testStations[index];
-                      // Determine if the station's location is valid (not 0.0, 0.0)
-                      bool isValidLocation = testStation.latitude != 0.0 && testStation.longitude != 0.0;
+
+                      final stationLat = testStation.latitude ?? 0.0;
+                      final stationLon = testStation.longitude ?? 0.0;
+
+                      bool isValidLocation = currentLat != null && currentLon != null && stationLat != 0.0 && stationLon != 0.0;
 
                       double distanceInMeters = isValidLocation
                           ? tsNotifier.calculateDistance(
-                              tsNotifier.currentUserLocation,
-                              testStation.latitude,
-                              testStation.longitude,
+                              currentLat!,
+                              currentLon!,
+                              stationLat,
+                              stationLon,
                             )
                           : 0.0;
 
                       String direction = isValidLocation
                           ? tsNotifier.calculateBearing(
-                              tsNotifier.currentUserLocation?.latitude ?? 0.0,
-                              tsNotifier.currentUserLocation?.longitude ?? 0.0,
-                              testStation.latitude ?? 0.0,
-                              testStation.longitude ?? 0.0,
+                              currentLat!,
+                              currentLon!,
+                              stationLat,
+                              stationLon,
                             )
                           : 'Unknown';
 
-                      // Format the distance string to show "Unknown" if the location is invalid
                       String distanceDisplay = isValidLocation ? '${distanceInMeters.toStringAsFixed(2)} m' : 'Unknown';
 
                       return GestureDetector(

@@ -1350,6 +1350,8 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                                 enabled: false, // make text field not editable
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
+                                  fillColor: Colors.grey,
+                                  filled: true,
                                 ),
                               ),
                             ),

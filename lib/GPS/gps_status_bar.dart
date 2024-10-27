@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'digital_compass.dart';
+//import 'digital_compass.dart';
 import 'gps_ble_service.dart';
 import 'gps_fix_view.dart';
 
@@ -80,8 +81,9 @@ class _GPSStatusBarState extends State<GPSStatusBar> {
     final color = _getColor(accuracyStage);
 
     return Container(
+      //  height: 60.h,
       color: Colors.black,
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+      //  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
       child: Column(
         children: [
           Row(
@@ -89,24 +91,62 @@ class _GPSStatusBarState extends State<GPSStatusBar> {
             children: [
               _buildStatusItem(Icons.satellite_alt, _lastKnownGpsData['satellites']?.toString() ?? '-', color),
               _buildDivider(),
-              _buildStatusItem(Icons.graphic_eq_rounded, _formatDOP(_lastKnownGpsData['hdop']), color),
+              //_buildStatusItem(Icons.graphic_eq_rounded, _formatDOP(_lastKnownGpsData['hdop']), color),
+              _buildStatusLabeled('HDOP', _formatDOP(_lastKnownGpsData['hdop']), color),
               _buildDivider(),
-              _buildStatusItem(Icons.gps_fixed, _formatAccuracy(_lastKnownGpsData['accuracy']), color),
+              //_buildStatusItem(Icons.gps_fixed, _formatAccuracy(_lastKnownGpsData['accuracy']), color),
+              _buildStatusLabeled('ACC', _formatAccuracy(_lastKnownGpsData['accuracy']), color),
               _buildDivider(),
-              _buildStatusItem(Icons.navigation, _lastKnownGpsData['course']?.toStringAsFixed(1) ?? '-', color),
+              // _buildStatusItem(Icons.navigation, _lastKnownGpsData['course']?.toStringAsFixed(1) ?? '-', color),
+              _buildStatusLabeled('COURSE', _lastKnownGpsData['course']?.toStringAsFixed(1) ?? '-', color),
               Expanded(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.location_on, color: color, size: 20.sp),
+                    FloatingActionButton(
+                      tooltip: 'Fix View',
+                      elevation: 50,
+                      backgroundColor: const Color.fromARGB(255, 76, 76, 76),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => GpsFixView(gpsBleService: _gpsService)),
                         );
                       },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: const Border(
+                            bottom: BorderSide(color: Colors.grey),
+                            top: BorderSide(color: Colors.grey),
+                            left: BorderSide(color: Colors.grey),
+                            right: BorderSide(color: Colors.grey),
+                          ),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.location_pin, color: color, size: 20.sp),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Show Plot',
+                                  style: TextStyle(fontSize: 10.sp, color: color),
+                                )
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -121,7 +161,7 @@ class _GPSStatusBarState extends State<GPSStatusBar> {
 
   Widget _buildStatusItem(IconData icon, String value, Color color) {
     return Expanded(
-      child: Row(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -129,7 +169,24 @@ class _GPSStatusBarState extends State<GPSStatusBar> {
           SizedBox(width: 4.w),
           Text(
             value,
-            style: TextStyle(color: color, fontSize: 14.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusLabeled(String label, String value, Color color) {
+    return Expanded(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(label, style: TextStyle(color: color, fontSize: 14.sp, fontWeight: FontWeight.bold)),
+          SizedBox(width: 4.w),
+          Text(
+            value,
+            style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.bold),
           ),
         ],
       ),

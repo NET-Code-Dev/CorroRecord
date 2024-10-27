@@ -45,7 +45,7 @@ class _GpsFixViewState extends State<GpsFixView> {
     _setupGpsStream();
   }
 
-  void _setupGpsStream() {
+  void _setupGpsStream() async {
     _gpsSubscription = widget.gpsBleService.gpsDataStream.listen((data) {
       setState(() {
         _lastKnownGpsData = data;
