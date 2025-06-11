@@ -2,27 +2,20 @@
 
 import 'dart:async';
 import 'dart:io';
-//import 'dart:typed_data';
 import 'package:path_provider/path_provider.dart';
-//import 'package:path/path.dart' as path;
 
 import 'package:asset_inspections/Models/project_model.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
-import 'package:location/location.dart';
-import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart' as geocoding;
 
-import 'package:asset_inspections/Models/camera_model.dart';
 import 'package:asset_inspections/database_helper.dart';
 
 class CustomCamera extends StatefulWidget {
-  final cameraSettings = DatabaseHelper.instance.getCameraSettings();
   final int projectID;
   final String projectClient;
   final String projectName;
@@ -46,8 +39,14 @@ class CustomCamera extends StatefulWidget {
     this.rectifierServiceTag,
   });
 
-  static Future<List<String>?> navigateToCustomCamera(BuildContext context, int projectID, String projectClient, String projectName,
-      {int? stationID, String? stationArea, String? stationTSID, int? rectifierID, String? rectifierArea, String? rectifierServiceTag}) async {
+  static Future<List<String>?> navigateToCustomCamera(BuildContext context,
+      int projectID, String projectClient, String projectName,
+      {int? stationID,
+      String? stationArea,
+      String? stationTSID,
+      int? rectifierID,
+      String? rectifierArea,
+      String? rectifierServiceTag}) async {
     final result = await Navigator.of(context).push<List<String>>(
       MaterialPageRoute(
         builder: (context) => CustomCamera(
@@ -70,127 +69,119 @@ class CustomCamera extends StatefulWidget {
   createState() => _CustomCameraScreenState();
 }
 
-class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingObserver {
-//  final GlobalKey _imageKey = GlobalKey();
+class _CustomCameraScreenState extends State<CustomCamera>
+    with WidgetsBindingObserver {
   List<String> capturedImagePaths = [];
+  List<Uint8List> capturedImageBytes = []; // Store all captured images
   Uint8List? _thumbnailImageBytes;
   bool _isFlashVisible = false;
-  // String _imagePath = '';
   CameraController? _controller;
   List<CameraDescription> cameras = [];
   double _currentZoomLevel = 1.0;
   double _maxZoomLevel = 1.0;
   ScreenshotController screenshotController = ScreenshotController();
-  // Location data variables
-  final Location _location = Location(); // Define the Location instance
-  StreamSubscription<LocationData>? _locationSubscription;
-  late GoogleMapController _mapController;
-
-  // Google Maps Overlay variables
-  Set<Marker> _markers = {};
-  double latitude = 0;
-  double longitude = 0;
-  // bool _isMapOverlayVisible = false;
-  final CameraPosition _initialCameraPosition = const CameraPosition(
-      target: LatLng(0.0, 0.0), // Default position, update with actual location
-      zoom: 14);
-  CameraPosition _currentCameraPosition = const CameraPosition(
-      target: LatLng(0.0, 0.0), // Default position, update with actual location
-      zoom: 14);
-  MapPosition? mapPosition = MapPosition.bottomLeft;
-  MapPosition? dataPosition = MapPosition.topLeft;
-  static String formatEnumValue(String enumValue) {
-    return enumValue
-        .replaceAllMapped(RegExp(r'(?<=[a-z])[A-Z]'), (Match match) => ' ${match.group(0)!.toUpperCase()}')
-        .split(' ')
-        .map((word) => '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}')
-        .join(' ');
-  }
-
-  // Use a getter for mapPositionOptions to access the static method
-  List<String> get mapPositionOptions => MapPosition.values.map((position) => formatEnumValue(position.toString().split('.').last)).toList();
-
-  Location location = Location();
-  LocationData? _locationData;
-  // ignore: unused_field
-  String _currentAddress = '';
-  geocoding.Placemark _currentPlacemark = const geocoding.Placemark();
+  String?
+      _currentFileName; // Store the current filename for consistent timestamps
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _requestPermissionsSequentially();
-    final cameraSettings = Provider.of<CameraSettings>(context, listen: false);
-    cameraSettings.loadCameraSettingsFromDatabase();
+    _hideSystemUI();
+    _initCamera();
   }
 
   @override
   void dispose() {
+    _showSystemUI(); // Restore system UI when leaving camera
+    _disposeCamera();
     WidgetsBinding.instance.removeObserver(this);
-    _controller?.dispose();
-    _locationSubscription?.cancel();
-    _mapController.dispose();
     super.dispose();
   }
 
-  //*********************************************************
-  Future<void> _requestPermissionsSequentially() async {
-    // Request location permission first
-    PermissionStatus locationPermission = await _requestLocationPermission();
-    if (locationPermission == PermissionStatus.granted) {
-      // Only proceed with camera initialization if location permission is granted
-      await _initCamera();
-      _startLocationStream();
-      getCurrentLocation();
-      _fetchAndSetCurrentPlacemark();
-    } else {
-      _showPermissionErrorDialog('Location Permission Denied',
-          'This app requires location access to function. Please allow location access for this app in your device settings.');
-    }
+  void _hideSystemUI() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.immersiveSticky,
+      overlays: [],
+    );
   }
 
-  Future<PermissionStatus> _requestLocationPermission() async {
-    bool serviceEnabled = await _location.serviceEnabled();
-    if (!serviceEnabled) {
-      serviceEnabled = await _location.requestService();
-      if (!serviceEnabled) {
-        return PermissionStatus.denied;
+  void _showSystemUI() {
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.manual,
+      overlays: [
+        SystemUiOverlay.top,
+        SystemUiOverlay.bottom,
+      ],
+    );
+  }
+
+  Future<void> _disposeCamera() async {
+    try {
+      if (_controller != null) {
+        if (_controller!.value.isInitialized) {
+          // Add a small delay to allow surfaces to properly detach
+          await Future.delayed(const Duration(milliseconds: 100));
+          await _controller!.dispose();
+        }
+        _controller = null;
+      }
+    } catch (e) {
+      // Suppress OpenGL and camera disposal errors - they're harmless
+      if (kDebugMode &&
+          !e.toString().contains('OpenGL') &&
+          !e.toString().contains('libEGL')) {
+        print("Error disposing camera: $e");
       }
     }
-
-    PermissionStatus permissionGranted = await _location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _location.requestPermission();
-    }
-    return permissionGranted;
   }
-
-  //*********************************************************
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     final CameraController? cameraController = _controller;
 
-    // App state changed before we got the chance to initialize.
     if (cameraController == null || !cameraController.value.isInitialized) {
       return;
     }
 
-    if (state == AppLifecycleState.inactive) {
-      cameraController.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      // Reinitialize the CameraController
-      _initializeCameraController(cameraController.description);
+    try {
+      if (state == AppLifecycleState.inactive) {
+        _disposeCamera();
+      } else if (state == AppLifecycleState.resumed) {
+        _hideSystemUI(); // Re-hide system UI when resuming
+        _initializeCameraController(cameraController.description);
+      }
+    } catch (e) {
+      // Suppress lifecycle-related camera errors
+      if (kDebugMode &&
+          !e.toString().contains('OpenGL') &&
+          !e.toString().contains('libEGL')) {
+        print("Camera lifecycle error: $e");
+      }
     }
   }
 
-  Future<void> _initializeCameraController(CameraDescription cameraDescription) async {
-    _controller = CameraController(cameraDescription, ResolutionPreset.max);
-    await _controller!.initialize();
-    if (mounted) {
-      setState(() {});
+  Future<void> _initializeCameraController(
+      CameraDescription cameraDescription) async {
+    try {
+      // Dispose existing controller first
+      await _disposeCamera();
+
+      _controller = CameraController(
+        cameraDescription,
+        ResolutionPreset.max,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      await _controller!.initialize();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error initializing camera controller: $e");
+      }
     }
   }
 
@@ -198,9 +189,18 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     try {
       cameras = await availableCameras();
       if (cameras.isNotEmpty) {
-        _controller = CameraController(cameras[0], ResolutionPreset.max);
+        _controller = CameraController(
+          cameras[0],
+          ResolutionPreset.max,
+          enableAudio: false,
+          imageFormatGroup: ImageFormatGroup.jpeg,
+        );
         await _controller!.initialize();
-        _maxZoomLevel = await _controller!.getMaxZoomLevel(); // Correctly awaiting the Future
+        _maxZoomLevel = await _controller!.getMaxZoomLevel();
+
+        // Set initial zoom to a reasonable level for better preview
+        await _controller!.setZoomLevel(1.0);
+
         if (!mounted) return;
         setState(() {});
       }
@@ -211,7 +211,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
       switch (e.code) {
         case 'CameraAccessDenied':
           title = "Camera Permission Denied";
-          message = "This app requires camera access to function. Please allow camera access for this app in your device's settings.";
+          message =
+              "This app requires camera access to function. Please allow camera access for this app in your device's settings.";
           break;
         case 'CameraAccessDeniedWithoutPrompt':
           title = "Camera Access Previously Denied";
@@ -220,104 +221,21 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
           break;
         case 'CameraAccessRestricted':
           title = "Camera Access Restricted";
-          message = "Camera access is restricted and cannot be enabled for this app, possibly due to parental control settings.";
+          message =
+              "Camera access is restricted and cannot be enabled for this app, possibly due to parental control settings.";
           break;
-        // Handle other cases as before
         default:
           title = "Unexpected Error";
-          message = "An unexpected error occurred. Please try again or contact support if the problem persists.";
+          message =
+              "An unexpected error occurred. Please try again or contact support if the problem persists.";
           break;
       }
 
       _showPermissionErrorDialog(title, message);
     } catch (e) {
-      // Handle any non-CameraException errors.
       if (kDebugMode) {
         print("An unexpected error occurred: $e");
       }
-      // Consider showing a generic error dialog or logging the error as appropriate.
-    }
-  }
-
-  void _startLocationStream() async {
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-
-    // Check if location service is enabled
-    _serviceEnabled = await _location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await _location.requestService();
-      if (!_serviceEnabled) {
-        return;
-      }
-    }
-
-    // Check for location permissions
-    _permissionGranted = await _location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await _location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        return;
-      }
-    }
-
-    // Adjust location settings for better accuracy
-    _location.changeSettings(
-      accuracy: LocationAccuracy.high, // Use high accuracy
-      distanceFilter: 1, // Trigger updates every 10 meters
-      //  interval: 100, // Update interval in milliseconds
-    );
-
-    // Listen for location changes
-    _locationSubscription = _location.onLocationChanged.listen((LocationData currentLocation) {
-      _updateMapLocation(currentLocation);
-    });
-  }
-
-  void _updateMapLocation(LocationData currentLocation) {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    _mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-          zoom: settings.mapScale,
-        ),
-      ),
-    );
-    setState(() {
-      _markers = {
-        Marker(
-          markerId: const MarkerId("currentLocation"),
-          position: LatLng(currentLocation.latitude!, currentLocation.longitude!),
-          //  infoWindow: InfoWindow(title: "Current Location"),
-        ),
-      };
-    });
-  }
-
-  void _updateMapZoomInstantly(double zoomLevel) {
-    _mapController.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(
-          target: _currentCameraPosition.target, // Use the last known position
-          zoom: zoomLevel,
-        ),
-      ),
-    );
-  }
-
-  MapType _getMapType(String mapTypeString) {
-    switch (mapTypeString) {
-      case 'normal':
-        return MapType.normal;
-      case 'satellite':
-        return MapType.satellite;
-      case 'terrain':
-        return MapType.terrain;
-      case 'hybrid':
-        return MapType.hybrid;
-      default:
-        return MapType.normal; // Default to 'normal' if no match is found
     }
   }
 
@@ -326,37 +244,137 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     int? stationID = widget.stationID;
 
     if (stationID != null) {
-      // Fetch current picturePath
-      var currentTestStation = await dbHelper.queryTestStationBytsID(widget.projectID, widget.stationTSID!);
+      var currentTestStation = await dbHelper.queryTestStationBytsID(
+          widget.projectID, widget.stationTSID!);
       String currentPicturePath = currentTestStation?['picturePath'] ?? '';
 
-      // Append new path
-      String updatedPicturePath = currentPicturePath.isEmpty ? imagePath : '$currentPicturePath,$imagePath';
+      String updatedPicturePath = currentPicturePath.isEmpty
+          ? imagePath
+          : '$currentPicturePath,$imagePath';
 
-      // Update database
+      await dbHelper.updateTestStationPicture(stationID, updatedPicturePath);
+    }
+  }
+
+  Future<void> _removeImageFromDatabase(String imagePath) async {
+    final dbHelper = DatabaseHelper.instance;
+    int? stationID = widget.stationID;
+
+    if (stationID != null) {
+      var currentTestStation = await dbHelper.queryTestStationBytsID(
+          widget.projectID, widget.stationTSID!);
+      String currentPicturePath = currentTestStation?['picturePath'] ?? '';
+
+      List<String> pathList = currentPicturePath.split(',');
+      pathList.removeWhere((path) => path.trim() == imagePath.trim());
+
+      String updatedPicturePath = pathList.join(',');
       await dbHelper.updateTestStationPicture(stationID, updatedPicturePath);
     }
   }
 
   void _captureImageWithOverlay() async {
-    final imageFile = await screenshotController.capture();
-    if (imageFile != null) {
-      setState(() {
-        _thumbnailImageBytes = imageFile;
-        _isFlashVisible = true;
-      });
-      final imageInfo = await _saveImageToFile(imageFile);
-      await _saveImagePathToDatabase(imageInfo['path']!);
+    if (_controller == null || !_controller!.value.isInitialized) {
+      return;
+    }
 
+    try {
+      // Generate filename when capture button is pressed
+      _currentFileName = _generateFileName();
+
+      // Update state to show the overlay for screenshot only
+      setState(() {
+        _isFlashVisible = false; // Ensure flash is off during overlay render
+      });
+
+      // Small delay to ensure the overlay renders
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final imageFile = await screenshotController.capture();
+      if (imageFile != null) {
+        setState(() {
+          _thumbnailImageBytes = imageFile;
+          _isFlashVisible = true;
+          _currentFileName = null; // Hide overlay after capture
+        });
+
+        final imageInfo = await _saveImageToFile(imageFile, _currentFileName!);
+        await _saveImagePathToDatabase(imageInfo['path']!);
+
+        setState(() {
+          _isFlashVisible = false;
+          capturedImagePaths.add(imageInfo['path']!);
+          capturedImageBytes.add(imageFile);
+        });
+
+        if (kDebugMode) {
+          print("Image captured: ${imageInfo['name']}");
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print("Error capturing image: $e");
+      }
       setState(() {
         _isFlashVisible = false;
-        capturedImagePaths.add(imageInfo['path']!);
+        _currentFileName = null; // Reset on error
       });
     }
   }
 
-  // Future<String> _saveImageToFile(Uint8List imageBytes) async {
-  Future<Map<String, String>> _saveImageToFile(Uint8List imageBytes) async {
+  Future<void> _deleteImage(int index) async {
+    if (index >= 0 && index < capturedImagePaths.length) {
+      String pathToDelete = capturedImagePaths[index];
+
+      // Remove from database
+      await _removeImageFromDatabase(pathToDelete);
+
+      // Delete physical file
+      try {
+        Directory? directory = await getExternalStorageDirectory();
+        String newPath = '';
+        List<String> folders = directory!.path.split('/');
+        for (int x = 1; x < folders.length; x++) {
+          String folder = folders[x];
+          if (folder != "Android") {
+            newPath += "/$folder";
+          } else {
+            break;
+          }
+        }
+        newPath = "$newPath/Download/$pathToDelete";
+
+        File fileToDelete = File(newPath);
+        if (await fileToDelete.exists()) {
+          await fileToDelete.delete();
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print("Error deleting physical file: $e");
+        }
+      }
+
+      // Remove from local lists
+      setState(() {
+        capturedImagePaths.removeAt(index);
+        capturedImageBytes.removeAt(index);
+
+        // Update thumbnail to show the last captured image, or null if no images
+        if (capturedImageBytes.isNotEmpty) {
+          _thumbnailImageBytes = capturedImageBytes.last;
+        } else {
+          _thumbnailImageBytes = null;
+        }
+      });
+
+      if (kDebugMode) {
+        print("Image deleted: $pathToDelete");
+      }
+    }
+  }
+
+  Future<Map<String, String>> _saveImageToFile(
+      Uint8List imageBytes, String fileName) async {
     Directory? directory;
     try {
       directory = await getExternalStorageDirectory();
@@ -370,62 +388,40 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
           break;
         }
       }
-      newPath = "$newPath/Download/${widget.projectClient}_${widget.projectName}";
+      newPath =
+          "$newPath/Download/${widget.projectClient}_${widget.projectName}";
       directory = Directory(newPath);
     } catch (e) {
-      directory = await getApplicationDocumentsDirectory(); // Fallback for iOS and errors
+      directory = await getApplicationDocumentsDirectory();
     }
 
     if (!await directory.exists()) {
       await directory.create(recursive: true);
     }
 
-    // Using a filesystem-friendly date format
-    final DateFormat formatter = DateFormat('yyyy-MM-dd_HH-mm-ss');
-    String fileName;
-    if (widget.stationID != null) {
-      fileName = "${formatter.format(DateTime.now())}_${widget.stationArea}-${widget.stationTSID}.png";
-    } else {
-      fileName = "${formatter.format(DateTime.now())}_${widget.rectifierArea}_${widget.rectifierServiceTag}.png";
-    }
-
     final file = File('${directory.path}/$fileName');
     await file.writeAsBytes(imageBytes);
-    //return file.path;
-    return {'path': file.path, 'name': fileName};
+
+    // Create relative path for database storage
+    String relativePath =
+        "${widget.projectClient}_${widget.projectName}/$fileName";
+
+    return {
+      'path': relativePath, // Store relative path in database
+      'name': fileName,
+      'fullPath': file.path // Keep full path for reference if needed
+    };
   }
 
-  void _saveCapturedImage(Uint8List? imageFile) {
-    if (imageFile != null) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => DisplayCapturedImageScreen(imageBytes: imageFile),
-        ),
-      );
+  String _generateFileName() {
+    final DateFormat formatter = DateFormat('yyyy-MM-dd_HH-mm-ss');
+    String timestamp = formatter.format(DateTime.now());
+
+    if (widget.stationID != null) {
+      return "${widget.stationID}_$timestamp.png";
+    } else {
+      return "${widget.rectifierServiceTag}_$timestamp.png";
     }
-  }
-
-  // Finding enum from string value
-  void setMapPositionFromString(String positionString) {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    String enumString = positionString.replaceAll(' ', '');
-    enumString = 'MapPosition.${enumString[0].toLowerCase()}${enumString.substring(1)}';
-
-    settings.mapPosition = MapPosition.values.firstWhere(
-      (position) => position.toString() == enumString,
-      orElse: () => MapPosition.bottomLeft,
-    );
-  }
-
-  void setDataPositionFromString(String positionString) {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    String enumString = positionString.replaceAll(' ', '');
-    enumString = 'MapPosition.${enumString[0].toLowerCase()}${enumString.substring(1)}';
-
-    settings.dataPosition = MapPosition.values.firstWhere(
-      (position) => position.toString() == enumString,
-      orElse: () => MapPosition.topLeft,
-    );
   }
 
   void _showPermissionErrorDialog(String title, String message) {
@@ -444,644 +440,72 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     );
   }
 
-  void _showOptionsDialog() {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(child: Text('Overlay Settings')),
-          content: StatefulBuilder(
-            // Use StatefulBuilder to manage local state within the dialog
-            builder: (BuildContext context, StateSetter setState) {
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Text('Show Map'),
-                        const Spacer(),
-                        Switch(
-                            value: settings.isMapOverlayVisible,
-                            onChanged: (value) {
-                              setState(() {
-                                // This updates the local dialog UI
-                                settings.isMapOverlayVisible = value;
-                                // Ensure Default position is set when toggled on
-                                if (value) {
-                                  settings.mapPosition ??= MapPosition.bottomLeft; // Default position when toggled ON
-                                }
-                              });
-                              settings.updateCameraSettingsToDatabase();
-                            }),
-                        IconButton(
-                          icon: Icon(
-                            Icons.open_in_new,
-                            size: 16.sp,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            _showMapOptionsDialog();
-                          },
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        const Text('Location Data'),
-                        const Spacer(),
-                        Switch(
-                          value: settings.isDataOverlayVisible,
-                          onChanged: (value) {
-                            setState(() {
-                              settings.isDataOverlayVisible = value;
-                              if (value) {
-                                settings.dataPosition ??= MapPosition.topLeft; // Default position when toggled ON
-                              }
-                            });
-                            settings.updateDataOverlayVisibility(value);
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            Icons.open_in_new,
-                            size: 16.sp,
-                            color: Colors.blue,
-                          ),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            _showDataOptionsDialog();
-                          },
-                        ),
-                      ],
-                    ),
-                    // Add more options as needed
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
-  void _showMapOptionsDialog() {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    String tempMapType = settings.mapType;
-    double tempMapOpacity = settings.mapOpacity;
-    double tempMapSize = settings.mapSize;
-    double tempMapScale = settings.mapScale;
-    if (kDebugMode) {
-      print('Map Positions: ${settings.mapPosition}');
-      print('Map Type: ${settings.mapType}');
+  Widget _buildTextOverlay() {
+    // Only show overlay when capturing (when _currentFileName is set)
+    if (_currentFileName == null) {
+      return const SizedBox.shrink();
     }
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          // This allows the dialog itself to be rebuilt
-          builder: (context, setState) {
-            return AlertDialog(
-              title: const Center(child: Text('Map Settings')),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Map Position'),
-                        DropdownButton<MapPosition>(
-                          value: settings.mapPosition,
-                          onChanged: (MapPosition? newPosition) {
-                            setState(() {
-                              settings.mapPosition = newPosition;
-                            });
-                            settings.updateMapPosition(newPosition);
-                            settings.updateCameraSettingsToDatabase();
-                          },
-                          items: MapPosition.values.map<DropdownMenuItem<MapPosition>>((MapPosition value) {
-                            return DropdownMenuItem<MapPosition>(
-                              value: value,
-                              child: Text(formatEnumValue(value.toString().split('.').last)),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Map Type'),
-                        DropdownButton<String>(
-                          value: settings.mapType, // Ensure this exactly matches one of the options below.
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.mapType = newValue!;
-                            });
-                            settings.updateMapType(newValue!);
-                          },
-                          items: <String>['Normal', 'Satellite', 'Terrain', 'Hybrid'].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value.toLowerCase(), // This ensures the values are all lowercase
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10.h),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Map Opacity'),
-                      ],
-                    ),
-                    Slider(
-                      value: settings.mapOpacity,
-                      min: 0,
-                      max: 1,
-                      divisions: 10,
-                      onChanged: (double value) {
-                        setState(() {
-                          // This now refers to the StatefulBuilder's setState
-                          tempMapOpacity = value;
-                        });
-                        settings.updateMapOpacity(value);
-                      },
-                    ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Map Size'),
-                      ],
-                    ),
-                    Slider(
-                      value: settings.mapSize,
-                      min: 25,
-                      max: 250,
-                      divisions: 15,
-                      label: tempMapSize.toString(),
-                      onChanged: (double value) {
-                        setState(() {
-                          tempMapSize = value;
-                        });
-                        settings.updateMapSize(value);
-                      },
-                    ),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Map Zoom'),
-                      ],
-                    ),
-                    Slider(
-                      value: tempMapScale,
-                      min: 1,
-                      max: 25,
-                      divisions: 24,
-                      label: tempMapScale.toString(),
-                      onChanged: (double value) {
-                        setState(() {
-                          tempMapScale = value;
-                        });
-                        _updateMapZoomInstantly(value);
-                        settings.updateMapScale(value);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    settings.updateCameraSettingsToDatabase();
-                    // Update the main state once dialog is popped
-                  },
-                  child: const Text('Done'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
+    String displayText = _currentFileName!.replaceAll('.png', '');
 
-  Widget _buildMapOverlay() {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    return Opacity(
-      opacity: settings.mapOpacity,
-      // ignore: sized_box_for_whitespace
+    return Positioned(
+      bottom: 15,
+      right: 15,
       child: Container(
-        //  color: Colors.transparent,
-        width: settings.mapSize,
-        height: settings.mapSize,
-        child: GoogleMap(
-          zoomControlsEnabled: false,
-          zoomGesturesEnabled: false,
-          mapToolbarEnabled: false,
-          myLocationButtonEnabled: false,
-          myLocationEnabled: false,
-          rotateGesturesEnabled: false,
-          scrollGesturesEnabled: false,
-
-          initialCameraPosition: _initialCameraPosition,
-          mapType: _getMapType(settings.mapType), // Use the method to get the MapType enum
-          markers: _markers,
-          onMapCreated: (GoogleMapController controller) {
-            _mapController = controller;
-          },
-          onCameraMove: (CameraPosition position) {
-            _currentCameraPosition = position;
-          },
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        child: Text(
+          displayText,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
   }
 
-  void _showDataOptionsDialog() {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            TextStyle textStyle = TextStyle(
-              color: Colors.black,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              //  fontStyle:
-            );
-            return AlertDialog(
-              title: const Center(child: Text('Location Data Settings')),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Data Position:', style: textStyle),
-                        DropdownButton<MapPosition>(
-                          value: settings.dataPosition,
-                          onChanged: (MapPosition? newPosition) {
-                            setState(() {
-                              settings.dataPosition = newPosition;
-                            });
-                            settings.updateDataPosition(newPosition);
-                          },
-                          items: MapPosition.values.map<DropdownMenuItem<MapPosition>>((MapPosition value) {
-                            return DropdownMenuItem<MapPosition>(
-                              value: value,
-                              child: Text(formatEnumValue(value.toString().split('.').last)),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Font Style:', style: textStyle),
-                        DropdownButton<String>(
-                          value: settings.selectedFontStyle,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.selectedFontStyle = newValue!;
-                              settings.updateFontStyle(newValue);
-                              //  settings.updateCameraSettingsToDatabase();
-                            });
-                            //  settings.updateCameraSettingsToDatabase();
-                            settings.updateFontStyle(newValue!);
-                          },
-                          items: CameraSettings.fontStyleOptions.map<DropdownMenuItem<String>>((Map<String, dynamic> style) {
-                            return DropdownMenuItem<String>(
-                              value: style['style'].toLowerCase(),
-                              child: Text(style['style']),
-                            );
-                          }).toList(),
-                        )
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Font Color:', style: textStyle),
-                        DropdownButton<String>(
-                          value: settings.selectedFontColor,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.selectedFontColor = newValue!;
-                              settings.updateFontColor(newValue);
-                            });
-                            settings.updateFontColor(newValue!);
-                          },
-                          items: CameraSettings.fontColors.map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value.toLowerCase(),
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Font Size:', style: textStyle),
-                        DropdownButton<String>(
-                          value: settings.selectedFontSize.toString(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.selectedFontSize = double.parse(newValue!);
-                            });
-                          },
-                          items: CameraSettings.fontSizes.map<DropdownMenuItem<String>>((double value) {
-                            return DropdownMenuItem<String>(
-                              value: value.toString(),
-                              child: Text(value.toString()),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('Date:', style: textStyle),
-                        DropdownButton<String>(
-                          value: settings.selectedDateFormat,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.selectedDateFormat = newValue!;
-                            });
-                          },
-                          items: CameraSettings.dateFormats.map<DropdownMenuItem<String>>((String value) {
-                            // Format the current date according to the format string
-                            String formattedDate = DateFormat(value).format(DateTime.now());
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              // Show the formatted current date instead of the format string
-                              child: Text(formattedDate),
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10.h), // Add some spacing (optional)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('Location:', style: textStyle),
-                      ],
-                    ),
-                    SizedBox(height: 5.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        DropdownButton<String>(
-                          value: settings.selectedLocationFormat,
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              settings.selectedLocationFormat = newValue!;
-                            });
-                          },
-                          items: CameraSettings.locationFormats.map<DropdownMenuItem<String>>((String value) {
-                            String address = formatAddress(_currentPlacemark, value);
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(address), // Or use an example address if available
-                            );
-                          }).toList(),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Done'),
-                ),
-              ],
-            );
-          },
-        );
+  Widget _cameraWithOverlay() {
+    // Calculate the screen aspect ratio
+    final size = MediaQuery.of(context).size;
+    final deviceRatio = size.width / size.height;
+
+    return GestureDetector(
+      onScaleUpdate: (ScaleUpdateDetails details) {
+        _onScaleUpdate(details);
       },
-    );
-  }
-
-  Future<String> getAddressFromLatLng(double latitude, double longitude) async {
-    try {
-      List<geocoding.Placemark> placemarks = await geocoding.placemarkFromCoordinates(latitude, longitude);
-      if (placemarks.isNotEmpty) {
-        geocoding.Placemark place = placemarks.first;
-        // Construct the address string as needed
-        String address = "${place.locality}, ${place.subAdministrativeArea}, ${place.country}";
-        return address;
-      }
-      return "No address available";
-    } catch (e) {
-      return "Failed to get address: $e";
-    }
-  }
-
-  void getCurrentLocation() async {
-    _locationData = await location.getLocation();
-    displayLocationAddress(); // Optionally, immediately display the address
-  }
-
-  void _fetchAndSetCurrentPlacemark() async {
-    Location location = Location();
-    LocationData locationData = await location.getLocation();
-
-    // Now use the geocoding package to get placemark data
-    List<geocoding.Placemark> placemarks = await geocoding.placemarkFromCoordinates(
-      locationData.latitude!,
-      locationData.longitude!,
-    );
-
-    if (placemarks.isNotEmpty) {
-      setState(() {
-        _currentPlacemark = placemarks.first;
-      });
-    }
-  }
-
-  void displayLocationAddress() async {
-    if (_locationData != null) {
-      // Assuming getAddressFromLatLng is correctly implemented
-      String address = await getAddressFromLatLng(_locationData!.latitude!, _locationData!.longitude!);
-      setState(() {
-        _currentAddress = address;
-      });
-    }
-  }
-
-  String formatAddress(geocoding.Placemark place, String format) {
-    switch (format) {
-      case 'None':
-        return 'None';
-      case 'Country':
-        return "${place.country}";
-      case 'State':
-        return "${place.administrativeArea}";
-      case 'County':
-        return "${place.subAdministrativeArea}";
-      case 'City':
-        return "${place.locality}";
-      case 'Road Name':
-        return "${place.thoroughfare}";
-      case 'Building Number, Street Name':
-        return "${place.subThoroughfare}, ${place.thoroughfare}";
-      case 'Building Number':
-        return "${place.subThoroughfare}";
-      case 'Street Address, City, State, Zip':
-        return "${place.street},\n${place.locality}, ${place.administrativeArea}, ${place.postalCode}";
-      case 'Street Address, City, County, Zip, Country':
-        return "${place.street},\n${place.locality}, ${place.subAdministrativeArea}, ${place.postalCode},\n${place.country}";
-      case 'Street Name, City, County, Zip':
-        return "${place.thoroughfare},\n${place.locality}, ${place.subAdministrativeArea}, ${place.postalCode}";
-      case 'City, County, Zip, Country':
-        return "${place.locality}, ${place.subAdministrativeArea}, ${place.postalCode},\n${place.country}";
-      case 'Street Address, City':
-        return "${place.street},\n${place.locality}";
-      case 'Street Address, City, County':
-        return "${place.street},\n${place.locality}, ${place.subAdministrativeArea}";
-      default:
-        return "Format not supported";
-    }
-  }
-
-  Widget _buildDataOverlay() {
-    var projectModel = Provider.of<ProjectModel>(context, listen: false);
-    String projectClient = projectModel.client;
-
-    return Consumer<CameraSettings>(
-      builder: (context, settings, child) {
-        // The rest of your method remains the same
-        String formattedDate = DateFormat(settings.selectedDateFormat).format(DateTime.now());
-        Color fontColor = settings.selectedFontColor == 'black'
-            ? Colors.black
-            : settings.selectedFontColor == 'white'
-                ? Colors.white
-                : settings.selectedFontColor == 'red'
-                    ? Colors.red
-                    : settings.selectedFontColor == 'green'
-                        ? Colors.green
-                        : Colors.blue;
-        double fontSize = settings.selectedFontSize;
-        String selectedFormatDescription = settings.selectedLocationFormat;
-
-        TextStyle textStyle = TextStyle(
-          color: fontColor,
-          fontSize: fontSize,
-          fontWeight: settings.selectedFontStyle.contains('Bold') ? FontWeight.bold : FontWeight.normal,
-          fontStyle: settings.selectedFontStyle.contains('Italic') ? FontStyle.italic : FontStyle.normal,
-        );
-
-        return Opacity(
-          opacity: settings.mapOpacity,
-          child: Container(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(projectClient, style: textStyle),
-                Text(widget.projectName, style: textStyle),
-                Text('${widget.stationArea}-${widget.stationTSID}', style: textStyle),
-                if (formattedDate != 'None') Text(formattedDate, style: textStyle),
-                if (selectedFormatDescription != 'None') Text(formatAddress(_currentPlacemark, selectedFormatDescription), style: textStyle),
-                // Your other text widgets based on settings
-              ],
+      child: Stack(
+        children: [
+          // Full screen camera preview with proper aspect ratio handling
+          Container(
+            width: double.infinity,
+            height: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _controller!.value.previewSize!.height,
+                height: _controller!.value.previewSize!.width,
+                child: CameraPreview(_controller!),
+              ),
             ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _cameraWithOverlay() {
-    return Consumer<CameraSettings>(
-      builder: (context, settings, child) {
-        return GestureDetector(
-          onScaleUpdate: (ScaleUpdateDetails details) {
-            _onScaleUpdate(details);
-          },
-          child: Stack(
-            children: [
-              CameraPreview(_controller!), // Camera preview
-              if (settings.isMapOverlayVisible)
-                Positioned(
-                  top: settings.mapPosition == MapPosition.topLeft ||
-                          settings.mapPosition == MapPosition.topCenter ||
-                          settings.mapPosition == MapPosition.topRight
-                      ? 15
-                      : null,
-                  bottom: settings.mapPosition == MapPosition.bottomLeft ||
-                          settings.mapPosition == MapPosition.bottomCenter ||
-                          settings.mapPosition == MapPosition.bottomRight
-                      ? 15
-                      : null,
-                  left: (settings.mapPosition == MapPosition.topCenter || settings.mapPosition == MapPosition.bottomCenter)
-                      ? 0
-                      : (settings.mapPosition == MapPosition.topLeft || settings.mapPosition == MapPosition.bottomLeft ? 15 : null),
-                  right: (settings.mapPosition == MapPosition.topCenter || settings.mapPosition == MapPosition.bottomCenter)
-                      ? 0
-                      : (settings.mapPosition == MapPosition.topRight || settings.mapPosition == MapPosition.bottomRight ? 15 : null),
-                  child: Align(
-                    alignment: _getMapAlignment(settings.mapPosition), // Pass settings.mapPosition to the method
-                    child: _buildMapOverlay(),
-                  ),
-                ),
-              if (settings.isDataOverlayVisible)
-                Positioned(
-                  top: settings.dataPosition == MapPosition.topLeft ||
-                          settings.dataPosition == MapPosition.topCenter ||
-                          settings.dataPosition == MapPosition.topRight
-                      ? 15
-                      : null,
-                  bottom: settings.dataPosition == MapPosition.bottomLeft ||
-                          settings.dataPosition == MapPosition.bottomCenter ||
-                          settings.dataPosition == MapPosition.bottomRight
-                      ? 15
-                      : null,
-                  left: (settings.dataPosition == MapPosition.topCenter || settings.dataPosition == MapPosition.bottomCenter)
-                      ? 0
-                      : (settings.dataPosition == MapPosition.topLeft || settings.dataPosition == MapPosition.bottomLeft ? 15 : null),
-                  right: (settings.dataPosition == MapPosition.topCenter || settings.dataPosition == MapPosition.bottomCenter)
-                      ? 0
-                      : (settings.dataPosition == MapPosition.topRight || settings.dataPosition == MapPosition.bottomRight ? 15 : null),
-                  child: Align(
-                    alignment: _getMapAlignment(settings.dataPosition), // Pass settings.dataPosition to the method
-                    child: _buildDataOverlay(),
-                  ),
-                ),
-              Positioned.fill(
-                child: _buildFlashAnimation(),
-              ),
-            ],
+          _buildTextOverlay(),
+          Positioned.fill(
+            child: _buildFlashAnimation(),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
   Widget _buildFlashAnimation() {
     return AnimatedOpacity(
       opacity: _isFlashVisible ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 50), // Fast fade in
+      duration: const Duration(milliseconds: 50),
       child: Container(
         color: Colors.white,
       ),
@@ -1089,16 +513,13 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    const double sensitivityFactor = 0.05; // Adjust this value for sensitivity
+    const double sensitivityFactor = 0.05;
     final double scaleDelta = details.scale - 1;
 
-    // Calculate new zoom level based on the gesture's scale change and sensitivity
     double newZoomLevel = _currentZoomLevel + (scaleDelta * sensitivityFactor);
-    newZoomLevel = newZoomLevel.clamp(1.0, _maxZoomLevel); // Ensure within valid range
+    newZoomLevel = newZoomLevel.clamp(1.0, _maxZoomLevel);
 
-    // Update zoom level if the change is significant
     if ((newZoomLevel - _currentZoomLevel).abs() > 0.01) {
-      // Adjust threshold as needed
       setState(() {
         _currentZoomLevel = newZoomLevel;
       });
@@ -1106,29 +527,8 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
     }
   }
 
-  Alignment _getMapAlignment(MapPosition? position) {
-    final settings = Provider.of<CameraSettings>(context, listen: false);
-    switch (settings.mapPosition) {
-      case MapPosition.topLeft:
-        return Alignment.topLeft;
-      case MapPosition.topCenter:
-        return Alignment.topCenter;
-      case MapPosition.topRight:
-        return Alignment.topRight;
-      case MapPosition.bottomLeft:
-        return Alignment.bottomLeft;
-      case MapPosition.bottomCenter:
-        return Alignment.bottomCenter;
-      case MapPosition.bottomRight:
-        return Alignment.bottomRight;
-      default:
-        return Alignment.center; // Fallback
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Ensure camera controller is initialized
     if (_controller == null || !_controller!.value.isInitialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -1136,14 +536,30 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
       );
     }
 
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        WidgetsBinding.instance.removeObserver(this);
-        await _controller?.dispose();
-        await _locationSubscription?.cancel();
-        _mapController.dispose();
-        return true;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, dynamic result) async {
+        if (didPop) {
+          return;
+        }
+
+        try {
+          // Restore system UI before navigation
+          _showSystemUI();
+
+          // Dispose camera properly before navigation
+          WidgetsBinding.instance.removeObserver(this);
+          await _disposeCamera();
+
+          if (context.mounted) {
+            Navigator.of(context).pop(result);
+          }
+        } catch (e) {
+          // Ensure navigation happens even if disposal fails
+          if (context.mounted) {
+            Navigator.of(context).pop(result);
+          }
+        }
       },
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -1158,7 +574,7 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                 controller: screenshotController,
                 child: _controller == null || !_controller!.value.isInitialized
                     ? const Center(child: CircularProgressIndicator())
-                    : _cameraWithOverlay(),
+                    : ClipRect(child: _cameraWithOverlay()),
               ),
             ),
             Padding(
@@ -1168,41 +584,59 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                 children: [
                   if (_thumbnailImageBytes != null)
                     SizedBox(
-                      height: 75,
-                      width: 75,
+                      height: 90,
+                      width: 65,
                       child: InkWell(
                         onTap: () {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (context) => DisplayCapturedImageScreen(imageBytes: _thumbnailImageBytes!),
+                              builder: (context) => DisplayCapturedImagesScreen(
+                                imageBytesList: capturedImageBytes,
+                                imagePaths: capturedImagePaths,
+                                onDeleteImage: _deleteImage,
+                              ),
                             ),
                           );
                         },
-                        child: Image.memory(
-                          _thumbnailImageBytes!,
-                          width: 40, // Thumbnail size
-                          height: 40,
+                        child: Stack(
+                          children: [
+                            Image.memory(
+                              _thumbnailImageBytes!,
+                              width: 65,
+                              height: 90,
+                              fit: BoxFit.cover,
+                            ),
+                            if (capturedImageBytes.length > 1)
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: Container(
+                                  padding: EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '${capturedImageBytes.length}',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                     )
                   else
                     const SizedBox(
-                      height: 75,
-                      width: 75, // Ensures the layout doesn't shift if the thumbnail isn't displayed
+                      height: 90,
+                      width: 65,
                     ),
                   FloatingActionButton(
-                    backgroundColor: Colors.black,
-                    onPressed: () {
-                      Navigator.of(context).pop(capturedImagePaths);
-                    },
-                    tooltip: 'Back',
-                    child: Icon(
-                      Icons.arrow_back,
-                      size: 40.sp,
-                      color: Colors.white,
-                    ),
-                  ),
-                  FloatingActionButton(
+                    heroTag: "capture_button", // Unique hero tag
                     backgroundColor: Colors.black,
                     onPressed: _captureImageWithOverlay,
                     tooltip: 'Capture Image',
@@ -1213,11 +647,29 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
                     ),
                   ),
                   FloatingActionButton(
+                    heroTag: "back_button", // Unique hero tag
                     backgroundColor: Colors.black,
-                    onPressed: _showOptionsDialog, //_toggleOverlay,
-                    tooltip: 'Toggle Overlay',
+                    onPressed: () async {
+                      try {
+                        // Restore system UI before navigation
+                        _showSystemUI();
+
+                        // Properly dispose camera before navigating back
+                        WidgetsBinding.instance.removeObserver(this);
+                        await _disposeCamera();
+                        if (context.mounted) {
+                          Navigator.of(context).pop(capturedImagePaths);
+                        }
+                      } catch (e) {
+                        // Ensure navigation happens even if disposal fails
+                        if (context.mounted) {
+                          Navigator.of(context).pop(capturedImagePaths);
+                        }
+                      }
+                    },
+                    tooltip: 'Back',
                     child: Icon(
-                      Icons.settings_outlined,
+                      Icons.arrow_back,
                       size: 40.sp,
                       color: Colors.white,
                     ),
@@ -1232,18 +684,133 @@ class _CustomCameraScreenState extends State<CustomCamera> with WidgetsBindingOb
   }
 }
 
-class DisplayCapturedImageScreen extends StatelessWidget {
-  final Uint8List imageBytes;
+class DisplayCapturedImagesScreen extends StatefulWidget {
+  final List<Uint8List> imageBytesList;
+  final List<String> imagePaths;
+  final Function(int) onDeleteImage;
 
-  const DisplayCapturedImageScreen({super.key, required this.imageBytes});
+  const DisplayCapturedImagesScreen({
+    super.key,
+    required this.imageBytesList,
+    required this.imagePaths,
+    required this.onDeleteImage,
+  });
+
+  @override
+  createState() => _DisplayCapturedImagesScreenState();
+}
+
+class _DisplayCapturedImagesScreenState
+    extends State<DisplayCapturedImagesScreen> {
+  late PageController _pageController;
+  int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Image'),
+          content: Text('Are you sure you want to delete this image?'),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close dialog
+                widget.onDeleteImage(_currentIndex);
+
+                // Navigate back if no more images
+                if (widget.imageBytesList.length <= 1) {
+                  Navigator.of(context).pop();
+                } else {
+                  // Adjust current index if necessary
+                  if (_currentIndex >= widget.imageBytesList.length - 1) {
+                    setState(() {
+                      _currentIndex = widget.imageBytesList.length - 2;
+                    });
+                    _pageController.animateToPage(
+                      _currentIndex,
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.imageBytesList.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: Text('No Images'),
+        ),
+        body: Center(
+          child: Text(
+            'No images to display',
+            style: TextStyle(color: Colors.white, fontSize: 18),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
-      //  appBar: AppBar(title: Text("Captured Image")),
-      body: Center(
-        child: Image.memory(imageBytes),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: Text(
+            'Photo ${_currentIndex + 1} of ${widget.imageBytesList.length}'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.delete, color: Colors.red),
+            onPressed: _confirmDelete,
+            tooltip: 'Delete Image',
+          ),
+        ],
+      ),
+      body: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.imageBytesList.length,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        itemBuilder: (context, index) {
+          return InteractiveViewer(
+            panEnabled: false,
+            boundaryMargin: EdgeInsets.all(20.sp),
+            minScale: 0.5,
+            maxScale: 4,
+            child: Image.memory(
+              widget.imageBytesList[index],
+              fit: BoxFit.contain,
+            ),
+          );
+        },
       ),
     );
   }

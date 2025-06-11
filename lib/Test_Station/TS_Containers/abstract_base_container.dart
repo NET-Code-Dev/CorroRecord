@@ -1,7 +1,7 @@
 //import 'package:asset_inspections/Common_Widgets/acvolts_mm_button.dart';
 import 'package:flutter/material.dart';
 
-import 'package:asset_inspections/Common_Widgets/custom_radio.dart';
+//import 'package:asset_inspections/Common_Widgets/custom_radio.dart';
 import 'package:asset_inspections/Common_Widgets/textfield_dropdown.dart';
 import 'package:asset_inspections/Common_Widgets/volts_button.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -79,7 +79,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   DateTime? initialvoltsACDate;
   bool showGraph = false;
 
-  int? _passOrFail;
+//  int? _passOrFail;
+  String? _isoStatus;
 
   //* Common variables for containers with Current readings
   bool userEditedCurrent = false;
@@ -225,7 +226,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     currentTestStation = widget.currentTestStation;
 
     // Sets the value of the [nameController] based on the first reading's name in the [widget.readings] list, or an empty string if the list is empty.
-    nameController.text = widget.readings.isNotEmpty ? widget.readings[0].name : '';
+    nameController.text =
+        widget.readings.isNotEmpty ? widget.readings[0].name : '';
 
     // Set the orderIndex based on the first reading's orderIndex in the widget's readings list, if it is not empty
     if (widget.readings.isNotEmpty) {
@@ -240,7 +242,13 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
 
     if (containerName == 'IsolationContainers') {
-      _passOrFail = widget.readings.isNotEmpty ? widget.readings[0].shorted : 0;
+      if (widget.readings.isNotEmpty &&
+          widget.readings[0] is IsolationReading) {
+        setState(() {
+          _isoStatus =
+              (widget.readings[0] as IsolationReading).status ?? 'Unchecked';
+        });
+      }
     }
   }
 
@@ -257,7 +265,10 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   ///
   /// Finally, the [setUpControllers] method is called to perform additional setup.
   void initializeControllers() {
-    labelController = TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].label != null ? widget.readings[0].label : '');
+    labelController = TextEditingController(
+        text: widget.readings.isNotEmpty && widget.readings[0].label != null
+            ? widget.readings[0].label
+            : '');
 
     if (containerName == 'PLTestLeadContainers' ||
         containerName == 'TestLeadContainers' ||
@@ -269,9 +280,14 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'IsolationContainers' ||
         containerName == 'BondContainers' ||
         containerName == 'CouponContainers') {
-      acController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].voltsAC != null ? widget.readings[0].formattedvoltsAC : '');
-      initialvoltsACDate = widget.readings.isNotEmpty && widget.readings[0].voltsACDate != null ? widget.readings[0].voltsACDate : null;
+      acController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].voltsAC != null
+              ? widget.readings[0].formattedvoltsAC
+              : '');
+      initialvoltsACDate =
+          widget.readings.isNotEmpty && widget.readings[0].voltsACDate != null
+              ? widget.readings[0].voltsACDate
+              : null;
     }
 
     // Initialize Containers with ON and OFF readings
@@ -282,41 +298,79 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         containerName == 'PermRefContainers' ||
         containerName == 'AnodeContainers' ||
         containerName == 'CouponContainers') {
-      onController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].voltsON != null ? widget.readings[0].formattedVoltsON : '');
-      offController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].voltsOFF != null ? widget.readings[0].formattedVoltsOFF : '');
-      initialVoltsONDate = widget.readings.isNotEmpty && widget.readings[0].voltsONDate != null ? widget.readings[0].voltsONDate : null;
-      initialVoltsOFFDate = widget.readings.isNotEmpty && widget.readings[0].voltsOFFDate != null ? widget.readings[0].voltsOFFDate : null;
+      onController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].voltsON != null
+              ? widget.readings[0].formattedVoltsON
+              : '');
+      offController = TextEditingController(
+          text:
+              widget.readings.isNotEmpty && widget.readings[0].voltsOFF != null
+                  ? widget.readings[0].formattedVoltsOFF
+                  : '');
+      initialVoltsONDate =
+          widget.readings.isNotEmpty && widget.readings[0].voltsONDate != null
+              ? widget.readings[0].voltsONDate
+              : null;
+      initialVoltsOFFDate =
+          widget.readings.isNotEmpty && widget.readings[0].voltsOFFDate != null
+              ? widget.readings[0].voltsOFFDate
+              : null;
     }
 
     // Initialize the controllers for ShuntContainers
     if (containerName == 'ShuntContainers') {
-      ratioMVController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].ratioMV != null ? widget.readings[0].formattedratioMV : '');
+      ratioMVController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].ratioMV != null
+              ? widget.readings[0].formattedratioMV
+              : '');
       ratioAmpsController = TextEditingController(
-          text: widget.readings.isNotEmpty && widget.readings[0].ratioAMPS != null ? widget.readings[0].formattedratioAMPS : '');
-      factorController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].factor != null ? widget.readings[0].formattedfactor : '');
-      vDropController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].vDrop != null ? widget.readings[0].formattedvDrop : '');
+          text:
+              widget.readings.isNotEmpty && widget.readings[0].ratioAMPS != null
+                  ? widget.readings[0].formattedratioAMPS
+                  : '');
+      factorController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].factor != null
+              ? widget.readings[0].formattedfactor
+              : '');
+      vDropController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].vDrop != null
+              ? widget.readings[0].formattedvDrop
+              : '');
       calculatedController = TextEditingController(
-          text: widget.readings.isNotEmpty && widget.readings[0].calculated != null ? widget.readings[0].formattedcalculated : '');
-      initialVoltageDropDate = widget.readings.isNotEmpty && widget.readings[0].vDropDate != null ? widget.readings[0].vDropDate : null;
-      initialCalculatedDate = widget.readings.isNotEmpty && widget.readings[0].calculatedDate != null ? widget.readings[0].calculatedDate : null;
+          text: widget.readings.isNotEmpty &&
+                  widget.readings[0].calculated != null
+              ? widget.readings[0].formattedcalculated
+              : '');
+      initialVoltageDropDate =
+          widget.readings.isNotEmpty && widget.readings[0].vDropDate != null
+              ? widget.readings[0].vDropDate
+              : null;
+      initialCalculatedDate = widget.readings.isNotEmpty &&
+              widget.readings[0].calculatedDate != null
+          ? widget.readings[0].calculatedDate
+          : null;
     }
 
     // Initialize Containers with Current readings
-    if (containerName == 'AnodeContainers' || containerName == 'IsolationContainers') {
-      currentController =
-          TextEditingController(text: widget.readings.isNotEmpty && widget.readings[0].current != null ? widget.readings[0].formattedCurrent : '');
-      initialCurrentDate = widget.readings.isNotEmpty && widget.readings[0].currentDate != null ? widget.readings[0].currentDate : null;
+    if (containerName == 'AnodeContainers' ||
+        containerName == 'IsolationContainers') {
+      currentController = TextEditingController(
+          text: widget.readings.isNotEmpty && widget.readings[0].current != null
+              ? widget.readings[0].formattedCurrent
+              : '');
+      initialCurrentDate =
+          widget.readings.isNotEmpty && widget.readings[0].currentDate != null
+              ? widget.readings[0].currentDate
+              : null;
     }
 
     // Iniialize Containers with Pipe Diameters
     if (containerName == 'RiserContainers') {
       pipeDiameterController = TextEditingController(
-          text: widget.readings.isNotEmpty && widget.readings[0].pipeDiameter != null ? widget.readings[0].formattedPipeDiameter : '');
+          text: widget.readings.isNotEmpty &&
+                  widget.readings[0].pipeDiameter != null
+              ? widget.readings[0].formattedPipeDiameter
+              : '');
     }
     setUpControllers();
   }
@@ -382,7 +436,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
 
     // Setup controller listeners for Current readings
-    if (containerName == 'AnodeContainers') {
+    if (containerName == 'AnodeContainers' ||
+        containerName == 'IsolationContainers') {
       currentController?.addListener(() {
         userEditedCurrent = true;
       });
@@ -441,7 +496,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
 
     //Initialize foucus nodes for containers with Current readings
-    if (containerName == 'AnodeContainers' || containerName == 'IsolationContainers') {
+    if (containerName == 'AnodeContainers' ||
+        containerName == 'IsolationContainers') {
       currentFocusNode = FocusNode();
     }
 
@@ -557,7 +613,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
 
     // Only add listeners to Current focus nodes if they are not null
-    if (containerName == 'AnodeContainers' || containerName == 'IsolationContainers') {
+    if (containerName == 'AnodeContainers' ||
+        containerName == 'IsolationContainers') {
       currentFocusNode?.addListener(() {
         if (!currentFocusNode!.hasFocus) {
           saveOrUpdateReading(containerName, []);
@@ -691,7 +748,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   ///
   /// The reading information is then passed to the [performDbOperation] method
   /// to perform the database operation.
-  void saveOrUpdateReading(String containerName, [List<String> waveForm = const []]) {
+  void saveOrUpdateReading(String containerName,
+      [List<String> waveForm = const []]) {
     int id = widget.currentTestStation.id ?? 0;
     String tsID = widget.currentTestStation.tsID;
     int currentOrderIndex = orderIndex!;
@@ -699,7 +757,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     String? sideAValue = selectedSideA ?? '';
     String? sideBValue = selectedSideB ?? '';
 
-    String currentTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+    String currentTime =
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
 
     var readingMap = {
       'stationID': widget.currentTestStation.id,
@@ -766,7 +825,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       userEditedOff = false;
     }
 
-    if (containerName == 'AnodeContainers' || containerName == 'IsolationContainers') {
+    if (containerName == 'AnodeContainers' ||
+        containerName == 'IsolationContainers') {
       if (userEditedCurrent) {
         readingMap['current'] = double.tryParse(currentController?.text ?? '');
         readingMap['current_Date'] = currentTime;
@@ -775,27 +835,32 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
 
     if (containerName == 'IsolationContainers') {
-      readingMap['iso_condition'] = _passOrFail;
+      readingMap['status'] = _isoStatus;
+      readingMap['status_Date'] = currentTime;
     }
 
     if (containerName == 'RiserContainers') {
-      readingMap['pipe_Diameter'] = double.tryParse(pipeDiameterController?.text ?? '');
+      readingMap['pipe_Diameter'] =
+          double.tryParse(pipeDiameterController?.text ?? '');
     }
 
     if (containerName == 'ShuntContainers') {
       readingMap['side_a'] = sideAValue;
       readingMap['side_b'] = sideBValue;
       readingMap['ratio_mv'] = double.tryParse(ratioMVController?.text ?? '');
-      readingMap['ratio_current'] = double.tryParse(ratioAmpsController?.text ?? '');
+      readingMap['ratio_current'] =
+          double.tryParse(ratioAmpsController?.text ?? '');
       readingMap['factor'] = double.tryParse(factorController?.text ?? '');
 
       if (userEditedVoltageDrop) {
-        readingMap['voltage_drop'] = double.tryParse(vDropController?.text ?? '');
+        readingMap['voltage_drop'] =
+            double.tryParse(vDropController?.text ?? '');
         readingMap['voltage_drop_Date'] = currentTime;
       }
 
       if (userEditedCalculated) {
-        readingMap['calculated'] = double.tryParse(calculatedController?.text ?? '');
+        readingMap['calculated'] =
+            double.tryParse(calculatedController?.text ?? '');
         readingMap['calculated_Date'] = currentTime;
       }
       userEditedVoltageDrop = false;
@@ -816,10 +881,13 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
   /// If the operation is successful and an ID is returned, a snackbar with the message "Reading Saved!" is shown.
   /// If the operation fails, a snackbar with the message "Failed to Save Reading!" is shown.
   /// If an error occurs during the operation, a snackbar with the error message is shown.
-  void performDbOperation(int stationID, String tsID, Map<String, dynamic> readingMap, String containerName) async {
+  void performDbOperation(int stationID, String tsID,
+      Map<String, dynamic> readingMap, String containerName) async {
     DatabaseHelper dbHelper = DatabaseHelper.instance;
 
-    await dbHelper.insertOrUpdateReading(stationID, readingMap, containerName).then((insertedId) {
+    await dbHelper
+        .insertOrUpdateReading(stationID, readingMap, containerName)
+        .then((insertedId) {
       if (insertedId > 0) {
         widget.scaffoldMessengerKey.currentState?.showSnackBar(
           const SnackBar(content: Text('Reading Saved!')),
@@ -985,7 +1053,9 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     alignment: Alignment.bottomCenter,
                     heightFactor: 1.1,
                     child: Text(
-                      nameController.text.isEmpty ? 'Default Text' : nameController.text,
+                      nameController.text.isEmpty
+                          ? 'Default Text'
+                          : nameController.text,
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 26.sp,
@@ -1015,19 +1085,26 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 thickness: 1,
               ),
               SizedBox(height: 5.h),
-              if (labelRow != null) labelRow, // Include the labelRow if provided
-              if (acReadingRow != null) acReadingRow, // Include the acReadingRow if provided
-              if (onReadingRow != null) onReadingRow, // Include the onReadingRow if provided
+              if (labelRow != null)
+                labelRow, // Include the labelRow if provided
+              if (acReadingRow != null)
+                acReadingRow, // Include the acReadingRow if provided
+              if (onReadingRow != null)
+                onReadingRow, // Include the onReadingRow if provided
               //SizedBox(height: 10.h),
               if (offReadingRow != null) offReadingRow,
 
-              if (wireColorAndLugNumberRow != null) wireColorAndLugNumberRow, // Include the offReadingRow if provided
+              if (wireColorAndLugNumberRow != null)
+                wireColorAndLugNumberRow, // Include the offReadingRow if provided
               //SizedBox(height: 10.h),
-              if (bottomGraph != null) bottomGraph, // Include the bottomGraph if provided
+              if (bottomGraph != null)
+                bottomGraph, // Include the bottomGraph if provided
               //SizedBox(height: 10.h),
-              if (sideAtoSideB != null) sideAtoSideB, // Include the sideAtoSideBDropdowns if provided
+              if (sideAtoSideB != null)
+                sideAtoSideB, // Include the sideAtoSideBDropdowns if provided
               //SizedBox(height: 10.h),
-              if (shuntCalculationRows != null) shuntCalculationRows, // Include the shuntCalculationRows if provided
+              if (shuntCalculationRows != null)
+                shuntCalculationRows, // Include the shuntCalculationRows if provided
               if (passFailRow != null) passFailRow,
               if (currentReadingRow != null) currentReadingRow,
 
@@ -1040,6 +1117,33 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     );
   }
 
+  Widget buildLabelRow(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 5.h),
+        Row(
+          children: [
+            Text('User Label: ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.bold,
+                )),
+            const Spacer(),
+            LabelTextField(
+              testStationID: widget.currentTestStation.tsID,
+              fetchNamesForLabel: loadLabels,
+              controller: labelController,
+              focusNode: labelFocusNode,
+            ),
+          ],
+        ),
+        SizedBox(height: 5.h),
+      ],
+    );
+  }
+
+/*
   Widget buildLabelRow(BuildContext context) {
     return Column(
       children: [
@@ -1058,7 +1162,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 SizedBox(
                   width: 170.w,
                   child: LabelTextField(
-                    testStationID: widget.currentTestStation.tsID, // Replace with your test station ID
+                    testStationID: widget.currentTestStation
+                        .tsID, // Replace with your test station ID
                     fetchNamesForLabel: loadLabels,
                     controller: labelController,
                     focusNode: labelFocusNode,
@@ -1072,7 +1177,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       ],
     );
   }
-
+*/
   @protected
   Widget buildACReadingRow(BuildContext context) {
     String? formattedvoltsACDate = formatDateTime(initialvoltsACDate);
@@ -1092,7 +1197,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               VoltageButton(
                 cycleMode: CycleMode.staticMode,
                 selectedMode: Mode.acVoltage,
-                multimeterService: Provider.of<MultimeterService>(context, listen: false),
+                multimeterService:
+                    Provider.of<MultimeterService>(context, listen: false),
                 acController: acController,
                 onTimerStatusChanged: handleTimerStatusChangedAC,
                 onSaveOrUpdate: saveOrUpdateReading,
@@ -1116,14 +1222,20 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               style: TextStyle(
                 color: isTimerActiveAC ? Colors.red : Colors.green,
                 fontSize: 22.sp,
-                fontStyle: isTimerActiveAC ? FontStyle.italic : FontStyle.normal,
+                fontStyle:
+                    isTimerActiveAC ? FontStyle.italic : FontStyle.normal,
                 fontWeight: FontWeight.bold,
               ),
               hintText: RichText(
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: 'V AC', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: 'V AC',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                   ],
                 ),
               ),
@@ -1197,7 +1309,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 selectedMode: Mode.dcVoltage,
                 onController: onController,
                 offController: offController,
-                multimeterService: Provider.of<MultimeterService>(context, listen: false),
+                multimeterService:
+                    Provider.of<MultimeterService>(context, listen: false),
                 onTimerStatusChanged: handleTimerStatusChangedON,
                 offTimerStatusChanged: handleTimerStatusChangedOFF,
                 onSaveOrUpdate: saveOrUpdateReading,
@@ -1226,15 +1339,26 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 //TODO: Color needs to be moved to only be used when DCVoltsButtonCycled is used
                 color: isTimerActiveON ? Colors.red : Colors.green,
                 fontSize: 22.sp,
-                fontStyle: isTimerActiveON ? FontStyle.italic : FontStyle.normal,
+                fontStyle:
+                    isTimerActiveON ? FontStyle.italic : FontStyle.normal,
                 fontWeight: FontWeight.bold,
               ),
               hintText: RichText(
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: '-V', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
-                    TextSpan(text: ' CSE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: '-V',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
+                    TextSpan(
+                        text: ' CSE',
+                        style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                   ],
                 ),
               ),
@@ -1306,7 +1430,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               DCvoltsMMButton(
                 selectedMode: Mode.dcVoltage, // Adapt based on your needs
                 controller: offController,
-                multimeterService: Provider.of<MultimeterService>(context, listen: false),
+                multimeterService:
+                    Provider.of<MultimeterService>(context, listen: false),
                 onTimerStatusChanged: handleTimerStatusChangedOFF,
                 onSaveOrUpdate: (String value) {
                   saveOrUpdateReading(value, []);
@@ -1321,15 +1446,26 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
               style: TextStyle(
                 color: isTimerActiveOFF ? Colors.red : Colors.green,
                 fontSize: 22.sp,
-                fontStyle: isTimerActiveOFF ? FontStyle.italic : FontStyle.normal,
+                fontStyle:
+                    isTimerActiveOFF ? FontStyle.italic : FontStyle.normal,
                 fontWeight: FontWeight.bold,
               ),
               hintText: RichText(
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: '-V', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
-                    TextSpan(text: ' CSE', style: TextStyle(fontSize: 7, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: '-V',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
+                    TextSpan(
+                        text: ' CSE',
+                        style: TextStyle(
+                            fontSize: 7,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                   ],
                 ),
               ),
@@ -1402,7 +1538,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: 'A', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: 'A',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                   ],
                 ),
               ),
@@ -1474,7 +1615,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: '"', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: '"',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                   ],
                 ),
               ),
@@ -1490,6 +1636,90 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     );
   }
 
+  Widget buildPassFailRow(BuildContext context) {
+    // Define the statuses and corresponding colors
+    final List<String> isoStatuses = ['Pass', 'Fail', 'Undetermined', 'None'];
+    final Map<String, Color> statusColors = {
+      'Unchecked': Colors.grey.shade400,
+      'Pass': Colors.green,
+      'Fail': Colors.red,
+      'Undetermined': Colors.yellow,
+      'None': Colors.blue,
+    };
+
+    // Initialize _isoStatus if it's null and we have reading data
+    if (_isoStatus == null &&
+        widget.readings.isNotEmpty &&
+        containerName == 'IsolationContainers') {
+      _isoStatus = (widget.readings[0] as dynamic).status ?? 'Unchecked';
+    }
+
+    // Get current status as string
+    String currentStatus = _isoStatus ?? 'Unchecked';
+    String? previousStatus = currentStatus;
+
+    return Column(
+      children: [
+        SizedBox(height: 5.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Isolation Status:',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.bold,
+                )),
+            SizedBox(width: 10.w),
+            SizedBox(
+              width: 140.w,
+              height: 40.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    previousStatus = currentStatus;
+                    // If currently "Unchecked", start at the beginning of the cycle
+                    if (currentStatus == 'Unchecked') {
+                      currentStatus = isoStatuses[0];
+                    } else {
+                      // Find current index in the cycle list
+                      int currentIndex = isoStatuses.indexOf(currentStatus);
+                      // Move to next status in the cycle
+                      currentStatus =
+                          isoStatuses[(currentIndex + 1) % isoStatuses.length];
+                    }
+
+                    // Store the text value directly
+                    _isoStatus = currentStatus;
+
+                    // Save to database
+                    if (previousStatus != currentStatus) {
+                      saveOrUpdateReading(containerName, []);
+                    }
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: statusColors[currentStatus],
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                ),
+                child: Text(
+                  currentStatus,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 25.h),
+      ],
+    );
+  }
+
+/*
   Widget buildPassFailRow(BuildContext context) {
     return Column(
       children: [
@@ -1538,7 +1768,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
       ],
     );
   }
-
+*/
   Widget buildWireColorAndLugNumberRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1568,16 +1798,21 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 style: TextStyle(color: Colors.black, fontSize: 14.sp),
                 decoration: InputDecoration(
                   hintText: 'Wire Color',
-                  hintStyle: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  hintStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold),
                   border: OutlineInputBorder(
                     // Minimal border adjustments
                     borderRadius: BorderRadius.circular(4.0),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 5.h), // Reduced padding
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 5.h), // Reduced padding
                   alignLabelWithHint: true,
                 ),
-                items: colorMap.keys.map<DropdownMenuItem<String>>((String colorKey) {
+                items: colorMap.keys
+                    .map<DropdownMenuItem<String>>((String colorKey) {
                   return DropdownMenuItem<String>(
                     value: colorKey,
                     child: Row(
@@ -1588,7 +1823,8 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                           margin: const EdgeInsets.only(right: 4),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(2),
-                            border: Border.all(color: Colors.black, width: 1), // Black border
+                            border: Border.all(
+                                color: Colors.black, width: 1), // Black border
                           ),
                           child: colorDisplay(colorKey),
                         ),
@@ -1626,15 +1862,20 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 style: TextStyle(color: Colors.black, fontSize: 14.sp),
                 decoration: InputDecoration(
                   hintText: 'Lug Number',
-                  hintStyle: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  hintStyle: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(4.0),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.symmetric(vertical: 2.h), // Adjusted padding
+                  contentPadding:
+                      EdgeInsets.symmetric(vertical: 2.h), // Adjusted padding
                   alignLabelWithHint: true,
                 ),
-                items: List<int>.generate(15, (int index) => index + 1).map<DropdownMenuItem<int>>((int number) {
+                items: List<int>.generate(15, (int index) => index + 1)
+                    .map<DropdownMenuItem<int>>((int number) {
                   return DropdownMenuItem<int>(
                     value: number,
                     child: Text(number.toString()),
@@ -1717,13 +1958,16 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                         contentPadding: const EdgeInsets.fromLTRB(15, 0, 10, 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide(color: Colors.grey, width: 1.5.w),
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 1.5.w),
                         ),
                       ),
                       dropdownColor: Colors.white,
                       isExpanded: true,
                       value: selectedSideA,
-                      items: fullNamesList.where((item) => item != selectedSideB).map<DropdownMenuItem<String>>((String value) {
+                      items: fullNamesList
+                          .where((item) => item != selectedSideB)
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value,
@@ -1784,13 +2028,16 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                         contentPadding: const EdgeInsets.fromLTRB(15, 0, 10, 0),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(5),
-                          borderSide: BorderSide(color: Colors.grey, width: 1.5.w),
+                          borderSide:
+                              BorderSide(color: Colors.grey, width: 1.5.w),
                         ),
                       ),
                       dropdownColor: Colors.white,
                       isExpanded: true,
                       value: selectedSideB,
-                      items: fullNamesList.where((item) => item != selectedSideA).map<DropdownMenuItem<String>>((String value) {
+                      items: fullNamesList
+                          .where((item) => item != selectedSideA)
+                          .map<DropdownMenuItem<String>>((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(value,
@@ -1867,7 +2114,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: 'A', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: 'A',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     //  TextSpan(text: ' CSE', style: TextStyle(fontSize: 10)),
                   ],
                 ),
@@ -1894,7 +2146,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     text: TextSpan(
                       style: DefaultTextStyle.of(context).style,
                       children: const [
-                        TextSpan(text: 'mV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                        TextSpan(
+                            text: 'mV',
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey)),
                         //  TextSpan(text: ' CSE', style: TextStyle(fontSize: 10)),
                       ],
                     ),
@@ -1925,7 +2182,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                 text: TextSpan(
                   style: DefaultTextStyle.of(context).style,
                   children: const [
-                    TextSpan(text: 'A/mV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    TextSpan(
+                        text: 'A/mV',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey)),
                     //  TextSpan(text: ' CSE', style: TextStyle(fontSize: 10)),
                   ],
                 ),
@@ -1958,7 +2220,12 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                     text: TextSpan(
                       style: DefaultTextStyle.of(context).style,
                       children: const [
-                        TextSpan(text: 'mV', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
+                        TextSpan(
+                            text: 'mV',
+                            style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey)),
                         // TextSpan(text: ' CSE', style: TextStyle(fontSize: 10)),
                       ],
                     ),
@@ -1979,7 +2246,10 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
                       fontWeight: FontWeight.bold,
                     )),
                 SizedBox(height: 5.h),
-                Text(calculatedController!.text.isEmpty ? '0 A' : "${calculatedController?.text} A",
+                Text(
+                    calculatedController!.text.isEmpty
+                        ? '0 A'
+                        : "${calculatedController?.text} A",
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 34.sp,
@@ -2030,7 +2300,6 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
 //ShuntContainer (Done)
 //BondContainer
 //IsoContainer
-
 
 /*
 import 'package:flutter/material.dart';

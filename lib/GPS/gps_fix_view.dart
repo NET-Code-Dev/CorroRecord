@@ -202,13 +202,15 @@ class _GpsFixViewState extends State<GpsFixView> {
     return Container(
       padding: EdgeInsets.all(8.w),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.8),
+        //color: Colors.white.withOpacity(0.8),
+        color: const Color.fromRGBO(255, 255, 255, 0.8),
         borderRadius: BorderRadius.circular(8.r),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            //color: Colors.black.withOpacity(0.1),
+            color: Color.fromRGBO(0, 0, 0, 0.8),
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -343,7 +345,8 @@ class FixViewPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.blue.withOpacity(0.5)
+      //..color = Colors.blue.withOpacity(0.5)
+      ..color = const Color.fromRGBO(33, 150, 143, 0.5)
       ..strokeWidth = 1;
 
     if (centerPoint != null) {

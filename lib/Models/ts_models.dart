@@ -581,7 +581,7 @@ class AnodeReading {
 
   String get formattedCurrent {
     if (current != null) {
-      final formatter = NumberFormat("0.00");
+      final formatter = NumberFormat("0.000");
       return formatter.format(current);
     }
     return '';
@@ -712,15 +712,18 @@ class ShuntReading {
   });
 
   // Custom getters for formatted voltages
-  String get formattedratioMV => ratioMV != null ? _formatVoltage(ratioMV!) : '';
+  String get formattedratioMV =>
+      ratioMV != null ? _formatVoltage(ratioMV!) : '';
 
-  String get formattedratioAMPS => ratioAMPS != null ? _formatVoltage(ratioAMPS!) : '';
+  String get formattedratioAMPS =>
+      ratioAMPS != null ? _formatVoltage(ratioAMPS!) : '';
 
   String get formattedfactor => factor != null ? _formatVoltage(factor!) : '';
 
   String get formattedvDrop => vDrop != null ? _formatVoltage(vDrop!) : '';
 
-  String get formattedcalculated => calculated != null ? _formatVoltage(calculated!) : '';
+  String get formattedcalculated =>
+      calculated != null ? _formatVoltage(calculated!) : '';
   String get formattedvoltsAC {
     if (voltsAC != null) {
       final formatter = NumberFormat("0.00");
@@ -823,8 +826,10 @@ class RiserReading {
     required this.orderIndex,
   });
 
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+  String get formattedVoltsON =>
+      voltsON != null ? _formatVoltage(voltsON!) : '';
+  String get formattedVoltsOFF =>
+      voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
 
   String get formattedvoltsAC {
     if (voltsAC != null) {
@@ -840,7 +845,8 @@ class RiserReading {
 
   String get formattedWaveForm => waveForm ?? '';
 
-  String get formattedPipeDiameter => pipeDiameter != null ? pipeDiameter.toString() : '';
+  String get formattedPipeDiameter =>
+      pipeDiameter != null ? pipeDiameter.toString() : '';
 
   Map<String, dynamic> toMap() {
     var map = {
@@ -867,19 +873,31 @@ class RiserReading {
   factory RiserReading.fromMap(Map<String, dynamic> map) {
     return RiserReading(
       id: map['id'] is int ? map['id'] : int.tryParse(map['id'].toString()),
-      stationID: map['stationID'] is int ? map['stationID'] : int.tryParse(map['stationID'].toString()),
+      stationID: map['stationID'] is int
+          ? map['stationID']
+          : int.tryParse(map['stationID'].toString()),
       testStationID: map['testStationID'].toString(),
       name: map['name'].toString(),
       label: map['label']?.toString(),
-      voltsAC: map['voltsAC'] is double ? map['voltsAC'] : double.tryParse(map['voltsAC'].toString()),
+      voltsAC: map['voltsAC'] is double
+          ? map['voltsAC']
+          : double.tryParse(map['voltsAC'].toString()),
       voltsACDate: _parseDateTime(map['voltsAC_Date']),
-      voltsON: map['voltsON'] is double ? map['voltsON'] : double.tryParse(map['voltsON'].toString()),
+      voltsON: map['voltsON'] is double
+          ? map['voltsON']
+          : double.tryParse(map['voltsON'].toString()),
       voltsONDate: _parseDateTime(map['voltsON_Date']),
-      voltsOFF: map['voltsOFF'] is double ? map['voltsOFF'] : double.tryParse(map['voltsOFF'].toString()),
+      voltsOFF: map['voltsOFF'] is double
+          ? map['voltsOFF']
+          : double.tryParse(map['voltsOFF'].toString()),
       voltsOFFDate: _parseDateTime(map['voltsOFF_Date']),
-      pipeDiameter: map['pipe_Diameter'] is double ? map['pipe_Diameter'] : double.tryParse(map['pipe_Diameter'].toString()),
+      pipeDiameter: map['pipe_Diameter'] is double
+          ? map['pipe_Diameter']
+          : double.tryParse(map['pipe_Diameter'].toString()),
       waveForm: map['waveForm']?.toString(),
-      orderIndex: map['order_index'] is int ? map['order_index'] : int.parse(map['order_index'].toString()),
+      orderIndex: map['order_index'] is int
+          ? map['order_index']
+          : int.parse(map['order_index'].toString()),
     );
   }
 
@@ -935,10 +953,12 @@ class ForeignReading {
   });
 
   /// Gets the formatted voltage when turned on.
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
+  String get formattedVoltsON =>
+      voltsON != null ? _formatVoltage(voltsON!) : '';
 
   /// Gets the formatted voltage when turned off.
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+  String get formattedVoltsOFF =>
+      voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
 
   String get formattedWaveForm => waveForm ?? '';
 
@@ -1048,8 +1068,10 @@ class TestLeadReading {
   });
 
   // Custom getters for formatted voltages
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+  String get formattedVoltsON =>
+      voltsON != null ? _formatVoltage(voltsON!) : '';
+  String get formattedVoltsOFF =>
+      voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
 
   String get formattedWaveForm => waveForm ?? '';
 
@@ -1175,9 +1197,12 @@ class CouponReading {
   });
 
   // Custom getters for formatted voltages
-  String get formattedVoltsON => voltsON != null ? _formatVoltage(voltsON!) : '';
-  String get formattedVoltsOFF => voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
-  String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
+  String get formattedVoltsON =>
+      voltsON != null ? _formatVoltage(voltsON!) : '';
+  String get formattedVoltsOFF =>
+      voltsOFF != null ? _formatVoltage(voltsOFF!) : '';
+  String get formattedCurrent =>
+      current != null ? _formatVoltage(current!) : '';
   String get formattedSize => size != null ? _formatVoltage(size!) : '';
   String get formattedWaveForm => waveForm ?? '';
 
@@ -1297,7 +1322,8 @@ class BondReading {
   /// Gets the formatted current value.
   ///
   /// Returns an empty string if [current] is null.
-  String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
+  String get formattedCurrent =>
+      current != null ? _formatVoltage(current!) : '';
 
   String get formattedvoltsAC {
     if (voltsAC != null) {
@@ -1377,8 +1403,8 @@ class IsolationReading {
   final String? sideA;
   final String? sideB;
   final String? type;
-  final int? shorted;
-  final DateTime? shortedDate;
+  final String? status;
+  final DateTime? statusDate;
   final double? current;
   final DateTime? currentDate;
 
@@ -1407,15 +1433,12 @@ class IsolationReading {
     this.sideA,
     this.sideB,
     this.type,
-    this.shorted,
-    this.shortedDate,
+    this.status,
+    this.statusDate,
     this.current,
     this.currentDate,
     required this.orderIndex,
   });
-
-  // Custom getters for formatted voltages
-  String get formattedCurrent => current != null ? _formatVoltage(current!) : '';
 
   String get formattedvoltsAC {
     if (voltsAC != null) {
@@ -1425,10 +1448,22 @@ class IsolationReading {
     return '';
   }
 
-  // Helper method to format voltage values
-  String _formatVoltage(double value) {
-    return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(2);
+  String get formattedCurrent {
+    if (current != null) {
+      final formatter = NumberFormat("0.000");
+      return formatter.format(current);
+    }
+    return '';
   }
+
+  // Custom getters for formatted voltages
+  //String get formattedCurrent =>
+  // current != null ? _formatVoltage(current!) : '';
+
+  // Helper method to format voltage values
+  // String _formatVoltage(double value) {
+  //   return value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(3);
+  // }
 
   /// Converts the [IsolationReading] object to a map.
   ///
@@ -1444,10 +1479,10 @@ class IsolationReading {
       'side_a': sideA,
       'side_b': sideB,
       'iso_type': type,
-      'iso_shorted': shorted,
-      'iso_shorted_date': shortedDate,
-      'iso_current': current,
-      'iso_current_date': currentDate,
+      'status': status,
+      'status_Date': statusDate,
+      'current': current,
+      'current_Date': currentDate,
       'order_index': orderIndex,
     };
     if (id != null) {
@@ -1465,17 +1500,17 @@ class IsolationReading {
       id: map['id'] as int,
       stationID: map['stationID'] as int,
       testStationID: map['testStationID'].toString(),
-      name: map['name'],
-      label: map['label'],
-      voltsAC: map['voltsAC'],
+      name: map['name'] as String,
+      label: map['label'] as String?,
+      voltsAC: (map['voltsAC'] as num?)?.toDouble(),
       voltsACDate: _parseDateTime(map['voltsAC_Date']),
       sideA: map['side_a'],
       sideB: map['side_b'],
       type: map['iso_type'],
-      shorted: map['iso_shorted'],
-      shortedDate: _parseDateTime(map['iso_shorted_date']),
-      current: map['iso_current'],
-      currentDate: _parseDateTime(map['iso_current_date']),
+      status: map['status'],
+      statusDate: _parseDateTime(map['status_Date']),
+      current: (map['current'] as num?)?.toDouble(),
+      currentDate: _parseDateTime(map['current_Date']),
       orderIndex: map['order_index'],
     );
   }

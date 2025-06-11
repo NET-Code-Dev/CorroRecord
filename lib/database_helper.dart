@@ -533,8 +533,8 @@ class DatabaseHelper {
         side_a TEXT,
         side_b TEXT,
         type TEXT,
-        iso_condition INTEGER,
-        shorted_Date TEXT,
+        status TEXT,
+        status_Date TEXT,
         current REAL,
         current_Date TEXT,
 

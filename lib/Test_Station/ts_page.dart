@@ -28,6 +28,7 @@ class TestStationsPage extends StatefulWidget {
 }
 
 class _TestStationsPageState extends State<TestStationsPage> {
+
   Future<void> importCsv(BuildContext context) async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
     if (result != null) {
@@ -353,7 +354,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Color.fromRGBO(158, 158, 158, 0.5),
                       spreadRadius: 2,
                       blurRadius: 7,
                       offset: const Offset(0, 3),
@@ -375,7 +376,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Color.fromRGBO(158, 158, 158, 0.5),
                       spreadRadius: 2,
                       blurRadius: 7,
                       offset: const Offset(0, 3),
@@ -521,7 +522,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Color.fromRGBO(158, 158, 158, 0.5),
                       spreadRadius: 2,
                       blurRadius: 7,
                       offset: const Offset(0, 3),
@@ -599,7 +600,83 @@ class _TestStationsPageState extends State<TestStationsPage> {
           //    const InternalGPSStatusBar(),
           //  ),
           Expanded(
-            child: Consumer<TSNotifier>(
+            child: 
+            Consumer<TSNotifier>(
+  builder: (context, tsNotifier, child) {
+    return Column(
+      children: [
+        // Show GPS connection status banner when not connected
+        if (!tsNotifier.isGpsConnected)
+          Container(
+            color: Colors.amber[100],
+            padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'GPS Not Connected - Distance and direction information unavailable',
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => tsNotifier.initializeGps(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  ),
+                  child: const Text('Connect GPS'),
+                ),
+              ],
+            ),
+          ),
+        
+        // Always show the list of test stations regardless of GPS connection
+        Expanded(
+          child: ListView.builder(
+            padding: EdgeInsets.all(10.w),
+            itemCount: tsNotifier.testStations.length,
+            itemBuilder: (context, index) {
+              TestStation testStation = tsNotifier.testStations[index];
+
+              final currentGpsData = tsNotifier.currentGpsLocation;
+              final currentLat = currentGpsData?['latitude'] as double?;
+              final currentLon = currentGpsData?['longitude'] as double?;
+              
+              final stationLat = testStation.latitude ?? 0.0;
+              final stationLon = testStation.longitude ?? 0.0;
+
+              bool isValidLocation = tsNotifier.isGpsConnected && 
+                  currentLat != null && currentLon != null && 
+                  stationLat != 0.0 && stationLon != 0.0;
+
+              double distanceInMeters = isValidLocation
+                  ? tsNotifier.calculateDistance(
+                      currentLat!,
+                      currentLon!,
+                      stationLat,
+                      stationLon,
+                    )
+                  : 0.0;
+
+              String direction = isValidLocation
+                  ? tsNotifier.calculateBearing(
+                      currentLat!,
+                      currentLon!,
+                      stationLat,
+                      stationLon,
+                    )
+                  : 'Unknown';
+
+              String distanceDisplay = isValidLocation 
+                  ? '${distanceInMeters.toStringAsFixed(2)} m' 
+                  : 'Location Unknown';
+
+              return GestureDetector(
+                onTap: () {
+/*            
+            Consumer<TSNotifier>(
               builder: (context, tsNotifier, child) {
                 if (!tsNotifier.isGpsConnected) {
                   return Center(
@@ -630,7 +707,7 @@ class _TestStationsPageState extends State<TestStationsPage> {
                       final stationLat = testStation.latitude ?? 0.0;
                       final stationLon = testStation.longitude ?? 0.0;
 
-                      bool isValidLocation = currentLat != null && currentLon != null && stationLat != 0.0 && stationLon != 0.0;
+                   /*  bool*/final isValidLocation = currentLat != null && currentLon != null && stationLat != 0.0 && stationLon != 0.0;
 
                       double distanceInMeters = isValidLocation
                           ? tsNotifier.calculateDistance(
@@ -654,6 +731,8 @@ class _TestStationsPageState extends State<TestStationsPage> {
 
                       return GestureDetector(
                           onTap: () {
+*/
+
                             tsNotifier.currentTestStation = testStation;
                             Navigator.push(
                                 // Navigate to the details page
@@ -834,7 +913,8 @@ class _TestStationsPageState extends State<TestStationsPage> {
                               ),
                             ),
                           ));
-                    });
+                    }),
+                    )]);
               },
             ),
           ),

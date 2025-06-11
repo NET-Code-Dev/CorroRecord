@@ -319,7 +319,8 @@ class _BottomSheetLiveGraphState extends State<BottomSheetLiveGraph> {
                   isStrokeCapRound: false,
                   belowBarData: BarAreaData(
                     show: true,
-                    color: Colors.yellow.withOpacity(0.5),
+                    //color: Colors.yellow.withOpacity(0.5),
+                    color: const Color.fromARGB(128, 255, 255, 84),
                   ),
                   dotData: const FlDotData(show: false), // Hide the dots
                 ),

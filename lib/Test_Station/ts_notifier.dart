@@ -9,15 +9,16 @@ import 'package:asset_inspections/phone_id.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
-import 'package:permission_handler/permission_handler.dart' as permission_handler;
+//import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart'
+    as permission_handler;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 //import 'package:sqflite/sqflite.dart';
 
 import 'package:asset_inspections/Models/project_model.dart';
 import 'package:asset_inspections/Models/ts_models.dart';
-import 'package:asset_inspections/Common_Widgets/gps_location.dart';
+//import 'package:asset_inspections/Common_Widgets/gps_location.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../database_helper.dart';
@@ -137,7 +138,10 @@ class TSNotifier extends ChangeNotifier {
         final latitude = data['latitude'] as double?;
         final longitude = data['longitude'] as double?;
 
-        if (latitude != null && longitude != null && latitude != 0.0 && longitude != 0.0) {
+        if (latitude != null &&
+            longitude != null &&
+            latitude != 0.0 &&
+            longitude != 0.0) {
           _lastKnownGoodLocation = data;
           notifyListeners();
         }
@@ -192,7 +196,8 @@ class TSNotifier extends ChangeNotifier {
   /// - context: The build context.
   ///
   /// Returns: A [Future] that completes when the operation is done.
-  Future<void> setCurrentTestStationByServiceTag(int projectID, int id, String tsID, BuildContext context) async {
+  Future<void> setCurrentTestStationByServiceTag(
+      int projectID, int id, String tsID, BuildContext context) async {
     final dbHelper = DatabaseHelper.instance;
     final tsData = await dbHelper.queryTestStationBytsID(projectID, tsID);
     if (tsData != null) {
@@ -230,15 +235,19 @@ class TSNotifier extends ChangeNotifier {
   /// - context: The build context.
   ///
   /// Returns: A [Future] that completes when the operation is done.
-  void updateTestStationStatus(TestStation testStation, String newTSStatus, BuildContext context) async {
-    final projectName = Provider.of<ProjectModel>(context, listen: false).fullProjectName;
+  void updateTestStationStatus(
+      TestStation testStation, String newTSStatus, BuildContext context) async {
+    final projectName =
+        Provider.of<ProjectModel>(context, listen: false).fullProjectName;
     final dbHelper = DatabaseHelper.instance;
 
-    int index = _testStations.indexWhere((existingTestStation) => existingTestStation.id == testStation.id);
+    int index = _testStations.indexWhere(
+        (existingTestStation) => existingTestStation.id == testStation.id);
 
     if (index != -1) {
       _testStations[index].tsstatus = newTSStatus;
-      await dbHelper.updateTestStation(projectName, _testStations[index].toMap());
+      await dbHelper.updateTestStation(
+          projectName, _testStations[index].toMap());
       notifyListeners();
     }
   }
@@ -285,18 +294,22 @@ class TSNotifier extends ChangeNotifier {
     double? longitude,
     required BuildContext context,
   }) async {
-    final projectName = Provider.of<ProjectModel>(context, listen: false).fullProjectName;
+    final projectName =
+        Provider.of<ProjectModel>(context, listen: false).fullProjectName;
     final dbHelper = DatabaseHelper.instance;
 
-    int index = _testStations.indexWhere((existingTestStation) => existingTestStation.id == testStation.id);
+    int index = _testStations.indexWhere(
+        (existingTestStation) => existingTestStation.id == testStation.id);
 
     if (index != -1) {
       _testStations[index].area = newArea ?? _testStations[index].area;
       _testStations[index].tsID = newtsID;
       _testStations[index].tsstatus = newStatus;
-      _testStations[index].officeNotes = newFieldNotes ?? _testStations[index].officeNotes;
+      _testStations[index].fieldNotes =
+          newFieldNotes ?? _testStations[index].fieldNotes;
       _testStations[index].latitude = latitude ?? _testStations[index].latitude;
-      _testStations[index].longitude = longitude ?? _testStations[index].longitude;
+      _testStations[index].longitude =
+          longitude ?? _testStations[index].longitude;
 
       // Add the new readings to the existing lists of readings.
       if (newPLTestLeadReading != null) {
@@ -329,7 +342,8 @@ class TSNotifier extends ChangeNotifier {
       if (newIsolationReading != null) {
         _testStations[index].isolationReadings?.addAll(newIsolationReading);
       }
-      await dbHelper.updateTestStation(projectName, _testStations[index].toMap());
+      await dbHelper.updateTestStation(
+          projectName, _testStations[index].toMap());
       notifyListeners();
     }
   }
@@ -416,7 +430,8 @@ class TSNotifier extends ChangeNotifier {
   ///
   /// If an error occurs during the process, it is caught and handled appropriately.
 
-  Future<void> addTestStations(List<TestStation> testStations, int projectID) async {
+  Future<void> addTestStations(
+      List<TestStation> testStations, int projectID) async {
     final dbHelper = DatabaseHelper.instance;
 
     List<Map<String, dynamic>> testStationMaps = [];
@@ -450,7 +465,8 @@ class TSNotifier extends ChangeNotifier {
   /// After deleting the test station, it is also removed from the [_testStations] list.
   /// The updated test stations are then loaded from the database and the UI is notified of the changes.
   Future<void> deleteTestStation(int id, BuildContext context) async {
-    final projectName = Provider.of<ProjectModel>(context, listen: false).fullProjectName;
+    final projectName =
+        Provider.of<ProjectModel>(context, listen: false).fullProjectName;
     final dbHelper = DatabaseHelper.instance;
 
     // Delete the test station from the database
@@ -465,10 +481,12 @@ class TSNotifier extends ChangeNotifier {
 
   void removeReading(String containerName, int stationID, int orderIndex) {
     if (kDebugMode) {
-      print('Removing reading from $containerName for stationID=$stationID and orderIndex=$orderIndex');
+      print(
+          'Removing reading from $containerName for stationID=$stationID and orderIndex=$orderIndex');
     }
 
-    int stationIndex = _testStations.indexWhere((station) => station.id == stationID);
+    int stationIndex =
+        _testStations.indexWhere((station) => station.id == stationID);
     if (stationIndex != -1) {
       bool removed = false;
       int? beforeCount;
@@ -477,52 +495,72 @@ class TSNotifier extends ChangeNotifier {
       switch (containerName) {
         case 'PLTestLeadContainers':
           beforeCount = _testStations[stationIndex].plTestLeadReadings?.length;
-          _testStations[stationIndex].plTestLeadReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .plTestLeadReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].plTestLeadReadings?.length;
           break;
         case 'PermRefContainers':
           beforeCount = _testStations[stationIndex].permRefReadings?.length;
-          _testStations[stationIndex].permRefReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .permRefReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].permRefReadings?.length;
           break;
         case 'AnodeContainers':
           beforeCount = _testStations[stationIndex].anodeReadings?.length;
-          _testStations[stationIndex].anodeReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .anodeReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].anodeReadings?.length;
           break;
         case 'ShuntContainers':
           beforeCount = _testStations[stationIndex].shuntReadings?.length;
-          _testStations[stationIndex].shuntReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .shuntReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].shuntReadings?.length;
           break;
         case 'RiserContainers':
           beforeCount = _testStations[stationIndex].riserReadings?.length;
-          _testStations[stationIndex].riserReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .riserReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].riserReadings?.length;
           break;
         case 'ForeignContainers':
           beforeCount = _testStations[stationIndex].foreignReadings?.length;
-          _testStations[stationIndex].foreignReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .foreignReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].foreignReadings?.length;
           break;
         case 'TestLeadContainers':
           beforeCount = _testStations[stationIndex].testLeadReadings?.length;
-          _testStations[stationIndex].testLeadReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .testLeadReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].testLeadReadings?.length;
           break;
         case 'CouponContainers':
           beforeCount = _testStations[stationIndex].couponReadings?.length;
-          _testStations[stationIndex].couponReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .couponReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].couponReadings?.length;
           break;
         case 'BondContainers':
           beforeCount = _testStations[stationIndex].bondReadings?.length;
-          _testStations[stationIndex].bondReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .bondReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].bondReadings?.length;
           break;
         case 'IsolationContainers':
           beforeCount = _testStations[stationIndex].isolationReadings?.length;
-          _testStations[stationIndex].isolationReadings?.removeWhere((reading) => reading.orderIndex == orderIndex);
+          _testStations[stationIndex]
+              .isolationReadings
+              ?.removeWhere((reading) => reading.orderIndex == orderIndex);
           afterCount = _testStations[stationIndex].isolationReadings?.length;
           break;
         default:
@@ -532,7 +570,8 @@ class TSNotifier extends ChangeNotifier {
           return;
       }
 
-      removed = beforeCount != null && afterCount != null && beforeCount > afterCount;
+      removed =
+          beforeCount != null && afterCount != null && beforeCount > afterCount;
 
       if (kDebugMode) {
         print('Reading removed from $containerName: $removed');
@@ -555,9 +594,11 @@ class TSNotifier extends ChangeNotifier {
   /// After sorting, the [tsNotifier] will notify its listeners to update the UI.
   /// The [context] is used to access the current BuildContext.
   /// Finally, the dialog will be closed using Navigator.of(context).pop().
-  void sortTestStationsAlphabeticallyAZ(BuildContext context, TSNotifier tsNotifier, SortOption sortOption) {
+  void sortTestStationsAlphabeticallyAZ(
+      BuildContext context, TSNotifier tsNotifier, SortOption sortOption) {
     if (sortOption == SortOption.area) {
-      tsNotifier.testStations.sort((a, b) => a.area?.compareTo(b.area ?? '') ?? 0);
+      tsNotifier.testStations
+          .sort((a, b) => a.area?.compareTo(b.area ?? '') ?? 0);
     } else if (sortOption == SortOption.tsID) {
       tsNotifier.testStations.sort((a, b) => a.tsID.compareTo(b.tsID));
     }
@@ -659,14 +700,16 @@ class TSNotifier extends ChangeNotifier {
   }
 */
 
-  Future<void> sortTestStationsByLocation(BuildContext context, TSNotifier tsNotifier) async {
+  Future<void> sortTestStationsByLocation(
+      BuildContext context, TSNotifier tsNotifier) async {
     if (!_isGpsConnected || _lastKnownGoodLocation == null) {
       if (context.mounted) {
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text(!_isGpsConnected ? 'GPS Not Connected' : 'No GPS Data'),
+              title:
+                  Text(!_isGpsConnected ? 'GPS Not Connected' : 'No GPS Data'),
               content: Text(!_isGpsConnected
                   ? 'Please ensure the GPS device is connected and providing data before sorting by location.'
                   : 'Waiting for valid GPS data. Please try again in a moment.'),
@@ -703,7 +746,8 @@ class TSNotifier extends ChangeNotifier {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Invalid GPS Data'),
-              content: const Text('GPS coordinates are not available. Please wait for valid GPS data.'),
+              content: const Text(
+                  'GPS coordinates are not available. Please wait for valid GPS data.'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('OK'),
@@ -759,7 +803,11 @@ class TSNotifier extends ChangeNotifier {
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
 
-    double a = sin(dLat / 2) * sin(dLat / 2) + cos(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * sin(dLon / 2) * sin(dLon / 2);
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
 
     double c = 2 * atan2(sqrt(a), sqrt(1 - a));
     double distanceInKilometers = radiusOfEarthInKm * c;
@@ -790,7 +838,8 @@ class TSNotifier extends ChangeNotifier {
   String calculateBearing(double lat1, double lon1, double lat2, double lon2) {
     var dLon = _degreesToRadians(lon2 - lon1);
     var x = sin(dLon) * cos(_degreesToRadians(lat2));
-    var y = cos(_degreesToRadians(lat1)) * sin(_degreesToRadians(lat2)) - sin(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * cos(dLon);
+    var y = cos(_degreesToRadians(lat1)) * sin(_degreesToRadians(lat2)) -
+        sin(_degreesToRadians(lat1)) * cos(_degreesToRadians(lat2)) * cos(dLon);
 
     var bearing = atan2(x, y);
     bearing = _radiansToDegrees(bearing);
@@ -844,19 +893,28 @@ class TSNotifier extends ChangeNotifier {
   /// Returns a [Future] that completes when the update operation is finished.
   ///
   /// Throws an exception if the update operation fails.
-  Future<void> updateReadingInTestStation<T>(T updatedReading, int? stationID, String? tsID, BuildContext context, String tableName,
-      List<dynamic> Function(TestStation) getReadings, void Function(TestStation, int, T) setReading) async {
+  Future<void> updateReadingInTestStation<T>(
+      T updatedReading,
+      int? stationID,
+      String? tsID,
+      BuildContext context,
+      String tableName,
+      List<dynamic> Function(TestStation) getReadings,
+      void Function(TestStation, int, T) setReading) async {
     final dbHelper = DatabaseHelper.instance;
     var readingMap = (updatedReading as dynamic).toMap();
     readingMap['testStationID'] = tsID;
 
-    int updateResult = await dbHelper.insertOrUpdateReading(stationID, readingMap, tableName);
+    int updateResult =
+        await dbHelper.insertOrUpdateReading(stationID, readingMap, tableName);
 
     if (updateResult > 0) {
       int index = _testStations.indexWhere((ts) => ts.tsID == tsID);
       if (index != -1) {
-        int readingIndex =
-            getReadings(_testStations[index]).indexWhere((reading) => (reading as dynamic).stationID == (updatedReading as dynamic).stationID);
+        int readingIndex = getReadings(_testStations[index]).indexWhere(
+            (reading) =>
+                (reading as dynamic).stationID ==
+                (updatedReading as dynamic).stationID);
         if (readingIndex != -1) {
           setReading(_testStations[index], readingIndex, updatedReading);
           notifyListeners();
@@ -882,7 +940,8 @@ class TSNotifier extends ChangeNotifier {
   /// This method checks the current status of the storage permission and requests it if it is not granted.
   /// It returns a [Future] that completes when the permission request is finished.
   Future<void> requestStoragePermission() async {
-    permission_handler.PermissionStatus status = await permission_handler.Permission.storage.status;
+    permission_handler.PermissionStatus status =
+        await permission_handler.Permission.storage.status;
     if (!status.isGranted) {
       await permission_handler.Permission.storage.request();
     }
@@ -928,29 +987,51 @@ class TSNotifier extends ChangeNotifier {
     Database db = await DatabaseHelper.instance.database;
 
     // Query to get data for each TestStation
-    List<Map<String, dynamic>> testStationsData = await db.query('TestStations');
+    List<Map<String, dynamic>> testStationsData = await db.query('TestStations',
+        where: 'projectID =?', whereArgs: [projectModel.id]);
 
-    List<List<Object?>> tsData = await Future.wait(testStationsData.map((testStation) async {
+    List<List<Object?>> tsData =
+        await Future.wait(testStationsData.map((testStation) async {
       // Queries for each related table
-      List<Map<String, dynamic>> plTestLeadData = await db.query('PLTestLeadContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> plTestLeadData = await db.query(
+          'PLTestLeadContainers',
+          where: 'stationID = ?',
+          whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> anodeData = await db.query('AnodeContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> anodeData = await db.query('AnodeContainers',
+          where: 'stationID = ?', whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> permRefData = await db.query('PermRefContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> permRefData = await db.query(
+          'PermRefContainers',
+          where: 'stationID = ?',
+          whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> shuntData = await db.query('ShuntContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> shuntData = await db.query('ShuntContainers',
+          where: 'stationID = ?', whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> riserData = await db.query('RiserContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> riserData = await db.query('RiserContainers',
+          where: 'stationID = ?', whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> foreignData = await db.query('ForeignContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> foreignData = await db.query(
+          'ForeignContainers',
+          where: 'stationID = ?',
+          whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> testLeadData = await db.query('TestLeadContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> testLeadData = await db.query(
+          'TestLeadContainers',
+          where: 'stationID = ?',
+          whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> couponData = await db.query('CouponContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> couponData = await db.query('CouponContainers',
+          where: 'stationID = ?', whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> bondData = await db.query('BondContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> bondData = await db.query('BondContainers',
+          where: 'stationID = ?', whereArgs: [testStation['id']]);
 
-      List<Map<String, dynamic>> isolationData = await db.query('IsolationContainers', where: 'stationID = ?', whereArgs: [testStation['id']]);
+      List<Map<String, dynamic>> isolationData = await db.query(
+          'IsolationContainers',
+          where: 'stationID = ?',
+          whereArgs: [testStation['id']]);
 
       // Extract and format data from each table
       var plTestLeadNames = plTestLeadData.map((reading) {
@@ -1337,12 +1418,12 @@ class TSNotifier extends ChangeNotifier {
         return '(${reading['type']})';
       }).join();
 
-      var isoShorted = isolationData.map((reading) {
-        return '(${reading['shorted']})';
+      var isoStatus = isolationData.map((reading) {
+        return '(${reading['status']})';
       }).join();
 
-      var isoShortedDate = isolationData.map((reading) {
-        return '(${reading['shorted_Date']})';
+      var isoStatusDate = isolationData.map((reading) {
+        return '(${reading['status_Date']})';
       }).join();
 
       var isoCurrent = isolationData.map((reading) {
@@ -1463,8 +1544,8 @@ class TSNotifier extends ChangeNotifier {
         isoSideA,
         isoSideB,
         isoType,
-        isoShorted,
-        isoShortedDate,
+        isoStatus,
+        isoStatusDate,
         isoCurrent,
         isoCurrentDate,
       ];
@@ -1580,8 +1661,8 @@ class TSNotifier extends ChangeNotifier {
       'IK Side A',
       'IK Side B',
       'IK Type',
-      'IK Shorted',
-      'IK Shorted Date',
+      'IK Status',
+      'IK Status Date',
       'IK Current (A)',
       'IK Current Date',
     ]);
@@ -1596,13 +1677,15 @@ class TSNotifier extends ChangeNotifier {
         print('CSV file saved or shared at ${file.path}');
 
         // Provide feedback using a snackbar
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CSV file saved or shared successfully!')));
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('CSV file saved or shared successfully!')));
       }
     } catch (e) {
       print('Failed to save or share file: $e');
 
       // Provide feedback using a snackbar in case of error
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to save or share CSV file.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to save or share CSV file.')));
     }
   }
 
@@ -1651,10 +1734,14 @@ class TSNotifier extends ChangeNotifier {
           "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}_${now.hour}-${now.minute}-${now.second}";
 
       String deviceId = DeviceInfo().deviceId ?? "0000";
-      String deviceIdDigits = deviceId.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
-      String deviceIdLast4 = deviceIdDigits.length >= 4 ? deviceIdDigits.substring(deviceIdDigits.length - 4) : deviceIdDigits;
+      String deviceIdDigits =
+          deviceId.replaceAll(RegExp(r'\D'), ''); // Remove non-digit characters
+      String deviceIdLast4 = deviceIdDigits.length >= 4
+          ? deviceIdDigits.substring(deviceIdDigits.length - 4)
+          : deviceIdDigits;
 
-      File file = File('$directoryPath/${formattedDate}_$deviceIdLast4-TP_${formattedClient}_$formattedName.csv');
+      File file = File(
+          '$directoryPath/${formattedDate}_$deviceIdLast4-TP_${formattedClient}_$formattedName.csv');
       print("Attempting to save to: ${file.path}");
 
       await file.create();
@@ -1687,7 +1774,9 @@ class TSNotifier extends ChangeNotifier {
           false;
 
       if (shouldShare) {
-        Share.shareXFiles([XFile(file.path)], subject: 'CP Inspection CSV Data', text: 'Here is the exported CP Inspection data.');
+        Share.shareXFiles([XFile(file.path)],
+            subject: 'CP Inspection CSV Data',
+            text: 'Here is the exported CP Inspection data.');
       }
 
       return file;
