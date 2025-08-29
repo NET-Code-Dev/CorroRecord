@@ -16,7 +16,8 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as pth;
-import 'package:permission_handler/permission_handler.dart' as permission_handler;
+import 'package:permission_handler/permission_handler.dart'
+    as permission_handler;
 import 'package:sqflite/sqflite.dart';
 
 import 'package:asset_inspections/Models/camera_model.dart';
@@ -240,6 +241,12 @@ class DatabaseHelper {
   static final columnBondContainerCurrent = 'current';
   static final columnBondContainerCurrent_Date = 'current_Date';
   static final columnBondContainerOrderIndex = 'order_index';
+
+  String customLabelsTableName() => 'CustomLabels';
+  static final columnLabelID = 'id';
+  static final columnLabelProjectID = 'projectID';
+  static final columnLabelName = 'labelName';
+  static final columnLabelIsDefault = 'isDefault';
 
   // Private constructor
   DatabaseHelper._privateConstructor();
@@ -665,6 +672,7 @@ class DatabaseHelper {
       END;
     ''');
     }
+    await createCustomLabelsTable();
   }
 
   Future<void> createTableForCameraSettings() async {
@@ -690,8 +698,23 @@ class DatabaseHelper {
   ''');
   }
 
+  Future<void> createCustomLabelsTable() async {
+    Database db = await database;
+    await db.execute('''
+    CREATE TABLE IF NOT EXISTS CustomLabels (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      projectID INTEGER,
+      labelName TEXT NOT NULL,
+      isDefault INTEGER DEFAULT 0,
+      FOREIGN KEY (projectID) REFERENCES projectNames (id) ON DELETE CASCADE,
+      UNIQUE(projectID, labelName)
+    )
+  ''');
+  }
+
   Future<void> requestStoragePermission() async {
-    permission_handler.PermissionStatus status = await permission_handler.Permission.storage.status;
+    permission_handler.PermissionStatus status =
+        await permission_handler.Permission.storage.status;
     if (!status.isGranted) {
       await permission_handler.Permission.storage.request();
     }
@@ -702,11 +725,13 @@ class DatabaseHelper {
     await requestStoragePermission();
 
     // Get the current database path
-    String currentPath = pth.join(await getDatabasesPath(), 'project_database1.db');
+    String currentPath =
+        pth.join(await getDatabasesPath(), 'project_database1.db');
 
     // Get the Downloads directory path
     Directory downloadsDirectory = Directory('/storage/emulated/0/Download');
-    String downloadsPath = pth.join(downloadsDirectory.path, 'project_database1.db');
+    String downloadsPath =
+        pth.join(downloadsDirectory.path, 'project_database1.db');
 
     // Ensure the Downloads directory exists
     if (!downloadsDirectory.existsSync()) {
@@ -768,7 +793,8 @@ class DatabaseHelper {
       // The 'where' and 'whereArgs' parameters ensure that only the desired row is returned
       where: 'id = ?',
       whereArgs: [id],
-      limit: 1, // The 'limit' parameter ensures that at most one row is returned.
+      limit:
+          1, // The 'limit' parameter ensures that at most one row is returned.
     );
     if (result.isNotEmpty) {
       return result.first;
@@ -776,7 +802,8 @@ class DatabaseHelper {
     return null;
   }
 
-  Future<void> updateTestStationPicture(int stationID, String picturePath) async {
+  Future<void> updateTestStationPicture(
+      int stationID, String picturePath) async {
     final db = await database;
     await db.update(
       'TestStations',
@@ -859,16 +886,19 @@ class DatabaseHelper {
   Future<void> deleteProjectName(String fullProjectName) async {
     final db = await database;
     try {
-      await db.delete('projectNames', where: 'fullName = ?', whereArgs: [fullProjectName]);
+      await db.delete('projectNames',
+          where: 'fullName = ?', whereArgs: [fullProjectName]);
     } catch (e) {
       // Handle exceptions, e.g. by logging or rethrowing.
       print('Error deleting project name: $e');
     }
   }
 
-  Future<int> deleteReading(String tableName, int stationID, int orderIndex) async {
+  Future<int> deleteReading(
+      String tableName, int stationID, int orderIndex) async {
     if (kDebugMode) {
-      print('Deleting reading from $tableName where stationID=$stationID and orderIndex=$orderIndex');
+      print(
+          'Deleting reading from $tableName where stationID=$stationID and orderIndex=$orderIndex');
     }
 
     Database db = await database;
@@ -904,7 +934,8 @@ class DatabaseHelper {
   /// Returns:
   /// A map containing the first row of the query result if it is not empty,
   /// otherwise returns null.
-  Future<Map<String, dynamic>?> queryRectifierByServiceTag(String fullProjectName, String serviceTag) async {
+  Future<Map<String, dynamic>?> queryRectifierByServiceTag(
+      String fullProjectName, String serviceTag) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db.query(
       rectifierTableName(),
@@ -924,7 +955,8 @@ class DatabaseHelper {
   ///
   /// Returns:
   /// A map containing the first row of the query result, or null if no rows are found.
-  Future<Map<String, dynamic>?> queryTestStationBytsID(int projectID, String tsID) async {
+  Future<Map<String, dynamic>?> queryTestStationBytsID(
+      int projectID, String tsID) async {
     final db = await database;
     List<Map<String, dynamic>> result = await db.query(
       teststationTableName(),
@@ -941,9 +973,11 @@ class DatabaseHelper {
   /// The rectifier is identified by its service tag.
   ///
   /// Returns a Future that completes with the number of rows affected by the update operation.
-  Future<int> updateRectifier(String fullProjectName, Map<String, dynamic> row) async {
+  Future<int> updateRectifier(
+      String fullProjectName, Map<String, dynamic> row) async {
     final db = await database;
-    return await db.update(rectifierTableName(), row, where: 'serviceTag = ?', whereArgs: [row['serviceTag']]);
+    return await db.update(rectifierTableName(), row,
+        where: 'serviceTag = ?', whereArgs: [row['serviceTag']]);
   }
 
   /// Updates the test station in the database with the given [row] data.
@@ -951,59 +985,88 @@ class DatabaseHelper {
   /// The [row] parameter is a map containing the updated data for the test station.
   /// The method serializes the reading lists to JSON strings before updating the database.
   /// Returns the number of rows affected by the update operation.
-  Future<int> updateTestStation(String fullProjectName, Map<String, dynamic> row) async {
+  Future<int> updateTestStation(
+      String fullProjectName, Map<String, dynamic> row) async {
     final db = await database;
 
     // Serialize the reading lists to JSON strings before updating the database.
     if (row['plTestLeadReadings'] != null) {
       List<Map<String, dynamic>> plTestLeadReadingsMapList =
-          (row['plTestLeadReadings'] as List<PLTestLeadReading>).map((reading) => reading.toMap()).toList();
+          (row['plTestLeadReadings'] as List<PLTestLeadReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['plTestLeadReadings'] = jsonEncode(plTestLeadReadingsMapList);
     }
 
     if (row['permRefReadings'] != null) {
-      List<Map<String, dynamic>> permRefReadingsMapList = (row['permRefReadings'] as List<PermRefReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> permRefReadingsMapList =
+          (row['permRefReadings'] as List<PermRefReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['permRefReadings'] = jsonEncode(permRefReadingsMapList);
     }
 
     if (row['isoReadings'] != null) {
-      List<Map<String, dynamic>> isoReadingsMapList = (row['isoReadings'] as List<IsolationReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> isoReadingsMapList =
+          (row['isoReadings'] as List<IsolationReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['isoReadings'] = jsonEncode(isoReadingsMapList);
     }
 
     if (row['bondReadings'] != null) {
-      List<Map<String, dynamic>> bondReadingsMapList = (row['bondReadings'] as List<BondReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> bondReadingsMapList =
+          (row['bondReadings'] as List<BondReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['bondReadings'] = jsonEncode(bondReadingsMapList);
     }
 
     if (row['anodeReadings'] != null) {
-      List<Map<String, dynamic>> anodeReadingsMapList = (row['anodeReadings'] as List<AnodeReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> anodeReadingsMapList =
+          (row['anodeReadings'] as List<AnodeReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['anodeReadings'] = jsonEncode(anodeReadingsMapList);
     }
 
     if (row['testLeadReadings'] != null) {
       List<Map<String, dynamic>> testLeadReadingsMapList =
-          (row['testLeadReadings'] as List<TestLeadReading>).map((reading) => reading.toMap()).toList();
+          (row['testLeadReadings'] as List<TestLeadReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['testLeadReadings'] = jsonEncode(testLeadReadingsMapList);
     }
 
     if (row['riserReadings'] != null) {
-      List<Map<String, dynamic>> riserReadingsMapList = (row['riserReadings'] as List<RiserReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> riserReadingsMapList =
+          (row['riserReadings'] as List<RiserReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['riserReadings'] = jsonEncode(riserReadingsMapList);
     }
 
     if (row['foreignReadings'] != null) {
-      List<Map<String, dynamic>> foreignReadingsMapList = (row['foreignReadings'] as List<ForeignReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> foreignReadingsMapList =
+          (row['foreignReadings'] as List<ForeignReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['foreignReadings'] = jsonEncode(foreignReadingsMapList);
     }
 
     if (row['couponReadings'] != null) {
-      List<Map<String, dynamic>> couponReadingsMapList = (row['couponReadings'] as List<CouponReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> couponReadingsMapList =
+          (row['couponReadings'] as List<CouponReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['couponReadings'] = jsonEncode(couponReadingsMapList);
     }
 
     if (row['shuntReadings'] != null) {
-      List<Map<String, dynamic>> shuntReadingsMapList = (row['shuntReadings'] as List<ShuntReading>).map((reading) => reading.toMap()).toList();
+      List<Map<String, dynamic>> shuntReadingsMapList =
+          (row['shuntReadings'] as List<ShuntReading>)
+              .map((reading) => reading.toMap())
+              .toList();
       row['shuntReadings'] = jsonEncode(shuntReadingsMapList);
     }
 
@@ -1023,7 +1086,8 @@ class DatabaseHelper {
   /// Returns a [Future] that completes with the number of rows affected by the deletion.
   Future<int> deleteRectifier(String fullProjectName, String serviceTag) async {
     final db = await database;
-    return await db.delete(rectifierTableName(), where: 'serviceTag = ?', whereArgs: [serviceTag]);
+    return await db.delete(rectifierTableName(),
+        where: 'serviceTag = ?', whereArgs: [serviceTag]);
   }
 
   /// Deletes a test station from the database.
@@ -1034,7 +1098,8 @@ class DatabaseHelper {
   /// Returns the number of rows affected.
   Future<int> deleteTestStation(String fullProjectName, int id) async {
     final db = await database;
-    return await db.delete(teststationTableName(), where: 'id = ?', whereArgs: [id]);
+    return await db
+        .delete(teststationTableName(), where: 'id = ?', whereArgs: [id]);
   }
 
   /// Inserts a rectifier into the database.
@@ -1070,7 +1135,8 @@ class DatabaseHelper {
   /// Inserts multiple test stations into the database using a CSV import.
   ///
   /// [rows] - A list of maps, where each map contains the data for a test station.
-  Future<void> insertMultipleTestStations(List<Map<String, dynamic>> rows) async {
+  Future<void> insertMultipleTestStations(
+      List<Map<String, dynamic>> rows) async {
     final db = await database;
 
     await db.transaction((txn) async {
@@ -1085,9 +1151,11 @@ class DatabaseHelper {
   /// [projectID] - The ID of the project.
   ///
   /// Returns a list of maps, where each map represents a rectifier.
-  Future<List<Map<String, dynamic>>> queryRectifiersByProjectID(int projectID) async {
+  Future<List<Map<String, dynamic>>> queryRectifiersByProjectID(
+      int projectID) async {
     final db = await database;
-    return await db.query('Rectifiers', where: '$columnProjectNameID = ?', whereArgs: [projectID]);
+    return await db.query('Rectifiers',
+        where: '$columnProjectNameID = ?', whereArgs: [projectID]);
   }
 
   /// Queries the list of test stations for a specific project.
@@ -1095,9 +1163,11 @@ class DatabaseHelper {
   /// [projectID] - The ID of the project.
   ///
   /// Returns a list of maps, where each map represents a test station.
-  Future<List<Map<String, dynamic>>> queryTestStationsByProjectID(int projectID) async {
+  Future<List<Map<String, dynamic>>> queryTestStationsByProjectID(
+      int projectID) async {
     final db = await database;
-    return await db.query('TestStations', where: '$columnProjectNameID = ?', whereArgs: [projectID]);
+    return await db.query('TestStations',
+        where: '$columnProjectNameID = ?', whereArgs: [projectID]);
   }
 
   /// Closes the database connection.
@@ -1113,7 +1183,8 @@ class DatabaseHelper {
   /// The [tableName] parameter specifies the name of the table in which the reading should be inserted or updated.
   ///
   /// Returns the ID of the inserted or updated reading if successful, or -1 if the update operation fails.
-  Future<int> insertOrUpdateReading(int? stationID, Map<String, dynamic> readingMap, String tableName) async {
+  Future<int> insertOrUpdateReading(
+      int? stationID, Map<String, dynamic> readingMap, String tableName) async {
     final db = await database;
     final int? orderIndex = readingMap['order_index'];
 
@@ -1124,7 +1195,8 @@ class DatabaseHelper {
     );
 
     if (existingRows.isNotEmpty) {
-      var updatedRecord = Map<String, dynamic>.from(existingRows.first)..addAll(readingMap);
+      var updatedRecord = Map<String, dynamic>.from(existingRows.first)
+        ..addAll(readingMap);
       int updateCount = await db.update(
         tableName,
         updatedRecord,
@@ -1143,7 +1215,8 @@ class DatabaseHelper {
     }
   }
 
-  Future<int> insertOrUpdateFieldNotes(int? id, Map<String, dynamic> readingMap) async {
+  Future<int> insertOrUpdateFieldNotes(
+      int? id, Map<String, dynamic> readingMap) async {
     final db = await database;
 
     List<Map<String, dynamic>> existingRows = await db.query(
@@ -1153,7 +1226,8 @@ class DatabaseHelper {
     );
 
     if (existingRows.isNotEmpty) {
-      var updatedRecord = Map<String, dynamic>.from(existingRows.first)..addAll(readingMap);
+      var updatedRecord = Map<String, dynamic>.from(existingRows.first)
+        ..addAll(readingMap);
       int updateCount = await db.update(
         'TestStations',
         updatedRecord,
@@ -1194,7 +1268,11 @@ class DatabaseHelper {
     List<String> names = [];
 
     // Query each table and add names to the list
-    List<String> tables = ['AnodeContainers', 'PLTestLeadContainers', 'TestLeadContainers'];
+    List<String> tables = [
+      'AnodeContainers',
+      'PLTestLeadContainers',
+      'TestLeadContainers'
+    ];
     for (String table in tables) {
       final List<Map<String, dynamic>> maps = await db.query(
         table,
@@ -1214,6 +1292,143 @@ class DatabaseHelper {
     return names;
   }
 
+  Future<void> initializeDefaultLabels(int projectID) async {
+    Database db = await database;
+
+    List<String> defaultLabels = [
+      'structure-port',
+      'structure-perm',
+      'port-perm'
+    ];
+
+    for (String label in defaultLabels) {
+      await db.insert(
+        'CustomLabels',
+        {
+          'projectID': projectID,
+          'labelName': label,
+          'isDefault': 1,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
+  }
+
+  Future<List<String>> fetchLabelsForProject(int projectID) async {
+    final Database db = await database;
+
+    try {
+      final List<Map<String, dynamic>> result = await db.query(
+        'CustomLabels',
+        columns: ['labelName'],
+        where: 'projectID = ?',
+        whereArgs: [projectID],
+        orderBy:
+            'isDefault DESC, labelName ASC', // Default labels first, then alphabetical
+      );
+
+      return result.map((row) => row['labelName'] as String).toList();
+    } catch (e) {
+      print('Error fetching labels: $e');
+      // Return default labels if there's an error
+      return ['structure-port', 'structure-perm', 'port-perm'];
+    }
+  }
+
+// Add new label
+  Future<bool> addCustomLabel(int projectID, String labelName) async {
+    Database db = await database;
+
+    try {
+      await db.insert(
+        'CustomLabels',
+        {
+          'projectID': projectID,
+          'labelName': labelName.trim(),
+          'isDefault': 0,
+        },
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      return true;
+    } catch (e) {
+      print('Error adding label: $e');
+      return false; // Label might already exist
+    }
+  }
+
+// Update label
+  Future<bool> updateCustomLabel(
+      int projectID, String oldLabel, String newLabel) async {
+    Database db = await database;
+
+    try {
+      int updated = await db.update(
+        'CustomLabels',
+        {'labelName': newLabel.trim()},
+        where: 'projectID = ? AND labelName = ? AND isDefault = 0',
+        whereArgs: [projectID, oldLabel],
+      );
+      return updated > 0;
+    } catch (e) {
+      print('Error updating label: $e');
+      return false;
+    }
+  }
+
+// Delete custom label
+  Future<bool> deleteCustomLabel(int projectID, String labelName) async {
+    Database db = await database;
+
+    try {
+      int deleted = await db.delete(
+        'CustomLabels',
+        where: 'projectID = ? AND labelName = ? AND isDefault = 0',
+        whereArgs: [projectID, labelName],
+      );
+      return deleted > 0;
+    } catch (e) {
+      print('Error deleting label: $e');
+      return false;
+    }
+  }
+
+// Restore default labels
+  Future<void> restoreDefaultLabels(int projectID) async {
+    Database db = await database;
+
+    try {
+      // Delete all custom labels
+      await db.delete(
+        'CustomLabels',
+        where: 'projectID = ? AND isDefault = 0',
+        whereArgs: [projectID],
+      );
+
+      // Ensure default labels exist
+      await initializeDefaultLabels(projectID);
+    } catch (e) {
+      print('Error restoring default labels: $e');
+    }
+  }
+
+// Check if label is default
+  Future<bool> isDefaultLabel(int projectID, String labelName) async {
+    Database db = await database;
+
+    try {
+      final result = await db.query(
+        'CustomLabels',
+        where: 'projectID = ? AND labelName = ? AND isDefault = 1',
+        whereArgs: [projectID, labelName],
+      );
+      return result.isNotEmpty;
+    } catch (e) {
+      return ['structure-port', 'structure-perm', 'port-perm']
+          .contains(labelName);
+    }
+  }
+
+/*
   Future<List<String>> fetchNamesForLabel() async {
     final Database db = await database;
     Set<String> namesSet = {};
@@ -1247,7 +1462,7 @@ class DatabaseHelper {
 
     return namesSet.toList();
   }
-
+*/
   /// Queries the readings from the specified table by test station ID.
   ///
   /// Returns a list of maps representing the queried readings.
@@ -1258,7 +1473,8 @@ class DatabaseHelper {
   /// - [id]: The test station ID to filter the readings.
   ///
   /// Returns a future that completes with a list of maps representing the queried readings.
-  Future<List<Map<String, dynamic>>> queryReadingsByTestStationID(String tableName, int? id) async {
+  Future<List<Map<String, dynamic>>> queryReadingsByTestStationID(
+      String tableName, int? id) async {
     Database db = await database;
     return await db.query(tableName, where: 'stationID = ?', whereArgs: [id]);
   }

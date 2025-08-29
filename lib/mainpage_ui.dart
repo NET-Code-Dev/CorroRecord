@@ -21,6 +21,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +48,7 @@ class MainPageUI extends State<MainPage> {
   final bluetoothManager = BluetoothManager.instance;
   String? currentName;
   bool _isInitialLoad = true;
+  String _version = '';
 
   /// Loads the project names from the database and updates the UI.
   ///
@@ -119,6 +121,14 @@ class MainPageUI extends State<MainPage> {
       projectsExist = hasProjects();
       loadProjectNames();
     }
+    _getVersion();
+  }
+
+  _getVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = packageInfo.version;
+    });
   }
 
   /// Loads project data from the database.
@@ -130,7 +140,8 @@ class MainPageUI extends State<MainPage> {
   /// test stations are stored in the [TSNotifier].
   Future<void> _loadProjectData(int projectID) async {
     var tsNotifier = Provider.of<TSNotifier>(context, listen: false);
-    var rectifierNotifier = Provider.of<RectifierNotifier>(context, listen: false);
+    var rectifierNotifier =
+        Provider.of<RectifierNotifier>(context, listen: false);
 
     rectifierNotifier.loadRectifiersFromDatabase(projectID, 'serviceTag');
     tsNotifier.loadTestStationsFromDatabase(projectID);
@@ -157,7 +168,8 @@ class MainPageUI extends State<MainPage> {
       if (kDebugMode) {
         print('onProjectSelected called');
       }
-      _loadProjectData(selectedProject.id); // Uncommented causes Test Stations to load twice
+      _loadProjectData(
+          selectedProject.id); // Uncommented causes Test Stations to load twice
     }
   }
 
@@ -212,8 +224,10 @@ class MainPageUI extends State<MainPage> {
     showDialog(
         context: context,
         builder: (BuildContext context) {
-          final TextEditingController clientController = TextEditingController();
-          final TextEditingController projectNameController = TextEditingController();
+          final TextEditingController clientController =
+              TextEditingController();
+          final TextEditingController projectNameController =
+              TextEditingController();
           final TextEditingController techController = TextEditingController();
           TextEditingController();
 
@@ -229,13 +243,15 @@ class MainPageUI extends State<MainPage> {
                   void checkValidationState() {
                     setState(() {
                       isValidClient = clientController.text.isNotEmpty;
-                      isValidProjectName = projectNameController.text.isNotEmpty;
+                      isValidProjectName =
+                          projectNameController.text.isNotEmpty;
                       isValidTech = techController.text.isNotEmpty;
                     });
                   }
 
                   return AlertDialog(
-                    title: const Center(child: Text('Enter New Project Details')),
+                    title:
+                        const Center(child: Text('Enter New Project Details')),
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
@@ -244,7 +260,8 @@ class MainPageUI extends State<MainPage> {
                           controller: clientController,
                           decoration: InputDecoration(
                             hintText: "Client",
-                            errorText: isValidClient ? null : 'Client cannot be empty',
+                            errorText:
+                                isValidClient ? null : 'Client cannot be empty',
                           ),
                           onChanged: (value) => checkValidationState(),
                         ),
@@ -255,7 +272,9 @@ class MainPageUI extends State<MainPage> {
                           controller: projectNameController,
                           decoration: InputDecoration(
                             hintText: "Project Name",
-                            errorText: isValidProjectName ? null : 'Project name cannot be empty',
+                            errorText: isValidProjectName
+                                ? null
+                                : 'Project name cannot be empty',
                           ),
                           onChanged: (value) => checkValidationState(),
                         ),
@@ -266,7 +285,9 @@ class MainPageUI extends State<MainPage> {
                           controller: techController,
                           decoration: InputDecoration(
                             hintText: "Technician",
-                            errorText: isValidTech ? null : 'Technician cannot be empty',
+                            errorText: isValidTech
+                                ? null
+                                : 'Technician cannot be empty',
                           ),
                           onChanged: (value) => checkValidationState(),
                         ),
@@ -279,12 +300,16 @@ class MainPageUI extends State<MainPage> {
                           final client = clientController.text.trim();
                           final projectName = projectNameController.text.trim();
                           final tech = techController.text.trim();
-                          final createDate = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+                          final createDate = DateFormat('yyyy-MM-dd HH:mm:ss')
+                              .format(DateTime.now());
 
 // First, check if any of the fields are empty
-                          if (client.isEmpty || projectName.isEmpty || tech.isEmpty) {
+                          if (client.isEmpty ||
+                              projectName.isEmpty ||
+                              tech.isEmpty) {
                             if (kDebugMode) {
-                              print('One or more fields are empty, showing error dialog');
+                              print(
+                                  'One or more fields are empty, showing error dialog');
                             }
 // Show the error dialog if any field is empty
                             showDialog(
@@ -292,12 +317,14 @@ class MainPageUI extends State<MainPage> {
                               barrierDismissible: false,
                               builder: (dialogContext) => AlertDialog(
                                 title: const Text('Error'),
-                                content: const Text('All fields are required. Please fill in all the information.'),
+                                content: const Text(
+                                    'All fields are required. Please fill in all the information.'),
                                 actions: <Widget>[
                                   TextButton(
                                     child: const Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(dialogContext).pop(); // Close the error dialog
+                                      Navigator.of(dialogContext)
+                                          .pop(); // Close the error dialog
                                     },
                                   ),
                                 ],
@@ -307,7 +334,8 @@ class MainPageUI extends State<MainPage> {
                           }
 
 // Now that we know fields are not empty, we can validate the project name
-                          final isValidName = RegExp(r'^[a-zA-Z0-9_ ]+$').hasMatch(projectName);
+                          final isValidName =
+                              RegExp(r'^[a-zA-Z0-9_ ]+$').hasMatch(projectName);
                           if (!isValidName) {
 // Show an error dialog for invalid project name
                             showDialog(
@@ -315,12 +343,14 @@ class MainPageUI extends State<MainPage> {
                               barrierDismissible: false,
                               builder: (dialogContext) => AlertDialog(
                                 title: const Text('Invalid Project Name'),
-                                content: const Text('The project name is not valid. It should only contain alphanumeric characters and underscores.'),
+                                content: const Text(
+                                    'The project name is not valid. It should only contain alphanumeric characters and underscores.'),
                                 actions: <Widget>[
                                   TextButton(
                                     child: const Text('OK'),
                                     onPressed: () {
-                                      Navigator.of(dialogContext).pop(); // Close the error dialog
+                                      Navigator.of(dialogContext)
+                                          .pop(); // Close the error dialog
                                     },
                                   ),
                                 ],
@@ -331,7 +361,9 @@ class MainPageUI extends State<MainPage> {
 // Stop further execution
                           } else {
 // If the project name is valid, create a new project
-                            final projectModel = Provider.of<ProjectModel>(context, listen: false);
+                            final projectModel = Provider.of<ProjectModel>(
+                                context,
+                                listen: false);
                             projectModel.projectID = 0;
                             projectModel.client = client;
                             projectModel.projectName = projectName;
@@ -344,7 +376,8 @@ class MainPageUI extends State<MainPage> {
 // Create the tables for the new project
                               await dbHelper.createTablesForProject();
                               await dbHelper.createTableForCameraSettings();
-                              await dbHelper.insertCameraSettings(CameraSettings(
+                              await dbHelper
+                                  .insertCameraSettings(CameraSettings(
                                 isMapOverlayVisible: false,
                                 mapPosition: MapPosition.bottomLeft,
                                 dataPosition: MapPosition.bottomLeft,
@@ -357,7 +390,8 @@ class MainPageUI extends State<MainPage> {
                                 selectedFontColor: 'black',
                                 selectedFontSize: 12.0,
                                 selectedDateFormat: 'yyyy-MM-dd HH:mm:ss',
-                                selectedLocationFormat: 'Street Address, City, State, Zip',
+                                selectedLocationFormat:
+                                    'Street Address, City, State, Zip',
                               ));
 
                               // Create a map with all the required fields
@@ -370,9 +404,16 @@ class MainPageUI extends State<MainPage> {
                               };
 
                               // Insert the new project data into the database
-                              final projectID = await dbHelper.insertProjectName(projectData);
-                              // ignore: unnecessary_null_comparison
-                              if (projectID != null) {
+                              final projectID =
+                                  await dbHelper.insertProjectName(projectData);
+
+                              // Initialize default labels AFTER we have the projectID
+                              if (projectID > 0) {
+                                await dbHelper
+                                    .initializeDefaultLabels(projectID);
+
+                                // ignore: unnecessary_null_comparison
+                                //      if (projectID != null) {
 // Create a new Project object
                                 Project newProject = Project(
                                   id: projectID,
@@ -384,13 +425,19 @@ class MainPageUI extends State<MainPage> {
 // Update the ProjectModel with user input
                                 projectModel.projectID = newProject.id;
                                 projectModel.client = newProject.client;
-                                projectModel.projectName = newProject.projectName;
+                                projectModel.projectName =
+                                    newProject.projectName;
                                 projectModel.tech = newProject.tech;
                                 projectModel.createDate = newProject.createDate;
 // Load rectifiers and test stations from the database
 
-                                Provider.of<RectifierNotifier>(context, listen: false).loadRectifiersFromDatabase(newProject.id, 'serviceTag');
-                                Provider.of<TSNotifier>(context, listen: false).loadTestStationsFromDatabase(newProject.id);
+                                Provider.of<RectifierNotifier>(context,
+                                        listen: false)
+                                    .loadRectifiersFromDatabase(
+                                        newProject.id, 'serviceTag');
+                                Provider.of<TSNotifier>(context, listen: false)
+                                    .loadTestStationsFromDatabase(
+                                        newProject.id);
 // Save the selected project to shared preferences
                                 _saveSelectedProjectToPrefs(newProject.id);
 // Update the projectsExist future
@@ -400,14 +447,18 @@ class MainPageUI extends State<MainPage> {
 // Close the dialog and show a Snackbar to notify the user that the project was created successfully
                               if (mounted) {
                                 Navigator.of(context).pop();
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Created database for $projectName')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                        content: Text(
+                                            'Created database for $projectName')));
                               }
                             } catch (e) {
                               // Handle any errors that might have occurred during the project creation
                               if (mounted) {
                                 //
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(content: Text('Failed to create database for $projectName! Error: $e')));
+                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                    content: Text(
+                                        'Failed to create database for $projectName! Error: $e')));
                               }
                             }
                           }
@@ -463,20 +514,27 @@ class MainPageUI extends State<MainPage> {
                   onChanged: (Project? newValue) {
                     if (newValue != null) {
                       onProjectSelected(newValue);
-                      final projectModel = Provider.of<ProjectModel>(innerContext, listen: false);
+                      final projectModel = Provider.of<ProjectModel>(
+                          innerContext,
+                          listen: false);
                       projectModel.projectID = newValue.id;
                       projectModel.client = newValue.client;
                       projectModel.projectName = newValue.projectName;
                       projectModel.tech = newValue.tech;
                       projectModel.createDate = newValue.createDate;
-                      DatabaseHelper.instance.updateLastLoaded(newValue.id, DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now()));
+                      DatabaseHelper.instance.updateLastLoaded(
+                          newValue.id,
+                          DateFormat('yyyy-MM-dd HH:mm:ss')
+                              .format(DateTime.now()));
                       Navigator.of(innerContext).pop();
                     }
                   },
-                  items: projectNames.map<DropdownMenuItem<Project>>((Project project) {
+                  items: projectNames
+                      .map<DropdownMenuItem<Project>>((Project project) {
                     return DropdownMenuItem<Project>(
                       value: project,
-                      child: Text(project.fullProjectName), // Display the full project name
+                      child: Text(project
+                          .fullProjectName), // Display the full project name
                     );
                   }).toList(),
                 ),
@@ -597,7 +655,8 @@ class MainPageUI extends State<MainPage> {
                   children: [
                     // AppBar space (if needed)
                     SizedBox(
-                      height: kToolbarHeight + MediaQuery.of(context).padding.top,
+                      height:
+                          kToolbarHeight + MediaQuery.of(context).padding.top,
                     ),
 
 // Main content
@@ -615,17 +674,24 @@ class MainPageUI extends State<MainPage> {
                                 height: 50.h,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    final int currentProjectId = Provider.of<ProjectModel>(context, listen: false).id;
-                                    final canNavigate = await _canNavigate(currentProjectId);
+                                    final int currentProjectId =
+                                        Provider.of<ProjectModel>(context,
+                                                listen: false)
+                                            .id;
+                                    final canNavigate =
+                                        await _canNavigate(currentProjectId);
                                     if (!mounted) return;
                                     if (canNavigate) {
-                                      Navigator.pushNamed(context, '/test_stations');
+                                      Navigator.pushNamed(
+                                          context, '/test_stations');
                                     } else {
-                                      _showNoProjectSelectedErrorDialog(context);
+                                      _showNoProjectSelectedErrorDialog(
+                                          context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 0, 43, 92),
                                   ),
                                   child: Text('Test Stations',
                                       style: TextStyle(
@@ -644,17 +710,24 @@ class MainPageUI extends State<MainPage> {
                                 height: 50.h,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    final int currentProjectId = Provider.of<ProjectModel>(context, listen: false).id;
-                                    final canNavigate = await _canNavigate(currentProjectId);
+                                    final int currentProjectId =
+                                        Provider.of<ProjectModel>(context,
+                                                listen: false)
+                                            .id;
+                                    final canNavigate =
+                                        await _canNavigate(currentProjectId);
                                     if (!mounted) return;
                                     if (canNavigate) {
-                                      Navigator.pushNamed(context, '/rectifiers');
+                                      Navigator.pushNamed(
+                                          context, '/rectifiers');
                                     } else {
-                                      _showNoProjectSelectedErrorDialog(context);
+                                      _showNoProjectSelectedErrorDialog(
+                                          context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 0, 43, 92),
                                   ),
                                   child: Text(
                                     'Rectifiers',
@@ -675,17 +748,23 @@ class MainPageUI extends State<MainPage> {
                                 height: 50.h,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    final int currentProjectId = Provider.of<ProjectModel>(context, listen: false).id;
-                                    final canNavigate = await _canNavigate(currentProjectId);
+                                    final int currentProjectId =
+                                        Provider.of<ProjectModel>(context,
+                                                listen: false)
+                                            .id;
+                                    final canNavigate =
+                                        await _canNavigate(currentProjectId);
                                     if (!mounted) return;
                                     if (canNavigate) {
                                       Navigator.pushNamed(context, '/tanks');
                                     } else {
-                                      _showNoProjectSelectedErrorDialog(context);
+                                      _showNoProjectSelectedErrorDialog(
+                                          context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 0, 43, 92),
                                   ),
                                   child: Text(
                                     'Tanks',
@@ -706,17 +785,23 @@ class MainPageUI extends State<MainPage> {
                                 height: 50.h,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    final int currentProjectId = Provider.of<ProjectModel>(context, listen: false).id;
-                                    final canNavigate = await _canNavigate(currentProjectId);
+                                    final int currentProjectId =
+                                        Provider.of<ProjectModel>(context,
+                                                listen: false)
+                                            .id;
+                                    final canNavigate =
+                                        await _canNavigate(currentProjectId);
                                     if (!mounted) return;
                                     if (canNavigate) {
                                       Navigator.pushNamed(context, '/iso');
                                     } else {
-                                      _showNoProjectSelectedErrorDialog(context);
+                                      _showNoProjectSelectedErrorDialog(
+                                          context);
                                     }
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color.fromARGB(255, 0, 43, 92),
+                                    backgroundColor:
+                                        const Color.fromARGB(255, 0, 43, 92),
                                   ),
                                   child: Text(
                                     'ISO/OVP',
@@ -733,6 +818,10 @@ class MainPageUI extends State<MainPage> {
                         ),
                       ),
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [Text('v$_version')],
+                    )
                   ],
                 ),
               ],
@@ -761,7 +850,8 @@ class MainPageUI extends State<MainPage> {
                   icon: const Icon(Icons.more_vert, color: Colors.white),
                   onSelected: _choiceAction,
                   itemBuilder: (BuildContext context) {
-                    return ['Multimeter', 'Settings', 'Copy DB to Downloads'].map((String choice) {
+                    return ['Multimeter', 'Settings', 'Copy DB to Downloads']
+                        .map((String choice) {
                       return PopupMenuItem<String>(
                         value: choice,
                         child: Align(
@@ -795,11 +885,15 @@ class MainPageUI extends State<MainPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
                   IconButton(
-                    icon: Icon(Icons.add, color: const Color.fromARGB(255, 247, 143, 30), size: 40.sp),
+                    icon: Icon(Icons.add,
+                        color: const Color.fromARGB(255, 247, 143, 30),
+                        size: 40.sp),
                     onPressed: () => showAddProjectDialog(context),
                   ),
                   IconButton(
-                      icon: Icon(Icons.folder_open, color: const Color.fromARGB(255, 247, 143, 30), size: 40.sp),
+                      icon: Icon(Icons.folder_open,
+                          color: const Color.fromARGB(255, 247, 143, 30),
+                          size: 40.sp),
                       onPressed: () => showSelectProjectDialog()),
                 ],
               ),

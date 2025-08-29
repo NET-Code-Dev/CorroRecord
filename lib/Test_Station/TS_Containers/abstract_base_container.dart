@@ -962,11 +962,13 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     }
   }
 
+/*
   Future<List<String>> loadLabels(String testStationID) async {
     DatabaseHelper dbHelper = DatabaseHelper.instance;
     List<String> labels = await dbHelper.fetchNamesForLabel();
     return labels;
   }
+*/
 
   /// Updates the factor based on the ratio values.
   ///
@@ -1123,6 +1125,31 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
         SizedBox(height: 5.h),
         Row(
           children: [
+            Text('Label: ',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.bold,
+                )),
+            const Spacer(),
+            LabelTextField(
+              controller: labelController,
+              focusNode: labelFocusNode,
+            ),
+          ],
+        ),
+        SizedBox(height: 5.h),
+      ],
+    );
+  }
+
+/*
+  Widget buildLabelRow(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(height: 5.h),
+        Row(
+          children: [
             Text('User Label: ',
                 style: TextStyle(
                   color: Colors.white,
@@ -1143,7 +1170,7 @@ abstract class BaseContainerState<T extends BaseContainer> extends State<T> {
     );
   }
 
-/*
+
   Widget buildLabelRow(BuildContext context) {
     return Column(
       children: [

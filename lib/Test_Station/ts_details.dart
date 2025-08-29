@@ -87,9 +87,12 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       GlobalKey<ScaffoldMessengerState>();
   bool _stateInitialized = false;
   final FocusNode tslocationFocusNode = FocusNode();
+  final ScrollController _scrollController = ScrollController();
   late DatabaseHelper dbHelper;
   late Database db;
   late String projectName;
+  bool _isFieldNotesCollapsed = false;
+  bool _isOfficeNotesCollapsed = false;
 
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
@@ -728,6 +731,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     if (_fieldNotesController.text != widget.testStation.fieldNotes) {
       saveFieldNotes();
     }
+    _scrollController.dispose();
 
     _stateInitialized = false;
     _latitudeController.dispose();
@@ -782,14 +786,27 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
   }
 
   double _calculateHeight() {
-    double baseHeight = 245.h; // Default height
-    double expandHeight = _isExpanded ? 80.h : 0;
-    // Safely check if officeNotes is not null and not empty
-    double notesHeight =
-        (widget.testStation.officeNotes?.isNotEmpty ?? false) ? 160.h : 0;
+    // Base components that are always present:
+    // - Coordinates and status button row: ~44.h
+    // - Field Notes title row with button: ~29.h (20.sp text + 9.h spacing)
+    // - Bottom expand/collapse button row: ~48.h
+    // - Various spacing (SizedBox): ~23.h total
+    double baseHeight = 151.h;
 
-    return baseHeight + expandHeight + notesHeight;
-    //  return baseHeight + expandHeight;
+    // Office Notes section (if present) - Updated to account for collapsed state
+    double officeNotesHeight =
+        (widget.testStation.officeNotes?.isNotEmpty ?? false)
+            ? (_isOfficeNotesCollapsed ? 0 : 160.h)
+            : 0;
+
+    // Field Notes container (when expanded)
+    double fieldNotesHeight =
+        _isFieldNotesCollapsed ? 0 : 75.h; // 70.h container + 5.h spacing
+
+    // Expanded action buttons section
+    double expandHeight = _isExpanded ? 80.h : 0;
+
+    return baseHeight + officeNotesHeight + fieldNotesHeight + expandHeight;
   }
 
   /// A map that maps container types to their corresponding table names.
@@ -1284,6 +1301,10 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
     await _loadContainersFromDatabase(
         readingType, widget.testStation.id, widget.testStation.tsID,
         isAddingNewContainer: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 //    if (kDebugMode) {
 //      print('station ID: ${widget.testStation.id}');
 //     print('Loaded Containers $_loadedContainers');
@@ -1331,6 +1352,17 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
       );
     } catch (e) {
       // Consider logging the error or handling it appropriately
+    }
+  }
+
+  // Method to scroll to the bottom of the ListView
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
     }
   }
 
@@ -1455,6 +1487,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
               const GPSStatusBar(),
               Expanded(
                 child: SingleChildScrollView(
+                  controller: _scrollController,
                   child: Padding(
                     padding: EdgeInsets.all(12.w),
                     child: Column(
@@ -1467,7 +1500,7 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                           SizedBox(height: 10.h),
                         ListView.separated(
                           shrinkWrap: true,
-                          physics: const PageScrollPhysics(),
+                          physics: const NeverScrollableScrollPhysics(),
                           itemCount: _readingContainers.length,
                           itemBuilder: (context, index) =>
                               _readingContainers[index],
@@ -1575,12 +1608,80 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               )),
+                          SizedBox(width: 15.w),
+                          SizedBox(
+                            width: 30.w,
+                            height: 30.h,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  _isOfficeNotesCollapsed =
+                                      !_isOfficeNotesCollapsed;
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              child: Icon(
+                                _isOfficeNotesCollapsed
+                                    ? Icons.keyboard_arrow_down
+                                    : Icons.keyboard_arrow_up,
+                                color: Colors.white,
+                                size: 18.sp,
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(height: 5.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            height: _isOfficeNotesCollapsed ? 0 : 140.h,
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 200),
+                              opacity: _isOfficeNotesCollapsed ? 0.0 : 1.0,
+                              child: _isOfficeNotesCollapsed
+                                  ? const SizedBox.shrink()
+                                  : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          width: 315.w,
+                                          height: 140.h,
+                                          child: SingleChildScrollView(
+                                            child: TextField(
+                                              controller:
+                                                  _officeNotesController,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black,
+                                              ),
+                                              maxLines: null,
+                                              enabled:
+                                                  false, // make text field not editable
+                                              decoration: const InputDecoration(
+                                                border: InputBorder.none,
+                                                fillColor: Colors.white,
+                                                filled: true,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+
+/*
                           Container(
                             width: 315.w,
                             height: 140.h,
@@ -1607,6 +1708,8 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                               ),
                             ),
                           ),
+
+                          */
                         ],
                       ),
                     ],
@@ -1620,35 +1723,72 @@ class _TestStationDetailsPageState extends State<TestStationDetailsPage> {
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             )),
+                        SizedBox(width: 15.w),
+                        SizedBox(
+                          width: 30.w,
+                          height: 30.h,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isFieldNotesCollapsed =
+                                    !_isFieldNotesCollapsed;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white.withOpacity(0.2),
+                              padding: EdgeInsets.zero,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                            child: Icon(
+                              _isFieldNotesCollapsed
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_up,
+                              color: Colors.white,
+                              size: 18.sp,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                     SizedBox(height: 5.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Container(
-                          width: 315.w,
-                          height: 70.h,
-                          //  padding: EdgeInsets.symmetric(horizontal: 8.w),
-                          //  decoration: BoxDecoration(
-                          //    color: Colors.white,
-                          //    borderRadius: BorderRadius.circular(10.r),
-                          //    border: Border.all(color: Colors.white),
-                          //  ),
-                          child: SingleChildScrollView(
-                            child: TextField(
-                              controller: _fieldNotesController,
-                              focusNode: fieldNotesFocusNode,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
-                              maxLines: null,
-                              enabled: true, // make text field not editable
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                              ),
-                            ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                          height: _isFieldNotesCollapsed ? 0 : 70.h,
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 200),
+                            opacity: _isFieldNotesCollapsed ? 0.0 : 1.0,
+                            child: _isFieldNotesCollapsed
+                                ? const SizedBox.shrink()
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 315.w,
+                                        height: 70.h,
+                                        child: SingleChildScrollView(
+                                          child: TextField(
+                                            controller: _fieldNotesController,
+                                            focusNode: fieldNotesFocusNode,
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.black,
+                                            ),
+                                            maxLines: null,
+                                            enabled: true,
+                                            decoration: const InputDecoration(
+                                              border: InputBorder.none,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
                       ],
