@@ -26,7 +26,7 @@ class CustomCamera extends StatefulWidget {
   final String? rectifierArea;
   final String? rectifierServiceTag;
 
-  CustomCamera({
+  const CustomCamera({
     super.key,
     required this.projectID,
     required this.projectClient,
@@ -131,7 +131,9 @@ class _CustomCameraScreenState extends State<CustomCamera>
       if (kDebugMode &&
           !e.toString().contains('OpenGL') &&
           !e.toString().contains('libEGL')) {
-        print("Error disposing camera: $e");
+        if (kDebugMode) {
+          print("Error disposing camera: $e");
+        }
       }
     }
   }
@@ -157,7 +159,9 @@ class _CustomCameraScreenState extends State<CustomCamera>
       if (kDebugMode &&
           !e.toString().contains('OpenGL') &&
           !e.toString().contains('libEGL')) {
-        print("Camera lifecycle error: $e");
+        if (kDebugMode) {
+          print("Camera lifecycle error: $e");
+        }
       }
     }
   }
@@ -279,15 +283,14 @@ class _CustomCameraScreenState extends State<CustomCamera>
     }
 
     try {
-      // Generate filename when capture button is pressed
-      _currentFileName = _generateFileName();
+      // Generate filename before capture
+      String currentFileName = _generateFileName();
 
-      // Update state to show the overlay for screenshot only
       setState(() {
-        _isFlashVisible = false; // Ensure flash is off during overlay render
+        _currentFileName = currentFileName;
+        _isFlashVisible = false;
       });
 
-      // Small delay to ensure the overlay renders
       await Future.delayed(const Duration(milliseconds: 100));
 
       final imageFile = await screenshotController.capture();
@@ -298,7 +301,8 @@ class _CustomCameraScreenState extends State<CustomCamera>
           _currentFileName = null; // Hide overlay after capture
         });
 
-        final imageInfo = await _saveImageToFile(imageFile, _currentFileName!);
+        // Use the stored filename instead of the null _currentFileName
+        final imageInfo = await _saveImageToFile(imageFile, currentFileName);
         await _saveImagePathToDatabase(imageInfo['path']!);
 
         setState(() {
@@ -317,7 +321,7 @@ class _CustomCameraScreenState extends State<CustomCamera>
       }
       setState(() {
         _isFlashVisible = false;
-        _currentFileName = null; // Reset on error
+        _currentFileName = null;
       });
     }
   }
@@ -611,14 +615,14 @@ class _CustomCameraScreenState extends State<CustomCamera>
                                 top: 2,
                                 right: 2,
                                 child: Container(
-                                  padding: EdgeInsets.all(4),
+                                  padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withOpacity(0.7),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Text(
                                     '${capturedImageBytes.length}',
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -722,15 +726,15 @@ class _DisplayCapturedImagesScreenState
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete Image'),
-          content: Text('Are you sure you want to delete this image?'),
+          title: const Text('Delete Image'),
+          content: const Text('Are you sure you want to delete this image?'),
           actions: [
             TextButton(
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop(); // Close dialog
                 widget.onDeleteImage(_currentIndex);
@@ -746,7 +750,7 @@ class _DisplayCapturedImagesScreenState
                     });
                     _pageController.animateToPage(
                       _currentIndex,
-                      duration: Duration(milliseconds: 300),
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     );
                   }

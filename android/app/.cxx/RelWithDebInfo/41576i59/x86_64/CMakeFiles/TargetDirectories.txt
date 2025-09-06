@@ -1,0 +1,2 @@
+C:/Users/polan/REPOS/CorroRecord/android/app/.cxx/RelWithDebInfo/41576i59/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/polan/REPOS/CorroRecord/android/app/.cxx/RelWithDebInfo/41576i59/x86_64/CMakeFiles/rebuild_cache.dir
